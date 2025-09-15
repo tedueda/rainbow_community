@@ -39,9 +39,9 @@ const LoginForm: React.FC = () => {
           <div className="flex justify-center mb-4">
             <Heart className="h-12 w-12 text-pink-500" />
           </div>
-          <CardTitle className="text-xl sm:text-2xl text-pink-800">おかえりなさい</CardTitle>
+          <CardTitle className="text-xl sm:text-2xl text-pink-800">プレミアム会員ログイン</CardTitle>
           <CardDescription className="text-gray-600">
-            LGBTQ+ コミュニティアカウントにログイン
+            プレミアム会員アカウントでログインして全機能をご利用ください
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -79,12 +79,15 @@ const LoginForm: React.FC = () => {
               {isLoading ? 'ログイン中...' : 'ログイン'}
             </Button>
           </form>
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center space-y-2">
             <p className="text-sm text-gray-600">
-              アカウントをお持ちでない方は{' '}
+              プレミアム会員でない方は{' '}
               <Link to="/register" className="text-pink-600 hover:text-pink-500 font-medium">
                 こちらから登録
               </Link>
+            </p>
+            <p className="text-xs text-gray-500">
+              テスト用: premium@test.com / premium123
             </p>
           </div>
         </CardContent>

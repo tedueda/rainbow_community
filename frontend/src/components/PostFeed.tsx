@@ -24,16 +24,19 @@ const PostFeed: React.FC = () => {
   const [users, setUsers] = useState<{ [key: number]: User }>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const { token } = useAuth();
+  const { token, user, isAnonymous, setAnonymousMode } = useAuth();
 
   const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
 
   const fetchPosts = async () => {
     try {
-      const response = await fetch(`${API_URL}/posts`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const headers: any = {};
+      if (token && !isAnonymous) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`${API_URL}/posts/`, {
+        headers,
       });
 
       if (response.ok) {
@@ -45,10 +48,13 @@ const PostFeed: React.FC = () => {
         
         for (const userId of userIds) {
           try {
+            const userHeaders: any = {};
+            if (token && !isAnonymous) {
+              userHeaders['Authorization'] = `Bearer ${token}`;
+            }
+            
             const userResponse = await fetch(`${API_URL}/users/${userId}`, {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-              },
+              headers: userHeaders,
             });
             if (userResponse.ok) {
               const userData = await userResponse.json();
@@ -71,6 +77,11 @@ const PostFeed: React.FC = () => {
   };
 
   const handleReaction = async (postId: number, reactionType: string) => {
+    if (!user || isAnonymous) {
+      alert('リアクションするにはプレミアム会員登録が必要です');
+      return;
+    }
+    
     try {
       const response = await fetch(`${API_URL}/reactions`, {
         method: 'POST',
@@ -94,8 +105,11 @@ const PostFeed: React.FC = () => {
   };
 
   useEffect(() => {
+    if (!user && !isAnonymous) {
+      setAnonymousMode();
+    }
     fetchPosts();
-  }, []);
+  }, [user, isAnonymous, setAnonymousMode]);
 
   if (loading) {
     return (
@@ -124,14 +138,23 @@ const PostFeed: React.FC = () => {
         <Card className="text-center p-6 sm:p-8 border-pink-200 shadow-lg">
           <CardContent>
             <Heart className="h-12 sm:h-16 w-12 sm:w-16 text-pink-300 mx-auto mb-4" />
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">まだ投稿がありません。最初の投稿をしてみませんか？</h3>
-            <p className="text-gray-500 mb-4">会話を始めて、コミュニティを一緒に作りましょう。</p>
-            <Button 
-              onClick={() => window.location.href = '/create'}
-              className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white"
-            >
-              最初の投稿を作成
-            </Button>
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">まだ投稿がありません。</h3>
+            <p className="text-gray-500 mb-4">コミュニティの投稿をお待ちください。</p>
+            {user && !isAnonymous ? (
+              <Button 
+                onClick={() => window.location.href = '/create'}
+                className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white"
+              >
+                最初の投稿を作成
+              </Button>
+            ) : (
+              <Button 
+                onClick={() => window.location.href = '/login'}
+                className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white"
+              >
+                投稿するにはプレミアム登録
+              </Button>
+            )}
           </CardContent>
         </Card>
       ) : (
@@ -166,58 +189,73 @@ const PostFeed: React.FC = () => {
               <p className="text-gray-700 mb-4 whitespace-pre-wrap text-sm sm:text-base">{post.body}</p>
               
               <div className="flex flex-wrap items-center gap-2 sm:gap-4 pt-3 border-t border-gray-100">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleReaction(post.id, 'like')}
-                  className="flex items-center space-x-1 text-gray-600 hover:text-pink-600 hover:bg-pink-50 text-xs sm:text-sm"
-                >
-                  <ThumbsUp className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span>いいね</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleReaction(post.id, 'love')}
-                  className="flex items-center space-x-1 text-gray-600 hover:text-pink-600 hover:bg-pink-50 text-xs sm:text-sm"
-                >
-                  <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span>愛</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleReaction(post.id, 'support')}
-                  className="flex items-center space-x-1 text-gray-600 hover:text-green-600 hover:bg-green-50 text-xs sm:text-sm"
-                >
-                  <Smile className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span>応援</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleReaction(post.id, 'respect')}
-                  className="flex items-center space-x-1 text-gray-600 hover:text-orange-600 hover:bg-orange-50 text-xs sm:text-sm"
-                >
-                  <Award className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span>尊敬</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="flex items-center space-x-1 text-gray-600 hover:text-gray-800 hover:bg-gray-50 text-xs sm:text-sm"
-                >
-                  <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span>コメント</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="flex items-center space-x-1 text-gray-600 hover:text-gray-800 hover:bg-gray-50 text-xs sm:text-sm"
-                >
-                  <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span>シェア</span>
-                </Button>
+                {user && !isAnonymous ? (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleReaction(post.id, 'like')}
+                      className="flex items-center space-x-1 text-gray-600 hover:text-pink-600 hover:bg-pink-50 text-xs sm:text-sm"
+                    >
+                      <ThumbsUp className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span>いいね</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleReaction(post.id, 'love')}
+                      className="flex items-center space-x-1 text-gray-600 hover:text-pink-600 hover:bg-pink-50 text-xs sm:text-sm"
+                    >
+                      <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span>愛</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleReaction(post.id, 'support')}
+                      className="flex items-center space-x-1 text-gray-600 hover:text-green-600 hover:bg-green-50 text-xs sm:text-sm"
+                    >
+                      <Smile className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span>応援</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleReaction(post.id, 'respect')}
+                      className="flex items-center space-x-1 text-gray-600 hover:text-orange-600 hover:bg-orange-50 text-xs sm:text-sm"
+                    >
+                      <Award className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span>尊敬</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center space-x-1 text-gray-600 hover:text-gray-800 hover:bg-gray-50 text-xs sm:text-sm"
+                    >
+                      <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span>コメント</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center space-x-1 text-gray-600 hover:text-gray-800 hover:bg-gray-50 text-xs sm:text-sm"
+                    >
+                      <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span>シェア</span>
+                    </Button>
+                  </>
+                ) : (
+                  <div className="w-full text-center py-2">
+                    <p className="text-sm text-gray-500 mb-2">リアクションや投稿をするにはプレミアム会員登録が必要です</p>
+                    <Button 
+                      onClick={() => window.location.href = '/login'}
+                      size="sm"
+                      className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white"
+                    >
+                      プレミアム登録
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -27,6 +27,7 @@ class UserUpdate(BaseModel):
 
 class User(UserBase):
     id: int
+    membership_type: str
     is_active: bool
     created_at: datetime
     

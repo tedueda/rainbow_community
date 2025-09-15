@@ -18,6 +18,16 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return user ? <>{children}</> : <Navigate to="/login" />;
 };
 
+const FeedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+  
+  return <>{children}</>;
+};
+
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
   
@@ -45,9 +55,9 @@ function AppContent() {
             </PublicRoute>
           } />
           <Route path="/feed" element={
-            <ProtectedRoute>
+            <FeedRoute>
               <PostFeed />
-            </ProtectedRoute>
+            </FeedRoute>
           } />
           <Route path="/profile" element={
             <ProtectedRoute>

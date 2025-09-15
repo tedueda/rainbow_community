@@ -11,9 +11,14 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
     display_name = Column(String(100), nullable=False)
+    membership_type = Column(String(20), default="premium")
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    
+    __table_args__ = (
+        CheckConstraint("membership_type IN ('free', 'premium')", name="check_membership_type"),
+    )
     
     profile = relationship("Profile", back_populates="user", uselist=False)
     posts = relationship("Post", back_populates="user")

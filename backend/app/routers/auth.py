@@ -22,7 +22,8 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
     db_user = User(
         email=user.email,
         password_hash=hashed_password,
-        display_name=user.display_name
+        display_name=user.display_name,
+        membership_type="premium"
     )
     db.add(db_user)
     db.commit()

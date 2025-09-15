@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Heart, User, PlusCircle, LogOut } from 'lucide-react';
 
 const Header: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, isAnonymous, logout, setAnonymousMode } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -50,8 +50,28 @@ const Header: React.FC = () => {
                 ログアウト
               </Button>
             </div>
+          ) : isAnonymous ? (
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <Link to="/feed">
+                <Button variant="ghost" className="text-pink-700 hover:text-pink-900 hover:bg-pink-50 text-sm sm:text-base">
+                  フィード
+                </Button>
+              </Link>
+              <Link to="/login">
+                <Button className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white text-sm sm:text-base">
+                  プレミアム登録
+                </Button>
+              </Link>
+            </div>
           ) : (
             <div className="flex items-center space-x-2 sm:space-x-4">
+              <Button 
+                onClick={setAnonymousMode}
+                variant="ghost" 
+                className="text-green-700 hover:text-green-900 hover:bg-green-50 text-sm sm:text-base"
+              >
+                無料で閲覧
+              </Button>
               <Link to="/login">
                 <Button variant="ghost" className="text-pink-700 hover:text-pink-900 hover:bg-pink-50 text-sm sm:text-base">
                   ログイン
@@ -59,7 +79,7 @@ const Header: React.FC = () => {
               </Link>
               <Link to="/register">
                 <Button className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white text-sm sm:text-base">
-                  登録
+                  プレミアム登録
                 </Button>
               </Link>
             </div>

@@ -5,7 +5,7 @@ from typing import List, Optional
 from app.database import get_db
 from app.models import User, Post, PointEvent
 from app.schemas import Post as PostSchema, PostCreate, PostUpdate
-from app.auth import get_current_active_user
+from app.auth import get_current_active_user, get_current_premium_user
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
@@ -29,7 +29,7 @@ async def read_posts(
 @router.post("/", response_model=PostSchema)
 async def create_post(
     post: PostCreate,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_premium_user),
     db: Session = Depends(get_db)
 ):
     db_post = Post(**post.dict(), user_id=current_user.id)
@@ -60,7 +60,7 @@ async def read_post(post_id: int, db: Session = Depends(get_db)):
 async def update_post(
     post_id: int,
     post_update: PostUpdate,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_premium_user),
     db: Session = Depends(get_db)
 ):
     post = db.query(Post).filter(Post.id == post_id).first()
@@ -80,7 +80,7 @@ async def update_post(
 @router.delete("/{post_id}")
 async def delete_post(
     post_id: int,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_premium_user),
     db: Session = Depends(get_db)
 ):
     post = db.query(Post).filter(Post.id == post_id).first()

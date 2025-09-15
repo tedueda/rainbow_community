@@ -53,9 +53,9 @@ const RegisterForm: React.FC = () => {
           <div className="flex justify-center mb-4">
             <Heart className="h-12 w-12 text-green-500" />
           </div>
-          <CardTitle className="text-xl sm:text-2xl text-green-800">コミュニティに参加</CardTitle>
+          <CardTitle className="text-xl sm:text-2xl text-green-800">プレミアム会員登録</CardTitle>
           <CardDescription className="text-gray-600">
-            LGBTQ+ コミュニティアカウントを作成
+            プレミアム会員になって投稿・リアクション・コメント機能をご利用ください
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -113,12 +113,12 @@ const RegisterForm: React.FC = () => {
               className="w-full bg-gradient-to-r from-green-500 to-pink-400 hover:from-green-600 hover:to-pink-500 text-white"
               disabled={isLoading}
             >
-              {isLoading ? 'アカウント作成中...' : 'アカウント作成'}
+              {isLoading ? 'プレミアム会員登録中...' : 'プレミアム会員登録'}
             </Button>
           </form>
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              既にアカウントをお持ちの方は{' '}
+              既にプレミアム会員の方は{' '}
               <Link to="/login" className="text-green-600 hover:text-green-500 font-medium">
                 こちらからログイン
               </Link>

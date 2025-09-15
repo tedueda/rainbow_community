@@ -4,6 +4,7 @@ interface User {
   id: number;
   email: string;
   display_name: string;
+  membership_type: string;
   is_active: boolean;
   created_at: string;
 }
@@ -11,9 +12,11 @@ interface User {
 interface AuthContextType {
   user: User | null;
   token: string | null;
+  isAnonymous: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string, displayName: string) => Promise<boolean>;
   logout: () => void;
+  setAnonymousMode: () => void;
   isLoading: boolean;
 }
 
@@ -34,17 +37,18 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [isAnonymous, setIsAnonymous] = useState<boolean>(localStorage.getItem('anonymous') === 'true');
   const [isLoading, setIsLoading] = useState(true);
 
   const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
-    if (token) {
+    if (token && !isAnonymous) {
       fetchUser();
     } else {
       setIsLoading(false);
     }
-  }, [token]);
+  }, [token, isAnonymous]);
 
   const fetchUser = async () => {
     try {
@@ -121,16 +125,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('anonymous');
     setToken(null);
     setUser(null);
+    setIsAnonymous(false);
+  };
+
+  const setAnonymousMode = () => {
+    localStorage.setItem('anonymous', 'true');
+    localStorage.removeItem('token');
+    setToken(null);
+    setUser(null);
+    setIsAnonymous(true);
   };
 
   const value = {
     user,
     token,
+    isAnonymous,
     login,
     register,
     logout,
+    setAnonymousMode,
     isLoading,
   };
 
