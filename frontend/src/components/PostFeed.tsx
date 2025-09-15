@@ -56,7 +56,7 @@ const PostFeed: React.FC = () => {
             });
             if (userResponse.ok) {
               const userData = await userResponse.json();
-              usersData[userId] = userData;
+              usersData[userId as number] = userData;
             }
           } catch (error) {
             console.error(`Error fetching user ${userId}:`, error);

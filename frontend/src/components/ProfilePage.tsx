@@ -38,7 +38,7 @@ const ProfilePage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   
-  const { user, token } = useAuth();
+  const { token } = useAuth();
 
   const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
 
