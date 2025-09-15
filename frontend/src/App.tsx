@@ -1,35 +1,79 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import Header from './components/Header';
+import LoginForm from './components/LoginForm';
+import RegisterForm from './components/RegisterForm';
+import PostFeed from './components/PostFeed';
+import ProfilePage from './components/ProfilePage';
+import CreatePost from './components/CreatePost';
 
-function App() {
-  const [count, setCount] = useState(0)
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+  
+  return user ? <>{children}</> : <Navigate to="/login" />;
+};
 
+const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+  
+  return user ? <Navigate to="/feed" /> : <>{children}</>;
+};
+
+function AppContent() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+      <Header />
+      <main className="container mx-auto px-4 py-8">
+        <Routes>
+          <Route path="/login" element={
+            <PublicRoute>
+              <LoginForm />
+            </PublicRoute>
+          } />
+          <Route path="/register" element={
+            <PublicRoute>
+              <RegisterForm />
+            </PublicRoute>
+          } />
+          <Route path="/feed" element={
+            <ProtectedRoute>
+              <PostFeed />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          } />
+          <Route path="/create" element={
+            <ProtectedRoute>
+              <CreatePost />
+            </ProtectedRoute>
+          } />
+          <Route path="/" element={<Navigate to="/feed" />} />
+        </Routes>
+      </main>
+    </div>
+  );
 }
 
-export default App
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </AuthProvider>
+  );
+}
+
+export default App;
