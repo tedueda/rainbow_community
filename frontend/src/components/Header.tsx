@@ -14,52 +14,52 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm border-b border-purple-100">
+    <header className="bg-white shadow-sm border-b border-pink-100">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link to="/feed" className="flex items-center space-x-2">
-            <Heart className="h-8 w-8 text-purple-600" />
-            <span className="text-2xl font-bold text-purple-800">LGBTQ+ Community</span>
+            <Heart className="h-8 w-8 text-pink-500" />
+            <span className="text-xl sm:text-2xl font-bold text-pink-800">LGBTQ+ コミュニティ</span>
           </Link>
 
           {user ? (
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <Link to="/feed">
-                <Button variant="ghost" className="text-purple-700 hover:text-purple-900">
-                  Feed
+                <Button variant="ghost" className="text-pink-700 hover:text-pink-900 hover:bg-pink-50 text-sm sm:text-base">
+                  フィード
                 </Button>
               </Link>
               <Link to="/create">
-                <Button variant="ghost" className="text-purple-700 hover:text-purple-900">
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Create
+                <Button variant="ghost" className="text-green-700 hover:text-green-900 hover:bg-green-50 text-sm sm:text-base">
+                  <PlusCircle className="h-4 w-4 mr-1 sm:mr-2" />
+                  投稿
                 </Button>
               </Link>
               <Link to="/profile">
-                <Button variant="ghost" className="text-purple-700 hover:text-purple-900">
-                  <User className="h-4 w-4 mr-2" />
-                  Profile
+                <Button variant="ghost" className="text-orange-700 hover:text-orange-900 hover:bg-orange-50 text-sm sm:text-base">
+                  <User className="h-4 w-4 mr-1 sm:mr-2" />
+                  プロフィール
                 </Button>
               </Link>
               <Button 
                 variant="outline" 
                 onClick={handleLogout}
-                className="text-purple-700 border-purple-300 hover:bg-purple-50"
+                className="text-pink-700 border-pink-300 hover:bg-pink-50 text-sm sm:text-base"
               >
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
+                <LogOut className="h-4 w-4 mr-1 sm:mr-2" />
+                ログアウト
               </Button>
             </div>
           ) : (
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <Link to="/login">
-                <Button variant="ghost" className="text-purple-700 hover:text-purple-900">
-                  Login
+                <Button variant="ghost" className="text-pink-700 hover:text-pink-900 hover:bg-pink-50 text-sm sm:text-base">
+                  ログイン
                 </Button>
               </Link>
               <Link to="/register">
-                <Button className="bg-purple-600 hover:bg-purple-700">
-                  Register
+                <Button className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white text-sm sm:text-base">
+                  登録
                 </Button>
               </Link>
             </div>

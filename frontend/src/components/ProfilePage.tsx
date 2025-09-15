@@ -58,11 +58,11 @@ const ProfilePage: React.FC = () => {
         const profileData = await response.json();
         setProfile(profileData);
       } else {
-        setError('Failed to load profile');
+        setError('プロフィールの読み込みに失敗しました');
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
-      setError('Failed to load profile');
+      setError('プロフィールの読み込みに失敗しました');
     } finally {
       setIsLoading(false);
     }
@@ -90,11 +90,11 @@ const ProfilePage: React.FC = () => {
         setIsEditing(false);
       } else {
         const errorData = await response.json();
-        setError(errorData.detail || 'Failed to update profile');
+        setError(errorData.detail || 'プロフィールの更新に失敗しました');
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      setError('Failed to update profile. Please try again.');
+      setError('プロフィールの更新に失敗しました。もう一度お試しください。');
     } finally {
       setIsSaving(false);
     }
@@ -109,19 +109,19 @@ const ProfilePage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-purple-600">Loading profile...</div>
+        <div className="text-pink-600">プロフィールを読み込み中...</div>
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className="max-w-2xl mx-auto">
-        <Card>
+      <div className="max-w-2xl mx-auto p-4 sm:p-6">
+        <Card className="border-pink-200">
           <CardContent className="text-center py-12">
-            <p className="text-red-600">Failed to load profile</p>
-            <Button onClick={fetchProfile} className="mt-4">
-              Try Again
+            <p className="text-red-600">プロフィールの読み込みに失敗しました</p>
+            <Button onClick={fetchProfile} className="mt-4 bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white">
+              再試行
             </Button>
           </CardContent>
         </Card>
@@ -130,38 +130,38 @@ const ProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto p-4 sm:p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-purple-800 mb-2">Your Profile</h1>
-        <p className="text-purple-600">Manage your profile information and privacy settings</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-pink-800 mb-2">あなたのプロフィール</h1>
+        <p className="text-gray-600">プロフィール情報とプライバシー設定を管理</p>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="profile" className="flex items-center">
-            <User className="h-4 w-4 mr-2" />
-            Profile Info
+          <TabsTrigger value="profile" className="flex items-center text-sm sm:text-base">
+            <User className="h-4 w-4 mr-1 sm:mr-2" />
+            プロフィール情報
           </TabsTrigger>
-          <TabsTrigger value="privacy" className="flex items-center">
-            <Shield className="h-4 w-4 mr-2" />
-            Privacy Settings
+          <TabsTrigger value="privacy" className="flex items-center text-sm sm:text-base">
+            <Shield className="h-4 w-4 mr-1 sm:mr-2" />
+            プライバシー設定
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile">
-          <Card>
+          <Card className="border-pink-200 shadow-lg">
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Profile Information</span>
+              <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
+                <span className="text-pink-800">プロフィール情報</span>
                 {!isEditing ? (
-                  <Button onClick={() => setIsEditing(true)} variant="outline">
+                  <Button onClick={() => setIsEditing(true)} variant="outline" className="border-pink-300 text-pink-700 hover:bg-pink-50">
                     <Settings className="h-4 w-4 mr-2" />
-                    Edit
+                    編集
                   </Button>
                 ) : (
-                  <div className="space-x-2">
-                    <Button onClick={handleSave} disabled={isSaving}>
-                      {isSaving ? 'Saving...' : 'Save'}
+                  <div className="flex space-x-2">
+                    <Button onClick={handleSave} disabled={isSaving} className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white">
+                      {isSaving ? '保存中...' : '保存'}
                     </Button>
                     <Button 
                       variant="outline" 
@@ -169,8 +169,9 @@ const ProfilePage: React.FC = () => {
                         setIsEditing(false);
                         fetchProfile();
                       }}
+                      className="border-pink-300 text-pink-700 hover:bg-pink-50"
                     >
-                      Cancel
+                      キャンセル
                     </Button>
                   </div>
                 )}
@@ -179,44 +180,44 @@ const ProfilePage: React.FC = () => {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="handle">Handle</Label>
+                  <Label htmlFor="handle" className="text-gray-700">ハンドル名</Label>
                   <Input
                     id="handle"
                     value={profile.handle}
                     onChange={(e) => updateProfile('handle', e.target.value)}
                     disabled={!isEditing}
-                    className="border-purple-200 focus:border-purple-500"
+                    className="border-pink-200 focus:border-pink-400 focus:ring-pink-400"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
+                  <Label htmlFor="location" className="text-gray-700">場所</Label>
                   <Input
                     id="location"
                     value={profile.location || ''}
                     onChange={(e) => updateProfile('location', e.target.value)}
                     disabled={!isEditing}
-                    placeholder="Your city or region"
-                    className="border-purple-200 focus:border-purple-500"
+                    placeholder="あなたの都市や地域"
+                    className="border-pink-200 focus:border-pink-400 focus:ring-pink-400"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="bio">Bio</Label>
+                <Label htmlFor="bio" className="text-gray-700">自己紹介</Label>
                 <Textarea
                   id="bio"
                   value={profile.bio || ''}
                   onChange={(e) => updateProfile('bio', e.target.value)}
                   disabled={!isEditing}
-                  placeholder="Tell us about yourself..."
+                  placeholder="あなたについて教えてください..."
                   rows={4}
-                  className="border-purple-200 focus:border-purple-500"
+                  className="border-pink-200 focus:border-pink-400 focus:ring-pink-400"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="website">Website</Label>
+                <Label htmlFor="website" className="text-gray-700">ウェブサイト</Label>
                 <Input
                   id="website"
                   type="url"
@@ -224,7 +225,7 @@ const ProfilePage: React.FC = () => {
                   onChange={(e) => updateProfile('website', e.target.value)}
                   disabled={!isEditing}
                   placeholder="https://your-website.com"
-                  className="border-purple-200 focus:border-purple-500"
+                  className="border-pink-200 focus:border-pink-400 focus:ring-pink-400"
                 />
               </div>
 
@@ -238,18 +239,18 @@ const ProfilePage: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="privacy">
-          <Card>
+          <Card className="border-green-200 shadow-lg">
             <CardHeader>
-              <CardTitle>Privacy Settings</CardTitle>
+              <CardTitle className="text-green-800">プライバシー設定</CardTitle>
               <p className="text-sm text-gray-600">
-                Control what information is visible to other users
+                他のユーザーに表示される情報をコントロール
               </p>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="profile-public">Public Profile</Label>
-                  <p className="text-sm text-gray-600">Make your profile visible to everyone</p>
+                  <Label htmlFor="profile-public" className="text-gray-700">公開プロフィール</Label>
+                  <p className="text-sm text-gray-600">プロフィールを誰でも見られるようにする</p>
                 </div>
                 <Switch
                   id="profile-public"
@@ -260,8 +261,8 @@ const ProfilePage: React.FC = () => {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="show-location">Show Location</Label>
-                  <p className="text-sm text-gray-600">Display your location on your profile</p>
+                  <Label htmlFor="show-location" className="text-gray-700">場所を表示</Label>
+                  <p className="text-sm text-gray-600">プロフィールに場所を表示する</p>
                 </div>
                 <Switch
                   id="show-location"
@@ -272,8 +273,8 @@ const ProfilePage: React.FC = () => {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="show-orientation">Show Orientation</Label>
-                  <p className="text-sm text-gray-600">Display your sexual orientation</p>
+                  <Label htmlFor="show-orientation" className="text-gray-700">性的指向を表示</Label>
+                  <p className="text-sm text-gray-600">性的指向を表示する</p>
                 </div>
                 <Switch
                   id="show-orientation"
@@ -284,8 +285,8 @@ const ProfilePage: React.FC = () => {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="show-gender">Show Gender</Label>
-                  <p className="text-sm text-gray-600">Display your gender identity</p>
+                  <Label htmlFor="show-gender" className="text-gray-700">性自認を表示</Label>
+                  <p className="text-sm text-gray-600">性自認を表示する</p>
                 </div>
                 <Switch
                   id="show-gender"
@@ -296,8 +297,8 @@ const ProfilePage: React.FC = () => {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="show-pronoun">Show Pronouns</Label>
-                  <p className="text-sm text-gray-600">Display your preferred pronouns</p>
+                  <Label htmlFor="show-pronoun" className="text-gray-700">代名詞を表示</Label>
+                  <p className="text-sm text-gray-600">希望する代名詞を表示する</p>
                 </div>
                 <Switch
                   id="show-pronoun"
@@ -308,8 +309,8 @@ const ProfilePage: React.FC = () => {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="show-birthday">Show Birthday</Label>
-                  <p className="text-sm text-gray-600">Display your birthday (age only)</p>
+                  <Label htmlFor="show-birthday" className="text-gray-700">誕生日を表示</Label>
+                  <p className="text-sm text-gray-600">誕生日（年齢のみ）を表示する</p>
                 </div>
                 <Switch
                   id="show-birthday"
@@ -321,9 +322,9 @@ const ProfilePage: React.FC = () => {
               <Button 
                 onClick={handleSave} 
                 disabled={isSaving}
-                className="w-full bg-purple-600 hover:bg-purple-700"
+                className="w-full bg-gradient-to-r from-green-500 to-pink-400 hover:from-green-600 hover:to-pink-500 text-white"
               >
-                {isSaving ? 'Saving Privacy Settings...' : 'Save Privacy Settings'}
+                {isSaving ? 'プライバシー設定を保存中...' : 'プライバシー設定を保存'}
               </Button>
             </CardContent>
           </Card>

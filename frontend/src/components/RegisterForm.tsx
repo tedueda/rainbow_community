@@ -24,13 +24,13 @@ const RegisterForm: React.FC = () => {
     setError('');
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError('パスワードが一致しません');
       setIsLoading(false);
       return;
     }
 
     if (password.length < 8) {
-      setError('Password must be at least 8 characters long');
+      setError('パスワードは8文字以上である必要があります');
       setIsLoading(false);
       return;
     }
@@ -40,50 +40,50 @@ const RegisterForm: React.FC = () => {
     if (success) {
       navigate('/feed');
     } else {
-      setError('Registration failed. Email may already be in use.');
+      setError('このメールアドレスは既に使用されている可能性があります');
     }
     
     setIsLoading(false);
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[80vh]">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-green-50 to-orange-50 px-4">
+      <Card className="w-full max-w-md shadow-lg border-green-200">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Heart className="h-12 w-12 text-purple-600" />
+            <Heart className="h-12 w-12 text-green-500" />
           </div>
-          <CardTitle className="text-2xl text-purple-800">Join Our Community</CardTitle>
-          <CardDescription>
-            Create your LGBTQ+ Community account
+          <CardTitle className="text-xl sm:text-2xl text-green-800">コミュニティに参加</CardTitle>
+          <CardDescription className="text-gray-600">
+            LGBTQ+ コミュニティアカウントを作成
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="displayName">Display Name</Label>
+              <Label htmlFor="displayName" className="text-gray-700">表示名</Label>
               <Input
                 id="displayName"
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 required
-                className="border-purple-200 focus:border-purple-500"
+                className="border-green-200 focus:border-green-400 focus:ring-green-400"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-gray-700">メールアドレス</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="border-purple-200 focus:border-purple-500"
+                className="border-green-200 focus:border-green-400 focus:ring-green-400"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-gray-700">パスワード</Label>
               <Input
                 id="password"
                 type="password"
@@ -91,36 +91,36 @@ const RegisterForm: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={8}
-                className="border-purple-200 focus:border-purple-500"
+                className="border-green-200 focus:border-green-400 focus:ring-green-400"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword" className="text-gray-700">パスワード確認</Label>
               <Input
                 id="confirmPassword"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className="border-purple-200 focus:border-purple-500"
+                className="border-green-200 focus:border-green-400 focus:ring-green-400"
               />
             </div>
             {error && (
-              <div className="text-red-600 text-sm">{error}</div>
+              <div className="text-red-600 text-sm bg-red-50 p-2 rounded">{error}</div>
             )}
             <Button 
               type="submit" 
-              className="w-full bg-purple-600 hover:bg-purple-700"
+              className="w-full bg-gradient-to-r from-green-500 to-pink-400 hover:from-green-600 hover:to-pink-500 text-white"
               disabled={isLoading}
             >
-              {isLoading ? 'Creating account...' : 'Create Account'}
+              {isLoading ? 'アカウント作成中...' : 'アカウント作成'}
             </Button>
           </form>
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Already have an account?{' '}
-              <Link to="/login" className="text-purple-600 hover:text-purple-800 font-medium">
-                Sign in
+              既にアカウントをお持ちの方は{' '}
+              <Link to="/login" className="text-green-600 hover:text-green-500 font-medium">
+                こちらからログイン
               </Link>
             </p>
           </div>

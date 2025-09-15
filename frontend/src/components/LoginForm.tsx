@@ -26,64 +26,64 @@ const LoginForm: React.FC = () => {
     if (success) {
       navigate('/feed');
     } else {
-      setError('Invalid email or password');
+      setError('メールアドレスまたはパスワードが正しくありません');
     }
     
     setIsLoading(false);
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[80vh]">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-green-50 to-orange-50 px-4">
+      <Card className="w-full max-w-md shadow-lg border-pink-200">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Heart className="h-12 w-12 text-purple-600" />
+            <Heart className="h-12 w-12 text-pink-500" />
           </div>
-          <CardTitle className="text-2xl text-purple-800">Welcome Back</CardTitle>
-          <CardDescription>
-            Sign in to your LGBTQ+ Community account
+          <CardTitle className="text-xl sm:text-2xl text-pink-800">おかえりなさい</CardTitle>
+          <CardDescription className="text-gray-600">
+            LGBTQ+ コミュニティアカウントにログイン
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-gray-700">メールアドレス</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="border-purple-200 focus:border-purple-500"
+                className="border-pink-200 focus:border-pink-400 focus:ring-pink-400"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-gray-700">パスワード</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="border-purple-200 focus:border-purple-500"
+                className="border-pink-200 focus:border-pink-400 focus:ring-pink-400"
               />
             </div>
             {error && (
-              <div className="text-red-600 text-sm">{error}</div>
+              <div className="text-red-600 text-sm bg-red-50 p-2 rounded">{error}</div>
             )}
             <Button 
               type="submit" 
-              className="w-full bg-purple-600 hover:bg-purple-700"
+              className="w-full bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white"
               disabled={isLoading}
             >
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              {isLoading ? 'ログイン中...' : 'ログイン'}
             </Button>
           </form>
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
-              <Link to="/register" className="text-purple-600 hover:text-purple-800 font-medium">
-                Sign up
+              アカウントをお持ちでない方は{' '}
+              <Link to="/register" className="text-pink-600 hover:text-pink-500 font-medium">
+                こちらから登録
               </Link>
             </p>
           </div>

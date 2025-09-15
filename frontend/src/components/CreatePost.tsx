@@ -27,7 +27,7 @@ const CreatePost: React.FC = () => {
     setError('');
 
     if (!body.trim()) {
-      setError('Post content is required');
+      setError('投稿内容は必須です');
       setIsLoading(false);
       return;
     }
@@ -50,63 +50,63 @@ const CreatePost: React.FC = () => {
         navigate('/feed');
       } else {
         const errorData = await response.json();
-        setError(errorData.detail || 'Failed to create post');
+        setError(errorData.detail || '投稿の作成に失敗しました');
       }
     } catch (error) {
       console.error('Error creating post:', error);
-      setError('Failed to create post. Please try again.');
+      setError('投稿の作成に失敗しました。もう一度お試しください。');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <Card>
+    <div className="max-w-2xl mx-auto p-4 sm:p-6">
+      <Card className="border-orange-200 shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center text-2xl text-purple-800">
-            <PlusCircle className="h-6 w-6 mr-2" />
-            Create New Post
+          <CardTitle className="flex items-center text-xl sm:text-2xl text-orange-800">
+            <PlusCircle className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
+            新しい投稿を作成
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="title">Title (Optional)</Label>
+              <Label htmlFor="title" className="text-gray-700">タイトル（任意）</Label>
               <Input
                 id="title"
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Give your post a title..."
-                className="border-purple-200 focus:border-purple-500"
+                placeholder="投稿にタイトルをつけてください..."
+                className="border-orange-200 focus:border-orange-400 focus:ring-orange-400"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="body">Content *</Label>
+              <Label htmlFor="body" className="text-gray-700">内容 *</Label>
               <Textarea
                 id="body"
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
-                placeholder="Share your thoughts, experiences, or ask a question..."
+                placeholder="あなたの想い、体験、質問などを共有してください..."
                 required
                 rows={6}
-                className="border-purple-200 focus:border-purple-500 resize-none"
+                className="border-orange-200 focus:border-orange-400 focus:ring-orange-400 resize-none"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="visibility">Who can see this post?</Label>
+              <Label htmlFor="visibility" className="text-gray-700">この投稿を見ることができる人</Label>
               <Select value={visibility} onValueChange={setVisibility}>
-                <SelectTrigger className="border-purple-200 focus:border-purple-500">
+                <SelectTrigger className="border-orange-200 focus:border-orange-400 focus:ring-orange-400">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="public">🌍 Public - Everyone can see</SelectItem>
-                  <SelectItem value="members">👥 Members Only - Registered users</SelectItem>
-                  <SelectItem value="followers">👤 Followers - People who follow you</SelectItem>
-                  <SelectItem value="private">🔒 Private - Only you</SelectItem>
+                  <SelectItem value="public">🌍 公開 - 誰でも見ることができます</SelectItem>
+                  <SelectItem value="members">👥 メンバーのみ - 登録ユーザーのみ</SelectItem>
+                  <SelectItem value="followers">👤 フォロワー - あなたをフォローしている人</SelectItem>
+                  <SelectItem value="private">🔒 非公開 - あなたのみ</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -117,21 +117,21 @@ const CreatePost: React.FC = () => {
               </div>
             )}
 
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
               <Button 
                 type="submit" 
-                className="bg-purple-600 hover:bg-purple-700"
+                className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-pink-400 hover:from-orange-600 hover:to-pink-500 text-white"
                 disabled={isLoading}
               >
-                {isLoading ? 'Publishing...' : 'Publish Post'}
+                {isLoading ? '公開中...' : '投稿を公開'}
               </Button>
               <Button 
                 type="button" 
                 variant="outline"
                 onClick={() => navigate('/feed')}
-                className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                className="w-full sm:w-auto border-orange-300 text-orange-700 hover:bg-orange-50"
               >
-                Cancel
+                キャンセル
               </Button>
             </div>
           </form>
