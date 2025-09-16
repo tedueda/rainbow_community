@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Header from './components/Header';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
+import HomePage from './components/HomePage';
 import PostFeed from './components/PostFeed';
 import ProfilePage from './components/ProfilePage';
 import CreatePost from './components/CreatePost';
@@ -40,9 +41,9 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 function AppContent() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-b from-rose-50 via-white to-indigo-50">
       <Header />
-      <main className="container mx-auto px-4 py-8">
+      <main>
         <Routes>
           <Route path="/login" element={
             <PublicRoute>
@@ -55,6 +56,11 @@ function AppContent() {
             </PublicRoute>
           } />
           <Route path="/feed" element={
+            <FeedRoute>
+              <HomePage />
+            </FeedRoute>
+          } />
+          <Route path="/posts" element={
             <FeedRoute>
               <PostFeed />
             </FeedRoute>
