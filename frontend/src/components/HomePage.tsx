@@ -57,13 +57,6 @@ const memberBenefits = [
     icon: "🤝",
     link: "/donation",
   },
-  {
-    id: "news",
-    title: "ニュース",
-    description: "最新の制度・条例情報と解説記事",
-    icon: "📰",
-    link: "/news",
-  },
 ];
 
 const categories = [
@@ -99,11 +92,76 @@ const newsArticles = [
   },
 ];
 
+const dummyPosts: Post[] = [
+  {
+    id: 1,
+    title: "初めての投稿です！",
+    body: "こんにちは！Rainbow Communityに参加しました。温かいコミュニティで素敵な出会いがありそうです。よろしくお願いします。",
+    user_id: 1,
+    visibility: "public",
+    created_at: "2024-09-15T10:30:00Z",
+    category: "board"
+  },
+  {
+    id: 2,
+    title: "虹色のイラストを描きました",
+    body: "プライド月間に向けて、虹をテーマにしたデジタルアートを制作しました。色彩豊かな作品になったと思います。",
+    user_id: 2,
+    visibility: "public",
+    created_at: "2024-09-14T15:45:00Z",
+    category: "art"
+  },
+  {
+    id: 3,
+    title: "おすすめのLGBTQ+楽曲",
+    body: "最近聴いているアーティストの楽曲がとても心に響きます。同じような音楽が好きな方と語り合いたいです。",
+    user_id: 3,
+    visibility: "public",
+    created_at: "2024-09-13T20:15:00Z",
+    category: "music"
+  },
+  {
+    id: 4,
+    title: "新宿のLGBTQフレンドリーカフェ",
+    body: "新宿二丁目にある素敵なカフェを見つけました。スタッフの方々がとても親切で、居心地の良い空間でした。",
+    user_id: 4,
+    visibility: "public",
+    created_at: "2024-09-12T12:00:00Z",
+    category: "shops"
+  },
+  {
+    id: 5,
+    title: "東京レインボープライドツアー企画",
+    body: "来年のプライドイベントに向けて、みんなで一緒に参加するツアーを企画しています。興味のある方はぜひご参加ください。",
+    user_id: 5,
+    visibility: "public",
+    created_at: "2024-09-11T18:30:00Z",
+    category: "tours"
+  },
+  {
+    id: 6,
+    title: "「君の名は。」のLGBTQ+解釈について",
+    body: "新海誠監督の作品にはジェンダーアイデンティティのテーマが含まれていると思います。皆さんはどう思われますか？",
+    user_id: 6,
+    visibility: "public",
+    created_at: "2024-09-10T14:20:00Z",
+    category: "comics"
+  }
+];
+
+const dummyUsers: { [key: number]: User } = {
+  1: { id: 1, display_name: "さくら", email: "sakura@example.com" },
+  2: { id: 2, display_name: "アート太郎", email: "art@example.com" },
+  3: { id: 3, display_name: "音楽好き", email: "music@example.com" },
+  4: { id: 4, display_name: "カフェ探検家", email: "cafe@example.com" },
+  5: { id: 5, display_name: "ツアーガイド", email: "tour@example.com" },
+  6: { id: 6, display_name: "映画評論家", email: "movie@example.com" }
+};
+
 const HomePage: React.FC = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [users, setUsers] = useState<{ [key: number]: User }>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [posts, setPosts] = useState<Post[]>(dummyPosts);
+  const [users, setUsers] = useState<{ [key: number]: User }>(dummyUsers);
+  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const { token, user, isAnonymous, setAnonymousMode } = useAuth();
@@ -111,56 +169,10 @@ const HomePage: React.FC = () => {
 
   const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
 
-  const fetchPosts = async () => {
-    try {
-      const headers: any = {};
-      if (token && !isAnonymous) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      
-      const response = await fetch(`${API_URL}/posts/`, {
-        headers,
-      });
-
-      if (response.ok) {
-        const postsData = await response.json();
-        const postsWithCategories = postsData.map((post: Post, index: number) => ({
-          ...post,
-          category: categories[index % categories.length].key
-        }));
-        setPosts(postsWithCategories);
-
-        const userIds = [...new Set(postsData.map((post: Post) => post.user_id))];
-        const usersData: { [key: number]: User } = {};
-        
-        for (const userId of userIds) {
-          try {
-            const userHeaders: any = {};
-            if (token && !isAnonymous) {
-              userHeaders['Authorization'] = `Bearer ${token}`;
-            }
-            
-            const userResponse = await fetch(`${API_URL}/users/${userId}`, {
-              headers: userHeaders,
-            });
-            if (userResponse.ok) {
-              const userData = await userResponse.json();
-              usersData[userId as number] = userData;
-            }
-          } catch (error) {
-            console.error(`Error fetching user ${userId}:`, error);
-          }
-        }
-        
-        setUsers(usersData);
-      } else {
-        setError('投稿の取得に失敗しました');
-      }
-    } catch (err) {
-      setError('ネットワークエラー');
-    } finally {
-      setLoading(false);
-    }
+  const initializePosts = () => {
+    setPosts(dummyPosts);
+    setUsers(dummyUsers);
+    setLoading(false);
   };
 
   const handleReaction = async (postId: number, reactionType: string) => {
@@ -184,26 +196,19 @@ const HomePage: React.FC = () => {
       });
 
       if (response.ok) {
-        fetchPosts();
+        initializePosts();
       }
     } catch (error) {
       console.error('Error adding reaction:', error);
     }
   };
 
-  const filteredPosts = posts.filter(post => {
-    const matchesTab = activeTab === 'all' || post.category === activeTab;
-    const matchesSearch = searchQuery === '' || 
-      post.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.body.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesTab && matchesSearch;
-  });
 
   useEffect(() => {
     if (!user && !isAnonymous) {
       setAnonymousMode();
     }
-    fetchPosts();
+    initializePosts();
   }, [user, isAnonymous, setAnonymousMode]);
 
   if (loading) {
@@ -477,103 +482,6 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* 投稿一覧 */}
-        <section className="py-6">
-          <div className="flex items-baseline justify-between mb-3">
-            <h3 className="text-lg font-semibold text-pink-800">
-              {activeTab === 'all' ? '新着投稿' : `${tabs.find(t => t.key === activeTab)?.label}の投稿`}
-            </h3>
-          </div>
-          
-          {error && (
-            <div className="text-red-600 text-center bg-red-50 p-4 rounded-lg mb-6">{error}</div>
-          )}
-
-          {filteredPosts.length === 0 ? (
-            <Card className="text-center p-6 sm:p-8 border-pink-200 shadow-lg">
-              <CardContent>
-                <Heart className="h-12 sm:h-16 w-12 sm:w-16 text-pink-300 mx-auto mb-4" />
-                <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">
-                  {activeTab === 'all' ? 'まだ投稿がありません。' : `${tabs.find(t => t.key === activeTab)?.label}の投稿がありません。`}
-                </h3>
-                <p className="text-gray-500 mb-4">コミュニティの投稿をお待ちください。</p>
-                {user && !isAnonymous ? (
-                  <Button 
-                    onClick={() => window.location.href = '/create'}
-                    className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white"
-                  >
-                    最初の投稿を作成
-                  </Button>
-                ) : (
-                  <Button 
-                    onClick={() => window.location.href = '/login'}
-                    className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white"
-                  >
-                    投稿するにはプレミアム登録
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredPosts.map((post) => (
-                <Card key={post.id} className="shadow-sm hover:shadow-md transition-shadow border-pink-100">
-                  <div className="h-36 bg-gradient-to-br from-pink-200 via-green-200 to-orange-200" />
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 text-xs mb-2">
-                      <span className="text-slate-500">{categories.find(c => c.key === post.category)?.title}</span>
-                      <span className="text-slate-400">•</span>
-                      <span className="text-slate-500">{new Date(post.created_at).toLocaleDateString('ja-JP')}</span>
-                    </div>
-                    {post.title && (
-                      <h4 className="font-semibold leading-snug text-pink-800 mb-1">{post.title}</h4>
-                    )}
-                    <p className="text-sm text-slate-600 line-clamp-2 mb-3">{post.body}</p>
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-6 h-6 bg-gradient-to-br from-pink-100 to-green-100 rounded-full flex items-center justify-center">
-                          <span className="text-pink-600 font-semibold text-xs">
-                            {users[post.user_id]?.display_name?.charAt(0) || '?'}
-                          </span>
-                        </div>
-                        <span className="text-slate-600 text-xs">{users[post.user_id]?.display_name || '不明なユーザー'}</span>
-                      </div>
-                      {user && !isAnonymous ? (
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleReaction(post.id, 'like')}
-                            className="text-gray-600 hover:text-pink-600 hover:bg-pink-50 p-1"
-                          >
-                            <ThumbsUp className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleReaction(post.id, 'love')}
-                            className="text-gray-600 hover:text-pink-600 hover:bg-pink-50 p-1"
-                          >
-                            <Heart className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button 
-                          onClick={() => window.location.href = '/login'}
-                          size="sm"
-                          variant="outline"
-                          className="border-pink-300 text-pink-700 hover:bg-pink-50 text-xs"
-                        >
-                          プレミアム登録
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </section>
 
         {/* 会員特典メニュー */}
         <section className="py-6">
@@ -581,7 +489,7 @@ const HomePage: React.FC = () => {
             <h3 className="text-lg font-semibold text-pink-800">会員特典メニュー</h3>
             <span className="text-sm text-slate-500">プレミアム会員限定</span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {memberBenefits.map((benefit) => (
               <Card 
                 key={benefit.id} 
