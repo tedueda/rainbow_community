@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from '../contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Heart, ThumbsUp, Search, Users, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from './ui/button';
+import { Card, CardContent } from './ui/card';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
+import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
+import { Input } from './ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { Heart, ThumbsUp, Search, MessageCircle, Calendar, ArrowRight } from 'lucide-react';
 
 interface User {
   id: number;
@@ -28,32 +30,39 @@ const tabs = [
   { key: "board", label: "掲示板" },
   { key: "art", label: "アート" },
   { key: "music", label: "音楽" },
-  { key: "news", label: "ニュース" },
   { key: "shops", label: "お店" },
   { key: "tours", label: "ツアー" },
+  { key: "comics", label: "コミック・映画" },
 ];
 
-const featured = [
+const memberBenefits = [
   {
-    id: "f1",
-    category: "掲示板",
-    title: "はじめての相談：家族へのカミングアウト",
-    excerpt: "同じ経験を持つ仲間からのアドバイスが集まっています。",
-    badge: "注目",
+    id: "matching",
+    title: "マッチング",
+    description: "理想のパートナーと出会える安心のマッチングサービス",
+    icon: "💕",
+    link: "/matching",
   },
   {
-    id: "f2",
-    category: "アート",
-    title: "色で語る小さな物語",
-    excerpt: "温かい色合いのコラージュ作品。コメント歓迎。",
-    badge: "新着",
+    id: "virtual-wedding",
+    title: "バーチャルウェディング",
+    description: "オンラインで叶える特別な結婚式体験",
+    icon: "💒",
+    link: "/virtual-wedding",
   },
   {
-    id: "f3",
-    category: "ツアー",
-    title: "大阪・中崎町ほっこり街歩き",
-    excerpt: "会員ガイドが地元の名店をご案内。交流のきっかけに。",
-    badge: "交流",
+    id: "donation",
+    title: "募金",
+    description: "LGBTQ+コミュニティを支援する寄付プラットフォーム",
+    icon: "🤝",
+    link: "/donation",
+  },
+  {
+    id: "news",
+    title: "ニュース",
+    description: "最新の制度・条例情報と解説記事",
+    icon: "📰",
+    link: "/news",
   },
 ];
 
@@ -61,54 +70,32 @@ const categories = [
   { key: "board", title: "掲示板", desc: "悩み相談や雑談、生活の話題。", posts: 15230, emoji: "💬" },
   { key: "art", title: "アート", desc: "イラスト・写真・映像作品の発表。", posts: 8932, emoji: "🎨" },
   { key: "music", title: "音楽", desc: "お気に入りや自作・AI曲の共有。", posts: 6240, emoji: "🎵" },
-  { key: "news", title: "ニュース", desc: "国内外の話題や法制度の動き。", posts: 2104, emoji: "📰" },
   { key: "shops", title: "お店", desc: "LGBTQフレンドリーなお店紹介。", posts: 1450, emoji: "🏬" },
   { key: "tours", title: "ツアー", desc: "会員ガイドの交流型ツアー。", posts: 312, emoji: "📍" },
+  { key: "comics", title: "コミック・映画", desc: "LGBTQ+テーマの作品レビューと感想。", posts: 2840, emoji: "🎬" },
 ];
 
-const communities = [
+const newsArticles = [
   {
-    id: "g1",
-    name: "関西 交流サークル",
-    desc: "週末のオフ会や街歩き。はじめて歓迎。",
-    members: 324,
-    posts: 120,
-    badge: "活発",
+    id: "n1",
+    title: "同性パートナーシップ制度、全国で拡大中",
+    excerpt: "2024年度に新たに15自治体が制度を導入。現在の導入状況と今後の展望について解説します。",
+    tags: ["制度", "パートナーシップ", "自治体"],
+    date: "2024-09-15",
   },
   {
-    id: "g2",
-    name: "仕事とキャリア",
-    desc: "働き方・職場の悩み、転職・制度情報。",
-    members: 512,
-    posts: 240,
+    id: "n2", 
+    title: "職場でのLGBTQ+理解促進セミナー開催報告",
+    excerpt: "企業向けダイバーシティ研修の効果と参加者の声をまとめました。",
+    tags: ["職場", "研修", "ダイバーシティ"],
+    date: "2024-09-12",
   },
   {
-    id: "g3",
-    name: "学生ひろば",
-    desc: "学校・進路・友人関係の相談。",
-    members: 210,
-    posts: 98,
-  },
-  {
-    id: "g4",
-    name: "トランスジェンダー",
-    desc: "医療・手続き・日常の工夫を共有。",
-    members: 180,
-    posts: 160,
-  },
-  {
-    id: "g5",
-    name: "アート＆音楽部",
-    desc: "作品発表とライブ情報、コラボ募集。",
-    members: 430,
-    posts: 300,
-  },
-  {
-    id: "g6",
-    name: "旅行＆ツーリズム",
-    desc: "地元ガイドの交流型ツアーを企画。",
-    members: 120,
-    posts: 45,
+    id: "n3",
+    title: "Rainbow Festa 2024 開催決定！",
+    excerpt: "今年のテーマは「つながり」。10月開催予定のイベント詳細をお知らせします。",
+    tags: ["イベント", "フェスタ", "コミュニティ"],
+    date: "2024-09-10",
   },
 ];
 
@@ -120,6 +107,7 @@ const HomePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const { token, user, isAnonymous, setAnonymousMode } = useAuth();
+  const navigate = useNavigate();
 
   const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
 
@@ -308,37 +296,150 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-        {/* 今週のお知らせ（カルーセル） */}
+        {/* 最新投稿カルーセル */}
         <section className="py-8">
-          <h3 className="text-lg font-semibold mb-3 text-pink-800">今週のお知らせ</h3>
-          <Carousel className="w-full">
-            <CarouselContent>
-              {featured.map((item) => (
-                <CarouselItem key={item.id}>
-                  <Card className="border-pink-200 shadow-lg">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2 text-xs mb-2">
-                        <span className="rounded-full bg-orange-100 text-orange-700 px-2 py-0.5">{item.badge}</span>
-                        <span className="text-slate-500">{item.category}</span>
+          <div className="flex items-baseline justify-between mb-3">
+            <h3 className="text-lg font-semibold text-pink-800">最新投稿</h3>
+            <Button 
+              variant="ghost" 
+              className="text-pink-700 hover:text-pink-900 hover:bg-pink-50"
+              onClick={() => navigate('/posts')}
+            >
+              すべての投稿を見る
+              <ArrowRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+          <Carousel 
+            className="w-full"
+            opts={{
+              align: "start",
+              loop: false,
+              breakpoints: {
+                '(max-width: 767px)': { slidesToScroll: 1 },
+                '(min-width: 768px) and (max-width: 1023px)': { slidesToScroll: 2 },
+                '(min-width: 1024px)': { slidesToScroll: 3 }
+              }
+            }}
+          >
+            <CarouselContent className="-ml-2 md:-ml-4">
+              {posts.slice(0, 9).map((post) => (
+                <CarouselItem key={post.id} className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Card className="border-pink-200 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer group">
+                        <div className="h-40 bg-gradient-to-br from-pink-200 via-green-200 to-orange-200 rounded-t-lg" />
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-2 text-xs mb-2">
+                            <span className="rounded-full bg-pink-100 text-pink-700 px-2 py-0.5">
+                              {categories.find(c => c.key === post.category)?.title || '掲示板'}
+                            </span>
+                            <span className="text-slate-500">
+                              {new Date(post.created_at).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
+                            </span>
+                          </div>
+                          {post.title && (
+                            <h4 className="font-semibold leading-snug text-pink-800 mb-1 group-hover:text-pink-900 line-clamp-2">
+                              {post.title}
+                            </h4>
+                          )}
+                          <p className="text-sm text-slate-600 line-clamp-2 mb-3">{post.body}</p>
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-3 text-slate-500">
+                              <span className="flex items-center gap-1">
+                                <Heart className="h-3 w-3" />
+                                {Math.floor(Math.random() * 20) + 1}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <MessageCircle className="h-3 w-3" />
+                                {Math.floor(Math.random() * 10)}
+                              </span>
+                            </div>
+                            <span className="text-xs text-slate-400">
+                              {users[post.user_id]?.display_name || '不明なユーザー'}
+                            </span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="text-pink-800">
+                          {post.title || '投稿詳細'}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="h-64 bg-gradient-to-br from-pink-200 via-green-200 to-orange-200 rounded-lg" />
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="rounded-full bg-pink-100 text-pink-700 px-2 py-1">
+                            {categories.find(c => c.key === post.category)?.title || '掲示板'}
+                          </span>
+                          <span className="text-slate-500">
+                            {new Date(post.created_at).toLocaleDateString('ja-JP')}
+                          </span>
+                        </div>
+                        <p className="text-slate-700 whitespace-pre-wrap">{post.body}</p>
+                        <div className="flex items-center gap-4 pt-4 border-t">
+                          {user && !isAnonymous ? (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleReaction(post.id, 'like')}
+                                className="text-gray-600 hover:text-pink-600 hover:bg-pink-50"
+                              >
+                                <ThumbsUp className="h-4 w-4 mr-1" />
+                                いいね
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleReaction(post.id, 'love')}
+                                className="text-gray-600 hover:text-pink-600 hover:bg-pink-50"
+                              >
+                                <Heart className="h-4 w-4 mr-1" />
+                                愛
+                              </Button>
+                            </>
+                          ) : (
+                            <Button 
+                              onClick={() => navigate('/login')}
+                              size="sm"
+                              className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white"
+                            >
+                              プレミアム登録してリアクション
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                      <h4 className="font-semibold leading-snug text-pink-800">{item.title}</h4>
-                      <p className="mt-1 text-sm text-slate-600">{item.excerpt}</p>
-                      <div className="mt-3 flex justify-between items-center">
-                        <Button variant="ghost" className="text-pink-700 hover:text-pink-900 hover:bg-pink-50">
-                          詳しく見る
-                        </Button>
-                        <Button variant="outline" size="sm" className="border-pink-300 text-pink-700 hover:bg-pink-50">
-                          いいね
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                    </DialogContent>
+                  </Dialog>
                 </CarouselItem>
               ))}
             </CarouselContent>
             <CarouselPrevious className="border-pink-300 text-pink-700 hover:bg-pink-50" />
             <CarouselNext className="border-pink-300 text-pink-700 hover:bg-pink-50" />
           </Carousel>
+        </section>
+
+        {/* イベント特集バナー */}
+        <section className="py-6">
+          <Card className="bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 text-white border-0 shadow-xl">
+            <CardContent className="p-6 md:p-8 text-center">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <Calendar className="h-6 w-6" />
+                <span className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full">特別イベント</span>
+              </div>
+              <h3 className="text-2xl md:text-3xl font-bold mb-2">Rainbow Festa 2024</h3>
+              <p className="text-lg mb-4 opacity-90">つながりをテーマに、10月開催決定！</p>
+              <Button 
+                onClick={() => navigate('/news')}
+                className="bg-white text-pink-600 hover:bg-gray-100 font-semibold px-6 py-2"
+              >
+                詳細を見る
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
         </section>
 
         {/* カテゴリーセクション */}
@@ -348,20 +449,26 @@ const HomePage: React.FC = () => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {categories.map((cat) => (
-              <Card key={cat.key} className="group border-pink-100 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setActiveTab(cat.key)}>
-                <div className="h-28 sm:h-36 bg-gradient-to-br from-pink-200 via-green-200 to-orange-200 flex items-center justify-center">
-                  <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-2xl bg-white/80 border border-pink-200 shadow-sm flex items-center justify-center text-2xl sm:text-3xl">
+              <Card 
+                key={cat.key} 
+                className="group border-pink-100 hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02]" 
+                onClick={() => navigate(`/category/${cat.key}`)}
+              >
+                <div className="h-32 sm:h-40 bg-gradient-to-br from-pink-200 via-green-200 to-orange-200 flex items-center justify-center rounded-t-lg">
+                  <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-white/90 border border-pink-200 shadow-lg flex items-center justify-center text-3xl sm:text-4xl group-hover:scale-110 transition-transform">
                     <span>{cat.emoji}</span>
                   </div>
                 </div>
-                <CardContent className="p-3 sm:p-4">
+                <CardContent className="p-4 sm:p-5">
                   <div className="text-xs text-slate-500">カテゴリー</div>
-                  <h4 className="mt-1 font-semibold leading-snug group-hover:text-pink-700 text-[15px] sm:text-base">{cat.title}</h4>
-                  <p className="mt-1 text-sm text-slate-600 line-clamp-2">{cat.desc}</p>
-                  <div className="mt-2 sm:mt-3 flex items-center justify-between text-sm text-slate-600">
-                    <span>📄 {cat.posts.toLocaleString()}</span>
-                    <Button variant="outline" size="sm" className="border-pink-300 text-pink-700 hover:bg-pink-50">
-                      このカテゴリーを見る
+                  <h4 className="mt-1 font-semibold leading-snug group-hover:text-pink-700 text-base sm:text-lg">{cat.title}</h4>
+                  <p className="mt-2 text-sm text-slate-600 line-clamp-2">{cat.desc}</p>
+                  <div className="mt-3 sm:mt-4 flex items-center justify-between text-sm text-slate-600">
+                    <span className="flex items-center gap-1">
+                      📄 {cat.posts.toLocaleString()}件
+                    </span>
+                    <Button variant="outline" size="sm" className="border-pink-300 text-pink-700 hover:bg-pink-50 group-hover:border-pink-400">
+                      投稿を見る
                     </Button>
                   </div>
                 </CardContent>
@@ -468,93 +575,77 @@ const HomePage: React.FC = () => {
           )}
         </section>
 
-        {/* コミュニティセクション */}
+        {/* 会員特典メニュー */}
         <section className="py-6">
           <div className="flex items-baseline justify-between mb-3">
-            <h3 className="text-lg font-semibold text-pink-800">コミュニティ</h3>
-            {user && !isAnonymous ? (
-              <Button className="bg-pink-600 hover:bg-pink-700 text-white">
-                <Plus className="h-4 w-4 mr-2" />
-                コミュニティを作成
-              </Button>
-            ) : (
-              <Button 
-                onClick={() => window.location.href = '/login'}
-                variant="outline"
-                className="border-pink-300 text-pink-700 hover:bg-pink-50"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                作成にはプレミアム登録
-              </Button>
-            )}
+            <h3 className="text-lg font-semibold text-pink-800">会員特典メニュー</h3>
+            <span className="text-sm text-slate-500">プレミアム会員限定</span>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* 新規作成カード */}
-            <Card className="bg-gradient-to-br from-pink-100 via-green-100 to-orange-100 border-pink-200 p-5">
-              <CardContent className="p-0">
-                <div className="text-xs text-slate-600 mb-1">はじめての方へ</div>
-                <h4 className="text-base font-semibold text-pink-800">あなたのコミュニティを立ち上げませんか？</h4>
-                <p className="mt-1 text-sm text-slate-700">
-                  テーマは自由。悩み相談、趣味、地域交流、ツアーの企画など。
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {user && !isAnonymous ? (
-                    <Button className="bg-pink-600 hover:bg-pink-700 text-white text-sm">
-                      <Plus className="h-3 w-3 mr-1" />
-                      作成する
-                    </Button>
-                  ) : (
-                    <Button 
-                      onClick={() => window.location.href = '/login'}
-                      className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white text-sm"
-                    >
-                      <Plus className="h-3 w-3 mr-1" />
-                      プレミアム登録
-                    </Button>
-                  )}
-                  <Button variant="outline" size="sm" className="border-pink-300 text-pink-700 hover:bg-pink-50">
-                    ガイドを見る
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {communities.map((g) => (
-              <Card key={g.id} className="border-pink-100 shadow-sm p-5">
-                <CardContent className="p-0">
-                  <div className="flex items-center gap-2 text-xs mb-2">
-                    {g.badge ? (
-                      <span className="rounded-full bg-green-100 text-green-700 px-2 py-0.5">{g.badge}</span>
-                    ) : (
-                      <span className="rounded-full bg-slate-100 text-slate-600 px-2 py-0.5">コミュニティ</span>
-                    )}
-                    <span className="text-slate-500">
-                      <Users className="h-3 w-3 inline mr-1" />
-                      {g.members}人
-                    </span>
-                    <span className="text-slate-500">💬 {g.posts}</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {memberBenefits.map((benefit) => (
+              <Card 
+                key={benefit.id} 
+                className="group border-pink-100 hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.03]"
+                onClick={() => navigate(benefit.link)}
+              >
+                <CardContent className="p-5 text-center">
+                  <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">
+                    {benefit.icon}
                   </div>
-                  <h4 className="font-semibold leading-snug text-pink-800">{g.name}</h4>
-                  <p className="mt-1 text-sm text-slate-600 line-clamp-2">{g.desc}</p>
-                  <div className="mt-3 flex justify-between items-center">
-                    <Button variant="ghost" className="text-pink-700 hover:text-pink-900 hover:bg-pink-50 text-sm">
-                      中を見る
+                  <h4 className="font-semibold text-pink-800 mb-2 group-hover:text-pink-900">
+                    {benefit.title}
+                  </h4>
+                  <p className="text-sm text-slate-600 mb-4 line-clamp-2">
+                    {benefit.description}
+                  </p>
+                  <Button 
+                    className="w-full bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white group-hover:shadow-md transition-all"
+                    size="sm"
+                  >
+                    利用する
+                    <ArrowRight className="h-3 w-3 ml-1" />
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+
+        {/* ニュースセクション */}
+        <section className="py-6">
+          <div className="flex items-baseline justify-between mb-3">
+            <h3 className="text-lg font-semibold text-pink-800">最新ニュース</h3>
+            <Button 
+              variant="ghost" 
+              className="text-pink-700 hover:text-pink-900 hover:bg-pink-50"
+              onClick={() => navigate('/news')}
+            >
+              すべてのニュースを見る
+              <ArrowRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {newsArticles.map((article) => (
+              <Card key={article.id} className="border-pink-100 hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-4">
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {article.tags.map((tag) => (
+                      <span key={tag} className="text-xs bg-pink-100 text-pink-700 px-2 py-0.5 rounded-full">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <h4 className="font-semibold text-pink-800 mb-2 line-clamp-2">
+                    {article.title}
+                  </h4>
+                  <p className="text-sm text-slate-600 mb-3 line-clamp-3">
+                    {article.excerpt}
+                  </p>
+                  <div className="flex items-center justify-between text-xs text-slate-500">
+                    <span>{new Date(article.date).toLocaleDateString('ja-JP')}</span>
+                    <Button variant="ghost" size="sm" className="text-pink-700 hover:text-pink-900 hover:bg-pink-50 p-0">
+                      続きを読む
                     </Button>
-                    {user && !isAnonymous ? (
-                      <Button variant="outline" size="sm" className="border-pink-300 text-pink-700 hover:bg-pink-50">
-                        参加する
-                      </Button>
-                    ) : (
-                      <Button 
-                        onClick={() => window.location.href = '/login'}
-                        variant="outline" 
-                        size="sm" 
-                        className="border-pink-300 text-pink-700 hover:bg-pink-50"
-                      >
-                        プレミアム登録
-                      </Button>
-                    )}
                   </div>
                 </CardContent>
               </Card>

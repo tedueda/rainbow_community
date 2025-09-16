@@ -8,6 +8,11 @@ import HomePage from './components/HomePage';
 import PostFeed from './components/PostFeed';
 import ProfilePage from './components/ProfilePage';
 import CreatePost from './components/CreatePost';
+import CategoryPage from './components/CategoryPage';
+import MatchingPage from './components/MatchingPage';
+import VirtualWeddingPage from './components/VirtualWeddingPage';
+import DonationPage from './components/DonationPage';
+import NewsPage from './components/NewsPage';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
@@ -74,6 +79,31 @@ function AppContent() {
             <ProtectedRoute>
               <CreatePost />
             </ProtectedRoute>
+          } />
+          <Route path="/category/:categoryKey" element={
+            <FeedRoute>
+              <CategoryPage />
+            </FeedRoute>
+          } />
+          <Route path="/matching" element={
+            <FeedRoute>
+              <MatchingPage />
+            </FeedRoute>
+          } />
+          <Route path="/virtual-wedding" element={
+            <FeedRoute>
+              <VirtualWeddingPage />
+            </FeedRoute>
+          } />
+          <Route path="/donation" element={
+            <FeedRoute>
+              <DonationPage />
+            </FeedRoute>
+          } />
+          <Route path="/news" element={
+            <FeedRoute>
+              <NewsPage />
+            </FeedRoute>
           } />
           <Route path="/" element={<Navigate to="/feed" />} />
         </Routes>
