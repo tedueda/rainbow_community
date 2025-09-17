@@ -13,7 +13,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   isAnonymous: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<boolean>;
   register: (email: string, password: string, displayName: string) => Promise<boolean>;
   logout: () => void;
   setAnonymousMode: () => void;
@@ -61,21 +61,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
+        setIsAnonymous(false);
       } else {
+        console.log('Token validation failed, clearing stored token');
         localStorage.removeItem('token');
+        localStorage.removeItem('rememberMe');
         setToken(null);
+        setUser(null);
       }
     } catch (error) {
       console.error('Error fetching user:', error);
       localStorage.removeItem('token');
+      localStorage.removeItem('rememberMe');
       setToken(null);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string, rememberMe: boolean = true): Promise<boolean> => {
     try {
+      console.log('Login attempt with:', { email, rememberMe, API_URL });
       const formData = new FormData();
       formData.append('username', email);
       formData.append('password', password);
@@ -85,12 +92,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         body: formData,
       });
 
+      console.log('Login response status:', response.status);
       if (response.ok) {
         const data = await response.json();
+        console.log('Login response data:', data);
         const newToken = data.access_token;
+        console.log('Storing token:', newToken ? 'Token received' : 'No token received');
         localStorage.setItem('token', newToken);
+        localStorage.setItem('rememberMe', rememberMe.toString());
         setToken(newToken);
+        setIsAnonymous(false);
+        localStorage.removeItem('anonymous');
+        console.log('Token stored in localStorage:', localStorage.getItem('token'));
         return true;
+      } else {
+        const errorData = await response.text();
+        console.error('Login failed:', response.status, errorData);
       }
       return false;
     } catch (error) {
@@ -126,6 +143,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('anonymous');
+    localStorage.removeItem('rememberMe');
     setToken(null);
     setUser(null);
     setIsAnonymous(false);

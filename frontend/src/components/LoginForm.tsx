@@ -10,6 +10,7 @@ import { Heart } from 'lucide-react';
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
@@ -21,7 +22,7 @@ const LoginForm: React.FC = () => {
     setIsLoading(true);
     setError('');
 
-    const success = await login(email, password);
+    const success = await login(email, password, rememberMe);
     
     if (success) {
       navigate('/feed');
@@ -71,6 +72,18 @@ const LoginForm: React.FC = () => {
             {error && (
               <div className="text-red-600 text-sm bg-red-50 p-2 rounded">{error}</div>
             )}
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="rememberMe"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="rounded border-pink-300 text-pink-600 focus:ring-pink-500"
+              />
+              <Label htmlFor="rememberMe" className="text-sm text-gray-700">
+                ログイン状態を保持する（7日間）
+              </Label>
+            </div>
             <Button 
               type="submit" 
               className="w-full bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white"
