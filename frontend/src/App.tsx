@@ -85,6 +85,16 @@ function AppContent() {
               <CategoryPage />
             </FeedRoute>
           } />
+          <Route path="/category/:categoryKey/new" element={
+            <ProtectedRoute>
+              <CategoryPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/post/:postId" element={
+            <FeedRoute>
+              <CategoryPage />
+            </FeedRoute>
+          } />
           <Route path="/matching" element={
             <FeedRoute>
               <MatchingPage />
