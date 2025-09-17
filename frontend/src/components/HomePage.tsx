@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
@@ -164,6 +164,8 @@ const HomePage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isCarouselHovered, setIsCarouselHovered] = useState(false);
+  const carouselApiRef = useRef<any>(null);
   const { token, user, isAnonymous, setAnonymousMode } = useAuth();
   const navigate = useNavigate();
 
@@ -210,6 +212,35 @@ const HomePage: React.FC = () => {
     }
     initializePosts();
   }, [user, isAnonymous, setAnonymousMode]);
+
+  useEffect(() => {
+    if (!isCarouselHovered && posts.length > 0 && carouselApiRef.current) {
+      const interval = setInterval(() => {
+        if (carouselApiRef.current && !isCarouselHovered) {
+          const api = carouselApiRef.current;
+          if (api.canScrollNext()) {
+            api.scrollNext();
+          } else {
+            api.scrollTo(0);
+          }
+        }
+      }, 4000);
+
+      return () => clearInterval(interval);
+    }
+  }, [isCarouselHovered, posts.length]);
+
+  useEffect(() => {
+    if (carouselApiRef.current && posts.length > 0) {
+      const timer = setTimeout(() => {
+        if (!isCarouselHovered && carouselApiRef.current) {
+          setIsCarouselHovered(false);
+        }
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [carouselApiRef.current, posts.length]);
 
   if (loading) {
     return (
@@ -314,18 +345,25 @@ const HomePage: React.FC = () => {
               <ArrowRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
-          <Carousel 
-            className="w-full"
-            opts={{
-              align: "start",
-              loop: false,
-              breakpoints: {
-                '(max-width: 767px)': { slidesToScroll: 1 },
-                '(min-width: 768px) and (max-width: 1023px)': { slidesToScroll: 2 },
-                '(min-width: 1024px)': { slidesToScroll: 3 }
-              }
-            }}
+          <div 
+            onMouseEnter={() => setIsCarouselHovered(true)}
+            onMouseLeave={() => setIsCarouselHovered(false)}
           >
+            <Carousel 
+              className="w-full"
+              setApi={(api) => { 
+                carouselApiRef.current = api; 
+              }}
+              opts={{
+                align: "start",
+                loop: true,
+                breakpoints: {
+                  '(max-width: 767px)': { slidesToScroll: 1 },
+                  '(min-width: 768px) and (max-width: 1023px)': { slidesToScroll: 2 },
+                  '(min-width: 1024px)': { slidesToScroll: 3 }
+                }
+              }}
+            >
             <CarouselContent className="-ml-2 md:-ml-4">
               {posts.slice(0, 9).map((post) => (
                 <CarouselItem key={post.id} className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3">
@@ -424,6 +462,7 @@ const HomePage: React.FC = () => {
             <CarouselPrevious className="border-pink-300 text-pink-700 hover:bg-pink-50" />
             <CarouselNext className="border-pink-300 text-pink-700 hover:bg-pink-50" />
           </Carousel>
+          </div>
         </section>
 
         {/* イベント特集バナー */}
