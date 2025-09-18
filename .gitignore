@@ -1,5 +1,6 @@
 backend/app/__pycache__/
 backend/__pycache__/
+backend/app/routers/__pycache__/
 *.pyc
 backend/lgbtq_community.db
 backend/debug_imports.py
