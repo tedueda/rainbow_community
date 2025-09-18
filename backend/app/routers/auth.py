@@ -1,11 +1,12 @@
 from datetime import timedelta
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User, Profile
 from app.schemas import UserCreate, User as UserSchema, Token
-from app.auth import authenticate_user, create_access_token, get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES
+from app.auth import authenticate_user, create_access_token, get_password_hash, get_current_active_user, get_current_admin_user, ACCESS_TOKEN_EXPIRE_MINUTES
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
@@ -52,3 +53,24 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+@router.get("/me", response_model=UserSchema)
+async def read_users_me(current_user: User = Depends(get_current_active_user)):
+    return current_user
+
+@router.get("/admin/users", response_model=List[UserSchema])
+async def get_all_users(
+    current_user: User = Depends(get_current_admin_user),
+    db: Session = Depends(get_db)
+):
+    users = db.query(User).all()
+    return users
+
+@router.get("/admin/posts")
+async def get_all_posts(
+    current_user: User = Depends(get_current_admin_user),
+    db: Session = Depends(get_db)
+):
+    from app.models import Post
+    posts = db.query(Post).all()
+    return posts

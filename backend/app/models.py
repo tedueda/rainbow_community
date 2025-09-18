@@ -17,7 +17,7 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     __table_args__ = (
-        CheckConstraint("membership_type IN ('free', 'premium')", name="check_membership_type"),
+        CheckConstraint("membership_type IN ('free', 'premium', 'admin')", name="check_membership_type"),
     )
     
     profile = relationship("Profile", back_populates="user", uselist=False)
