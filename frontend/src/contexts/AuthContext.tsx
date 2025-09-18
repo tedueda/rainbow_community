@@ -37,48 +37,16 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
-  const [isAnonymous, setIsAnonymous] = useState<boolean>(localStorage.getItem('anonymous') === 'true');
+  const [isAnonymous, setIsAnonymous] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState(true);
 
   const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
-    if (token && !isAnonymous) {
-      fetchUser();
-    } else {
-      setIsLoading(false);
-    }
-  }, [token, isAnonymous]);
+    setIsAnonymous(true);
+    setIsLoading(false);
+  }, []);
 
-  const fetchUser = async () => {
-    try {
-      const response = await fetch(`${API_URL}/users/me`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-        setIsAnonymous(false);
-      } else {
-        console.log('Token validation failed, clearing stored token');
-        localStorage.removeItem('token');
-        localStorage.removeItem('rememberMe');
-        setToken(null);
-        setUser(null);
-      }
-    } catch (error) {
-      console.error('Error fetching user:', error);
-      localStorage.removeItem('token');
-      localStorage.removeItem('rememberMe');
-      setToken(null);
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const login = async (email: string, password: string, rememberMe: boolean = true): Promise<boolean> => {
     try {

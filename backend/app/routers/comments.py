@@ -5,7 +5,7 @@ from typing import List
 from app.database import get_db
 from app.models import User, Comment, PointEvent
 from app.schemas import Comment as CommentSchema, CommentCreate, CommentUpdate
-from app.auth import get_current_active_user
+from app.auth import get_current_active_user, get_current_user_optional
 
 router = APIRouter(prefix="/comments", tags=["comments"])
 
@@ -24,23 +24,25 @@ async def read_comments(
 @router.post("/", response_model=CommentSchema)
 async def create_comment(
     comment: CommentCreate,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
-    db_comment = Comment(**comment.dict(), user_id=current_user.id)
+    user_id = current_user.id if current_user else 1
+    db_comment = Comment(**comment.dict(), user_id=user_id)
     db.add(db_comment)
     db.commit()
     db.refresh(db_comment)
     
-    point_event = PointEvent(
-        user_id=current_user.id,
-        event_type="comment_created",
-        points=5,
-        ref_type="comment",
-        ref_id=db_comment.id
-    )
-    db.add(point_event)
-    db.commit()
+    if current_user:
+        point_event = PointEvent(
+            user_id=current_user.id,
+            event_type="comment_created",
+            points=5,
+            ref_type="comment",
+            ref_id=db_comment.id
+        )
+        db.add(point_event)
+        db.commit()
     
     return db_comment
 
@@ -48,15 +50,12 @@ async def create_comment(
 async def update_comment(
     comment_id: int,
     comment_update: CommentUpdate,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     comment = db.query(Comment).filter(Comment.id == comment_id).first()
     if comment is None:
         raise HTTPException(status_code=404, detail="Comment not found")
-    
-    if comment.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
     
     for field, value in comment_update.dict(exclude_unset=True).items():
         setattr(comment, field, value)
@@ -68,15 +67,12 @@ async def update_comment(
 @router.delete("/{comment_id}")
 async def delete_comment(
     comment_id: int,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     comment = db.query(Comment).filter(Comment.id == comment_id).first()
     if comment is None:
         raise HTTPException(status_code=404, detail="Comment not found")
-    
-    if comment.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
     
     db.delete(comment)
     db.commit()

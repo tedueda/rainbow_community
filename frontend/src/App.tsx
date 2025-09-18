@@ -14,15 +14,6 @@ import VirtualWeddingPage from './components/VirtualWeddingPage';
 import DonationPage from './components/DonationPage';
 import NewsPage from './components/NewsPage';
 
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, isLoading } = useAuth();
-  
-  if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
-  
-  return user ? <>{children}</> : <Navigate to="/login" />;
-};
 
 const FeedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isLoading } = useAuth();
@@ -71,14 +62,14 @@ function AppContent() {
             </FeedRoute>
           } />
           <Route path="/profile" element={
-            <ProtectedRoute>
+            <FeedRoute>
               <ProfilePage />
-            </ProtectedRoute>
+            </FeedRoute>
           } />
           <Route path="/create" element={
-            <ProtectedRoute>
+            <FeedRoute>
               <CreatePost />
-            </ProtectedRoute>
+            </FeedRoute>
           } />
           <Route path="/category/:categoryKey" element={
             <FeedRoute>
@@ -86,9 +77,9 @@ function AppContent() {
             </FeedRoute>
           } />
           <Route path="/category/:categoryKey/new" element={
-            <ProtectedRoute>
+            <FeedRoute>
               <CategoryPage />
-            </ProtectedRoute>
+            </FeedRoute>
           } />
           <Route path="/post/:postId" element={
             <FeedRoute>

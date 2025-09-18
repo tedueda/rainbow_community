@@ -3,18 +3,20 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User, Reaction, PointEvent
 from app.schemas import Reaction as ReactionSchema, ReactionCreate
-from app.auth import get_current_premium_user
+from app.auth import get_current_premium_user, get_current_user_optional
 
 router = APIRouter(prefix="/reactions", tags=["reactions"])
 
 @router.post("/", response_model=ReactionSchema)
 async def create_reaction(
     reaction: ReactionCreate,
-    current_user: User = Depends(get_current_premium_user),
+    current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
+    user_id = current_user.id if current_user else 1
+    
     existing_reaction = db.query(Reaction).filter(
-        Reaction.user_id == current_user.id,
+        Reaction.user_id == user_id,
         Reaction.target_type == reaction.target_type,
         Reaction.target_id == reaction.target_id,
         Reaction.reaction_type == reaction.reaction_type
@@ -23,7 +25,7 @@ async def create_reaction(
     if existing_reaction:
         raise HTTPException(status_code=400, detail="Reaction already exists")
     
-    db_reaction = Reaction(**reaction.dict(), user_id=current_user.id)
+    db_reaction = Reaction(**reaction.dict(), user_id=user_id)
     db.add(db_reaction)
     db.commit()
     db.refresh(db_reaction)
@@ -33,15 +35,12 @@ async def create_reaction(
 @router.delete("/{reaction_id}")
 async def delete_reaction(
     reaction_id: int,
-    current_user: User = Depends(get_current_premium_user),
+    current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     reaction = db.query(Reaction).filter(Reaction.id == reaction_id).first()
     if reaction is None:
         raise HTTPException(status_code=404, detail="Reaction not found")
-    
-    if reaction.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
     
     db.delete(reaction)
     db.commit()
