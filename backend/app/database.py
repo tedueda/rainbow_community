@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DATABASE_URL = "sqlite:///./lgbtq_community.db"
-print(f"🔄 Using SQLite database for deployed backend: {DATABASE_URL}")
+print(f"🔄 Using database: {DATABASE_URL}")
 
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
