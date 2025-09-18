@@ -3,17 +3,17 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User, Reaction, PointEvent
 from app.schemas import Reaction as ReactionSchema, ReactionCreate
-from app.auth import get_current_premium_user, get_current_user_optional
+from app.auth import get_current_active_user
 
 router = APIRouter(prefix="/reactions", tags=["reactions"])
 
 @router.post("/", response_model=ReactionSchema)
 async def create_reaction(
     reaction: ReactionCreate,
-    current_user: User = Depends(get_current_user_optional),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    user_id = current_user.id if current_user else 1
+    user_id = current_user.id
     
     existing_reaction = db.query(Reaction).filter(
         Reaction.user_id == user_id,
@@ -35,7 +35,7 @@ async def create_reaction(
 @router.delete("/{reaction_id}")
 async def delete_reaction(
     reaction_id: int,
-    current_user: User = Depends(get_current_user_optional),
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     reaction = db.query(Reaction).filter(Reaction.id == reaction_id).first()

@@ -10,6 +10,11 @@ from app.auth import authenticate_user, create_access_token, get_password_hash, 
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
+@router.get("/health")
+async def auth_health():
+    """Health check endpoint for authentication service - no authentication required"""
+    return {"status": "ok", "service": "authentication"}
+
 @router.post("/register", response_model=UserSchema)
 async def register(user: UserCreate, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == user.email).first()
