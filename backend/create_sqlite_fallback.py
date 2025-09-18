@@ -1,7 +1,6 @@
 import os
 import sys
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
+import sqlite3
 from datetime import datetime, timedelta
 import random
 from dotenv import load_dotenv
@@ -11,16 +10,11 @@ load_dotenv()
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from app.auth import get_password_hash
 
-def create_postgresql_data():
-    DATABASE_URL = os.getenv("DATABASE_URL")
-    if not DATABASE_URL or DATABASE_URL.startswith("sqlite"):
-        print("This script is for PostgreSQL only")
-        return
-        
-    print(f"Connecting to PostgreSQL: {DATABASE_URL}")
-    engine = create_engine(DATABASE_URL)
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    db = SessionLocal()
+def create_sqlite_data():
+    print("Creating SQLite fallback data for deployed backend...")
+    
+    conn = sqlite3.connect('lgbtq_community.db')
+    cursor = conn.cursor()
     
     try:
         users_data = [
@@ -30,22 +24,17 @@ def create_postgresql_data():
         ]
         
         for email, password, display_name, membership_type in users_data:
-            result = db.execute(text("SELECT id FROM users WHERE email = :email"), {"email": email})
-            if not result.fetchone():
+            cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+            if not cursor.fetchone():
                 hashed_password = get_password_hash(password)
-                db.execute(text("""
+                cursor.execute("""
                     INSERT INTO users (email, password_hash, display_name, membership_type, is_active, created_at)
-                    VALUES (:email, :password_hash, :display_name, :membership_type, true, CURRENT_TIMESTAMP)
-                """), {
-                    "email": email,
-                    "password_hash": hashed_password,
-                    "display_name": display_name,
-                    "membership_type": membership_type
-                })
+                    VALUES (?, ?, ?, ?, 1, datetime('now'))
+                """, (email, hashed_password, display_name, membership_type))
                 print(f"Created user: {email}")
         
-        ted_result = db.execute(text("SELECT id FROM users WHERE email = 'tedyueda@gmail.com'"))
-        ted_user_id = ted_result.fetchone()[0]
+        cursor.execute("SELECT id FROM users WHERE email = 'tedyueda@gmail.com'")
+        ted_user_id = cursor.fetchone()[0]
         
         posts_data = [
             ("職場での理解を得るには", "職場でLGBTQ+であることを理解してもらうにはどうすればいいでしょうか？ #board", ted_user_id),
@@ -63,30 +52,25 @@ def create_postgresql_data():
         ]
         
         for title, body, user_id in posts_data:
-            result = db.execute(text("SELECT id FROM posts WHERE title = :title"), {"title": title})
-            if not result.fetchone():
+            cursor.execute("SELECT id FROM posts WHERE title = ?", (title,))
+            if not cursor.fetchone():
                 created_at = datetime.now() - timedelta(days=random.randint(1, 7))
-                db.execute(text("""
+                cursor.execute("""
                     INSERT INTO posts (user_id, title, body, visibility, created_at, updated_at)
-                    VALUES (:user_id, :title, :body, 'public', :created_at, :created_at)
-                """), {
-                    "user_id": user_id,
-                    "title": title,
-                    "body": body,
-                    "created_at": created_at
-                })
+                    VALUES (?, ?, ?, 'public', ?, ?)
+                """, (user_id, title, body, created_at, created_at))
                 print(f"Created post: {title}")
         
-        db.commit()
-        print("✅ PostgreSQL dummy data created successfully!")
+        conn.commit()
+        print("✅ SQLite dummy data created successfully!")
         
     except Exception as e:
-        db.rollback()
-        print(f"❌ Error creating PostgreSQL data: {e}")
+        conn.rollback()
+        print(f"❌ Error creating SQLite data: {e}")
         import traceback
         traceback.print_exc()
     finally:
-        db.close()
+        conn.close()
 
 if __name__ == "__main__":
-    create_postgresql_data()
+    create_sqlite_data()
