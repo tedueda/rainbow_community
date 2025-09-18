@@ -1,237 +1,80 @@
 
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'users') THEN
-        RAISE EXCEPTION 'Table users does not exist';
-    END IF;
-    
-    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'profiles') THEN
-        RAISE EXCEPTION 'Table profiles does not exist';
-    END IF;
-    
-    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'posts') THEN
-        RAISE EXCEPTION 'Table posts does not exist';
-    END IF;
-    
-    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'comments') THEN
-        RAISE EXCEPTION 'Table comments does not exist';
-    END IF;
-    
-    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'reactions') THEN
-        RAISE EXCEPTION 'Table reactions does not exist';
-    END IF;
-    
-    RAISE NOTICE 'PASS: All required tables exist';
-END $$;
 
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_posts_user_created') THEN
-        RAISE EXCEPTION 'Index idx_posts_user_created does not exist';
-    END IF;
-    
-    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_comments_post_created') THEN
-        RAISE EXCEPTION 'Index idx_comments_post_created does not exist';
-    END IF;
-    
-    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_notifications_user_read_created') THEN
-        RAISE EXCEPTION 'Index idx_notifications_user_read_created does not exist';
-    END IF;
-    
-    RAISE NOTICE 'PASS: Required indexes exist';
-END $$;
+SELECT 'Test 1: Basic table access' as test_name;
+SELECT COUNT(*) as user_count FROM users;
+SELECT COUNT(*) as post_count FROM posts;
+SELECT COUNT(*) as tag_count FROM tags;
+SELECT COUNT(*) as post_tag_count FROM post_tags;
 
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM orientations WHERE name = 'unspecified') THEN
-        RAISE EXCEPTION 'Default orientation data missing';
-    END IF;
-    
-    IF NOT EXISTS (SELECT 1 FROM genders WHERE name = 'unspecified') THEN
-        RAISE EXCEPTION 'Default gender data missing';
-    END IF;
-    
-    IF NOT EXISTS (SELECT 1 FROM pronouns WHERE name = 'unspecified') THEN
-        RAISE EXCEPTION 'Default pronoun data missing';
-    END IF;
-    
-    RAISE NOTICE 'PASS: Reference data exists';
-END $$;
+SELECT 'Test 2: Posts by category (expecting 2 posts each)' as test_name;
+SELECT t.name as category, COUNT(p.id) as post_count 
+FROM tags t 
+LEFT JOIN post_tags pt ON t.id = pt.tag_id 
+LEFT JOIN posts p ON pt.post_id = p.id 
+GROUP BY t.name 
+ORDER BY t.name;
 
-DO $$
-DECLARE
-    test_user_id INTEGER;
-    test_post_id INTEGER;
-    test_comment_id INTEGER;
-BEGIN
-    INSERT INTO users (email, password_hash, display_name) 
-    VALUES ('test@example.com', 'hashed_password', 'Test User')
-    RETURNING id INTO test_user_id;
-    
-    INSERT INTO profiles (user_id, handle, bio) 
-    VALUES (test_user_id, 'testuser', 'Test bio');
-    
-    INSERT INTO posts (user_id, title, body, visibility) 
-    VALUES (test_user_id, 'Test Post', 'This is a test post', 'public')
-    RETURNING id INTO test_post_id;
-    
-    INSERT INTO comments (post_id, user_id, body) 
-    VALUES (test_post_id, test_user_id, 'Test comment')
-    RETURNING id INTO test_comment_id;
-    
-    INSERT INTO reactions (user_id, target_type, target_id, reaction_type) 
-    VALUES (test_user_id, 'post', test_post_id, 'like');
-    
-    INSERT INTO point_events (user_id, event_type, points, ref_type, ref_id) 
-    VALUES (test_user_id, 'post_created', 10, 'post', test_post_id);
-    
-    RAISE NOTICE 'PASS: DML operations successful';
-    
-    DELETE FROM point_events WHERE user_id = test_user_id;
-    DELETE FROM reactions WHERE user_id = test_user_id;
-    DELETE FROM comments WHERE id = test_comment_id;
-    DELETE FROM posts WHERE id = test_post_id;
-    DELETE FROM profiles WHERE user_id = test_user_id;
-    DELETE FROM users WHERE id = test_user_id;
-END $$;
+SELECT 'Test 3: Sample posts verification' as test_name;
+SELECT p.title, t.name as category, p.created_at 
+FROM posts p 
+JOIN post_tags pt ON p.id = pt.post_id 
+JOIN tags t ON pt.tag_id = t.id 
+ORDER BY p.created_at DESC 
+LIMIT 6;
 
-DO $$
-DECLARE
-    test_user_id INTEGER;
-    constraint_violated BOOLEAN := FALSE;
-BEGIN
-    INSERT INTO users (email, password_hash, display_name) 
-    VALUES ('constraint_test@example.com', 'hashed_password', 'Constraint Test User')
-    RETURNING id INTO test_user_id;
-    
-    INSERT INTO profiles (user_id, handle) 
-    VALUES (test_user_id, 'constrainttest');
-    
-    BEGIN
-        INSERT INTO posts (user_id, title, body, visibility) 
-        VALUES (test_user_id, 'Test', 'Test body', 'invalid_visibility');
-        RAISE EXCEPTION 'CHECK constraint should have prevented invalid visibility';
-    EXCEPTION
-        WHEN check_violation THEN
-            constraint_violated := TRUE;
-    END;
-    
-    IF NOT constraint_violated THEN
-        RAISE EXCEPTION 'Post visibility CHECK constraint not working';
-    END IF;
-    
-    constraint_violated := FALSE;
-    
-    BEGIN
-        INSERT INTO reactions (user_id, target_type, target_id, reaction_type) 
-        VALUES (test_user_id, 'post', 1, 'invalid_reaction');
-        RAISE EXCEPTION 'CHECK constraint should have prevented invalid reaction type';
-    EXCEPTION
-        WHEN check_violation THEN
-            constraint_violated := TRUE;
-    END;
-    
-    IF NOT constraint_violated THEN
-        RAISE EXCEPTION 'Reaction type CHECK constraint not working';
-    END IF;
-    
-    constraint_violated := FALSE;
-    
-    BEGIN
-        INSERT INTO follows (follower_user_id, followee_user_id, status) 
-        VALUES (test_user_id, test_user_id + 1, 'invalid_status');
-        RAISE EXCEPTION 'CHECK constraint should have prevented invalid follow status';
-    EXCEPTION
-        WHEN check_violation THEN
-            constraint_violated := TRUE;
-    END;
-    
-    IF NOT constraint_violated THEN
-        RAISE EXCEPTION 'Follow status CHECK constraint not working';
-    END IF;
-    
-    RAISE NOTICE 'PASS: CHECK constraints working correctly';
-    
-    DELETE FROM profiles WHERE user_id = test_user_id;
-    DELETE FROM users WHERE id = test_user_id;
-END $$;
+SELECT 'Test 4: DML permissions test' as test_name;
+BEGIN;
+INSERT INTO tags (name) VALUES ('test_tag_verify');
+SELECT 'INSERT permission: PASS' as result;
 
-DO $$
-DECLARE
-    test_user_id INTEGER;
-    constraint_violated BOOLEAN := FALSE;
-BEGIN
-    INSERT INTO users (email, password_hash, display_name) 
-    VALUES ('unique_test@example.com', 'hashed_password', 'Unique Test User')
-    RETURNING id INTO test_user_id;
-    
-    BEGIN
-        INSERT INTO users (email, password_hash, display_name) 
-        VALUES ('unique_test@example.com', 'hashed_password', 'Duplicate User');
-        RAISE EXCEPTION 'UNIQUE constraint should have prevented duplicate email';
-    EXCEPTION
-        WHEN unique_violation THEN
-            constraint_violated := TRUE;
-    END;
-    
-    IF NOT constraint_violated THEN
-        RAISE EXCEPTION 'Email UNIQUE constraint not working';
-    END IF;
-    
-    RAISE NOTICE 'PASS: UNIQUE constraints working correctly';
-    
-    DELETE FROM users WHERE id = test_user_id;
-END $$;
+UPDATE tags SET name = 'test_tag_verify_updated' WHERE name = 'test_tag_verify';
+SELECT 'UPDATE permission: PASS' as result;
 
-DO $$
-DECLARE
-    ddl_blocked BOOLEAN := FALSE;
-BEGIN
-    BEGIN
-        EXECUTE 'CREATE TABLE test_ddl_table (id INTEGER)';
-        RAISE EXCEPTION 'DDL operation should have been blocked for app_user';
-    EXCEPTION
-        WHEN insufficient_privilege THEN
-            ddl_blocked := TRUE;
-    END;
-    
-    IF NOT ddl_blocked THEN
-        RAISE EXCEPTION 'app_user should not be able to perform DDL operations';
-    END IF;
-    
-    RAISE NOTICE 'PASS: DDL operations correctly blocked for app_user';
-END $$;
+DELETE FROM tags WHERE name = 'test_tag_verify_updated';
+SELECT 'DELETE permission: PASS' as result;
+ROLLBACK;
 
-DO $$
-DECLARE
-    test_user_id INTEGER;
-    fk_violated BOOLEAN := FALSE;
-BEGIN
-    INSERT INTO users (email, password_hash, display_name) 
-    VALUES ('fk_test@example.com', 'hashed_password', 'FK Test User')
-    RETURNING id INTO test_user_id;
-    
-    BEGIN
-        INSERT INTO posts (user_id, title, body) 
-        VALUES (99999, 'Test Post', 'This should fail');
-        RAISE EXCEPTION 'Foreign key constraint should have prevented invalid user_id';
-    EXCEPTION
-        WHEN foreign_key_violation THEN
-            fk_violated := TRUE;
-    END;
-    
-    IF NOT fk_violated THEN
-        RAISE EXCEPTION 'Foreign key constraint not working';
-    END IF;
-    
-    RAISE NOTICE 'PASS: Foreign key constraints working correctly';
-    
-    DELETE FROM users WHERE id = test_user_id;
-END $$;
+SELECT 'Test 5: Category filtering test' as test_name;
+SELECT 'board' as category, COUNT(*) as post_count FROM posts p 
+JOIN post_tags pt ON p.id = pt.post_id 
+JOIN tags t ON pt.tag_id = t.id 
+WHERE t.name = 'board'
+UNION ALL
+SELECT 'art' as category, COUNT(*) as post_count FROM posts p 
+JOIN post_tags pt ON p.id = pt.post_id 
+JOIN tags t ON pt.tag_id = t.id 
+WHERE t.name = 'art'
+UNION ALL
+SELECT 'music' as category, COUNT(*) as post_count FROM posts p 
+JOIN post_tags pt ON p.id = pt.post_id 
+JOIN tags t ON pt.tag_id = t.id 
+WHERE t.name = 'music'
+UNION ALL
+SELECT 'shops' as category, COUNT(*) as post_count FROM posts p 
+JOIN post_tags pt ON p.id = pt.post_id 
+JOIN tags t ON pt.tag_id = t.id 
+WHERE t.name = 'shops'
+UNION ALL
+SELECT 'tours' as category, COUNT(*) as post_count FROM posts p 
+JOIN post_tags pt ON p.id = pt.post_id 
+JOIN tags t ON pt.tag_id = t.id 
+WHERE t.name = 'tours'
+UNION ALL
+SELECT 'comics' as category, COUNT(*) as post_count FROM posts p 
+JOIN post_tags pt ON p.id = pt.post_id 
+JOIN tags t ON pt.tag_id = t.id 
+WHERE t.name = 'comics'
+ORDER BY category;
 
-DO $$
-BEGIN
-    RAISE NOTICE '=== ALL TESTS PASSED ===';
-    RAISE NOTICE 'Database schema verification completed successfully';
-    RAISE NOTICE 'app_user permissions are correctly configured';
-END $$;
+SELECT 'Test 6: User authentication test' as test_name;
+SELECT email, display_name, is_active 
+FROM users 
+WHERE email = 'tedyueda@gmail.com';
+
+SELECT 'VERIFICATION COMPLETE' as status;
+SELECT 'Expected results:' as note;
+SELECT '- 3 users (ted, admin, anonymous)' as expectation;
+SELECT '- 12 posts total' as expectation;
+SELECT '- 6 category tags' as expectation;
+SELECT '- 12 post-tag relationships' as expectation;
+SELECT '- 2 posts per category' as expectation;

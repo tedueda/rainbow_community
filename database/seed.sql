@@ -1,4 +1,5 @@
 
+
 INSERT INTO orientations (name) VALUES 
     ('unspecified'),
     ('heterosexual'),
@@ -37,6 +38,19 @@ INSERT INTO pronouns (name) VALUES
     ('ask me'),
     ('no pronouns')
 ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO tags (name) VALUES 
+    ('board'),
+    ('art'), 
+    ('music'),
+    ('shops'),
+    ('tours'),
+    ('comics')
+ON CONFLICT (name) DO NOTHING;
+
+
+-- Posts and post_tags will be created by separate script after users are created
+-- See create_postgresql_data.py for post and post_tags creation
 
 INSERT INTO awards (name, description, threshold_points, prize_amount_yen) VALUES 
     ('Welcome Member', 'First steps in our community', 10, 0),
