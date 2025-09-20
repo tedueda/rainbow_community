@@ -4,6 +4,9 @@ from .database import get_db
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import auth, users, profiles, posts, comments, reactions, follows, notifications
 from app.database import Base, engine
+import os
+
+PORT = int(os.getenv("PORT", 8000))
 
 Base.metadata.create_all(bind=engine)
 
