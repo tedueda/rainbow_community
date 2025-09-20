@@ -167,6 +167,7 @@ const HomePage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isCarouselHovered, setIsCarouselHovered] = useState(false);
   const [showConstructionModal, setShowConstructionModal] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const carouselApiRef = useRef<any>(null);
   const { token, user, isAnonymous, setAnonymousMode } = useAuth();
   const navigate = useNavigate();
@@ -310,6 +311,14 @@ const HomePage: React.FC = () => {
     }
   }, [carouselApiRef.current, posts.length]);
 
+  useEffect(() => {
+    const slideInterval = setInterval(() => {
+      setCurrentSlide((prev) => (prev === 0 ? 1 : 0));
+    }, 5000);
+
+    return () => clearInterval(slideInterval);
+  }, []);
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto p-4 sm:p-6">
@@ -327,7 +336,7 @@ const HomePage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold leading-tight text-pink-800">
-                温かく寄り添えるオンラインの居場所。
+                自分を表現する、新しい仲間と出会う。
               </h2>
               <p className="mt-3 text-slate-600">
                 悩み相談、アート、音楽、地元ツアー。ここから、あなたの物語が始まります。
@@ -363,7 +372,26 @@ const HomePage: React.FC = () => {
                 </p>
               )}
             </div>
-            <div className="h-44 md:h-56 lg:h-64 rounded-3xl bg-gradient-to-br from-pink-200 via-green-200 to-orange-200 shadow-inner" />
+            <div className="relative h-44 md:h-56 lg:h-64 rounded-3xl overflow-hidden shadow-inner">
+              <div 
+                className={`absolute inset-0 transition-opacity duration-1000 ${currentSlide === 0 ? 'opacity-100' : 'opacity-0'}`}
+              >
+                <img 
+                  src="/images/hero-slide-1.jpg" 
+                  alt="LGBTQ+ Community Illustration 1"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div 
+                className={`absolute inset-0 transition-opacity duration-1000 ${currentSlide === 1 ? 'opacity-100' : 'opacity-0'}`}
+              >
+                <img 
+                  src="/images/hero-slide-2.jpg" 
+                  alt="LGBTQ+ Community Illustration 2"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
           </div>
         </section>
 
