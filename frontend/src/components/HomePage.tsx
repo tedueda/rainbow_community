@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
 import { Input } from './ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Heart, ThumbsUp, Search, MessageCircle, Calendar, ArrowRight } from 'lucide-react';
+import UnderConstructionModal from './UnderConstructionModal';
 
 interface User {
   id: number;
@@ -45,7 +46,7 @@ const memberBenefits = [
   },
   {
     id: "virtual-wedding",
-    title: "バーチャルウェディング",
+    title: "ウェディング動画・配信",
     description: "オンラインで叶える特別な結婚式体験",
     icon: "💒",
     link: "/virtual-wedding",
@@ -165,6 +166,7 @@ const HomePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isCarouselHovered, setIsCarouselHovered] = useState(false);
+  const [showConstructionModal, setShowConstructionModal] = useState(false);
   const carouselApiRef = useRef<any>(null);
   const { token, user, isAnonymous, setAnonymousMode } = useAuth();
   const navigate = useNavigate();
@@ -599,7 +601,7 @@ const HomePage: React.FC = () => {
               <Card 
                 key={benefit.id} 
                 className="group border-pink-100 hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.03]"
-                onClick={() => navigate(benefit.link)}
+                onClick={() => setShowConstructionModal(true)}
               >
                 <CardContent className="p-5 text-center">
                   <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">
@@ -693,6 +695,11 @@ const HomePage: React.FC = () => {
         </section>
 
       </div>
+      
+      <UnderConstructionModal 
+        isOpen={showConstructionModal}
+        onClose={() => setShowConstructionModal(false)}
+      />
     </div>
   );
 };

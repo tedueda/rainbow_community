@@ -9,9 +9,9 @@ import PostFeed from './components/PostFeed';
 import ProfilePage from './components/ProfilePage';
 import CreatePost from './components/CreatePost';
 import CategoryPage from './components/CategoryPage';
-import MatchingPage from './components/MatchingPage';
-import VirtualWeddingPage from './components/VirtualWeddingPage';
-import DonationPage from './components/DonationPage';
+// import MatchingPage from './components/MatchingPage';
+// import VirtualWeddingPage from './components/VirtualWeddingPage';
+// import DonationPage from './components/DonationPage';
 import NewsPage from './components/NewsPage';
 
 
@@ -81,6 +81,7 @@ function AppContent() {
               <CategoryPage />
             </FeedRoute>
           } />
+          {/* Member benefits routes disabled - under construction
           <Route path="/matching" element={
             <FeedRoute>
               <MatchingPage />
@@ -96,6 +97,7 @@ function AppContent() {
               <DonationPage />
             </FeedRoute>
           } />
+          */}
           <Route path="/news" element={
             <FeedRoute>
               <NewsPage />

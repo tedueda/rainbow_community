@@ -22,7 +22,7 @@ const VirtualWeddingPage: React.FC = () => {
         <div className="flex items-center gap-3">
           <div className="text-3xl">💒</div>
           <div>
-            <h1 className="text-2xl font-bold text-pink-800">バーチャルウェディング</h1>
+            <h1 className="text-2xl font-bold text-pink-800">ウェディング動画・配信</h1>
             <p className="text-slate-600">オンラインで叶える特別な結婚式体験</p>
           </div>
         </div>
