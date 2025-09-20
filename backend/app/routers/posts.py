@@ -10,15 +10,16 @@ from app.auth import get_current_active_user, get_current_premium_user
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
+
 @router.get("/", response_model=List[PostSchema])
 async def read_posts(
     skip: int = 0,
     limit: int = 20,
-    visibility: Optional[str] = Query(None),
-    category: Optional[str] = Query(None),
-    sort: Optional[str] = Query("newest"),
-    range: Optional[str] = Query("all"),
-    tag: Optional[str] = Query(None),
+    visibility: Optional[str] = None,
+    category: Optional[str] = None,
+    sort: str = "newest",
+    range: str = "all",
+    tag: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     query = db.query(Post)
@@ -29,7 +30,7 @@ async def read_posts(
         query = query.filter(Post.visibility == "public")
     
     if category:
-        query = query.join(PostTag).join(Tag).filter(Tag.name == category)
+        query = query.filter(Post.body.contains(f"#{category}"))
     
     if range != "all":
         now = datetime.utcnow()

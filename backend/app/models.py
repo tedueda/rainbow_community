@@ -98,7 +98,6 @@ class MediaAsset(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     user = relationship("User", back_populates="media_assets")
-    posts = relationship("Post", back_populates="media")
 
 class Post(Base):
     __tablename__ = "posts"
@@ -108,7 +107,6 @@ class Post(Base):
     title = Column(String(200))
     body = Column(Text, nullable=False)
     visibility = Column(String(20), default="public")
-    media_id = Column(Integer, ForeignKey("media_assets.id"))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
@@ -117,7 +115,6 @@ class Post(Base):
     )
     
     user = relationship("User", back_populates="posts")
-    media = relationship("MediaAsset", back_populates="posts")
     comments = relationship("Comment", back_populates="post")
     tags = relationship("Tag", secondary="post_tags", back_populates="posts")
 
