@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,19 +7,53 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Music, Palette, MessageSquare, Store, MapPin, Film } from 'lucide-react';
 
 const CreatePost: React.FC = () => {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [visibility, setVisibility] = useState('public');
+  const [category, setCategory] = useState('board');
+  const [youtubeUrl, setYoutubeUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
   const { token } = useAuth();
   const navigate = useNavigate();
+  const { categoryKey } = useParams();
 
   const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
+
+  const categories = [
+    { key: 'board', name: '掲示板', icon: MessageSquare, description: '質問、相談、雑談など' },
+    { key: 'art', name: 'アート', icon: Palette, description: '作品、創作活動の共有' },
+    { key: 'music', name: '音楽', icon: Music, description: 'YouTube動画、音楽の共有' },
+    { key: 'shops', name: 'お店', icon: Store, description: 'おすすめのお店情報' },
+    { key: 'tours', name: 'ツアー', icon: MapPin, description: '旅行、観光スポット' },
+    { key: 'comics', name: 'コミック・映画', icon: Film, description: 'エンタメ作品のレビュー' }
+  ];
+
+  useEffect(() => {
+    if (categoryKey) {
+      const validCategory = categories.find(cat => cat.key === categoryKey);
+      if (validCategory) {
+        setCategory(categoryKey);
+      }
+    }
+  }, [categoryKey]);
+
+  const extractYouTubeVideoId = (url: string): string | null => {
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+      /youtube\.com\/watch\?.*v=([^&\n?#]+)/
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    return null;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,8 +66,14 @@ const CreatePost: React.FC = () => {
       return;
     }
 
+    if (category === 'music' && youtubeUrl && !extractYouTubeVideoId(youtubeUrl)) {
+      setError('有効なYouTube URLを入力してください');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const response = await fetch(`${API_URL}/posts`, {
+      const response = await fetch(`${API_URL}/api/posts`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -41,7 +81,7 @@ const CreatePost: React.FC = () => {
         },
         body: JSON.stringify({
           title: title.trim() || null,
-          body: body.trim(),
+          body: `${body.trim()}${category === 'music' && youtubeUrl ? `\n\nYouTube: ${youtubeUrl}` : ''} #${category}`,
           visibility,
         }),
       });
@@ -60,17 +100,47 @@ const CreatePost: React.FC = () => {
     }
   };
 
+  const selectedCategory = categories.find(cat => cat.key === category);
+  const CategoryIcon = selectedCategory?.icon || PlusCircle;
+
   return (
     <div className="max-w-2xl mx-auto p-4 sm:p-6">
       <Card className="border-orange-200 shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center text-xl sm:text-2xl text-orange-800">
-            <PlusCircle className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
-            新しい投稿を作成
+            <CategoryIcon className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
+            {selectedCategory ? `${selectedCategory.name}に投稿` : '新しい投稿を作成'}
           </CardTitle>
+          {selectedCategory && (
+            <p className="text-sm text-gray-600 mt-1">{selectedCategory.description}</p>
+          )}
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            {!categoryKey && (
+              <div className="space-y-2">
+                <Label htmlFor="category" className="text-gray-700">カテゴリー</Label>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger className="border-orange-200 focus:border-orange-400 focus:ring-orange-400">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => {
+                      const Icon = cat.icon;
+                      return (
+                        <SelectItem key={cat.key} value={cat.key}>
+                          <div className="flex items-center">
+                            <Icon className="h-4 w-4 mr-2" />
+                            {cat.name} - {cat.description}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="title" className="text-gray-700">タイトル（任意）</Label>
               <Input
@@ -83,13 +153,50 @@ const CreatePost: React.FC = () => {
               />
             </div>
 
+            {category === 'music' && (
+              <div className="space-y-2">
+                <Label htmlFor="youtube" className="text-gray-700">YouTube URL（任意）</Label>
+                <Input
+                  id="youtube"
+                  type="url"
+                  value={youtubeUrl}
+                  onChange={(e) => setYoutubeUrl(e.target.value)}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  className="border-orange-200 focus:border-orange-400 focus:ring-orange-400"
+                />
+                {youtubeUrl && extractYouTubeVideoId(youtubeUrl) && (
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-600 mb-2">プレビュー:</p>
+                    <div className="aspect-video">
+                      <iframe
+                        src={`https://www.youtube.com/embed/${extractYouTubeVideoId(youtubeUrl)}`}
+                        title="YouTube video preview"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="w-full h-full rounded"
+                      ></iframe>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="body" className="text-gray-700">内容 *</Label>
               <Textarea
                 id="body"
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
-                placeholder="あなたの想い、体験、質問などを共有してください..."
+                placeholder={
+                  category === 'board' ? 'あなたの質問、相談、想いを共有してください...' :
+                  category === 'art' ? 'あなたの作品や創作活動について教えてください...' :
+                  category === 'music' ? '音楽について、おすすめの楽曲やアーティストを教えてください...' :
+                  category === 'shops' ? 'おすすめのお店やサービスを教えてください...' :
+                  category === 'tours' ? '旅行先や観光スポットの情報を共有してください...' :
+                  category === 'comics' ? '本、映画、ドラマ、コミックのレビューを書いてください...' :
+                  'あなたの想い、体験、質問などを共有してください...'
+                }
                 required
                 rows={6}
                 className="border-orange-200 focus:border-orange-400 focus:ring-orange-400 resize-none"
