@@ -86,7 +86,7 @@ const CategoryPage: React.FC = () => {
         params.set('tag', selectedTag);
       }
       
-      const response = await fetch(`${API_URL}/posts/?${params}`, {
+      const response = await fetch(`${API_URL}/api/posts/?${params}`, {
         headers: token ? {
           'Authorization': `Bearer ${token}`,
         } : {},
@@ -116,7 +116,7 @@ const CategoryPage: React.FC = () => {
         
         for (const userId of userIds) {
           try {
-            const userResponse = await fetch(`${API_URL}/users/${userId}`, {
+            const userResponse = await fetch(`${API_URL}/api/users/${userId}`, {
               headers: token ? {
                 'Authorization': `Bearer ${token}`,
               } : {},
@@ -181,7 +181,7 @@ const CategoryPage: React.FC = () => {
     if (!token) return;
     
     try {
-      const response = await fetch(`${API_URL}/posts/${postId}/like`, {
+      const response = await fetch(`${API_URL}/api/posts/${postId}/like`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
