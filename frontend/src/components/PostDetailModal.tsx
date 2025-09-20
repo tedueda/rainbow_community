@@ -55,7 +55,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
     if (!post) return;
     
     try {
-      const response = await fetch(`${API_URL}/posts/${post.id}/comments`, {
+      const response = await fetch(`${API_URL}/api/posts/${post.id}/comments`, {
         headers: token ? {
           'Authorization': `Bearer ${token}`,
         } : {},
@@ -97,7 +97,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
     if (!newComment.trim() || !token) return;
     
     try {
-      const response = await fetch(`${API_URL}/comments/`, {
+      const response = await fetch(`${API_URL}/api/posts/${post.id}/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

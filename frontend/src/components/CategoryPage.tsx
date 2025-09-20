@@ -53,7 +53,7 @@ const getRelativeTime = (dateString: string): string => {
 };
 
 const CategoryPage: React.FC = () => {
-  const { categoryKey, postId } = useParams<{ categoryKey: string; postId?: string }>();
+  const { categoryKey } = useParams<{ categoryKey: string }>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { token, user, isAnonymous } = useAuth();
@@ -163,13 +163,11 @@ const CategoryPage: React.FC = () => {
   const openPostModal = (post: Post) => {
     setSelectedPost(post);
     setIsModalOpen(true);
-    navigate(`/post/${post.id}`, { replace: true });
   };
 
   const closePostModal = () => {
     setSelectedPost(null);
     setIsModalOpen(false);
-    navigate(`/category/${categoryKey}`, { replace: true });
   };
 
   const handlePostCreated = (newPost: Post) => {
@@ -207,15 +205,6 @@ const CategoryPage: React.FC = () => {
     fetchPosts();
   }, [categoryKey, token, sortBy, timeRange, selectedTag]);
 
-  useEffect(() => {
-    if (postId && posts.length > 0) {
-      const post = posts.find(p => p.id === parseInt(postId));
-      if (post) {
-        setSelectedPost(post);
-        setIsModalOpen(true);
-      }
-    }
-  }, [postId, posts]);
 
   if (!category) {
     return (

@@ -1,4 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+import html
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, func
 from typing import List, Optional
@@ -9,6 +13,8 @@ from app.schemas import Post as PostSchema, PostCreate, PostUpdate
 from app.auth import get_current_active_user, get_current_premium_user
 
 router = APIRouter(prefix="/api/posts", tags=["posts"], redirect_slashes=False)
+
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.get("", response_model=List[PostSchema])
@@ -202,3 +208,43 @@ async def get_post_comments(
         })
     
     return result
+
+@router.post("/{post_id}/comments")
+@limiter.limit("10/5minutes")
+async def create_post_comment(
+    request: Request,
+    post_id: int,
+    comment_data: dict,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    author_name = comment_data.get("authorName", "").strip()
+    body = comment_data.get("body", "").strip()
+    
+    if not author_name or len(author_name) > 50:
+        raise HTTPException(status_code=400, detail="invalid_author")
+    if not body or len(body) > 1000:
+        raise HTTPException(status_code=400, detail="invalid_body")
+    
+    safe_body = html.escape(body)
+    
+    post = db.query(Post).filter(Post.id == post_id, Post.visibility == "public").first()
+    if not post:
+        raise HTTPException(status_code=404, detail="post_not_found")
+    
+    from app.models import Comment
+    new_comment = Comment(
+        post_id=post_id,
+        user_id=current_user.id,
+        body=safe_body
+    )
+    db.add(new_comment)
+    db.commit()
+    db.refresh(new_comment)
+    
+    return {
+        "id": new_comment.id,
+        "author_name": current_user.display_name,
+        "body": new_comment.body,
+        "created_at": new_comment.created_at
+    }

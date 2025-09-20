@@ -81,11 +81,6 @@ function AppContent() {
               <CategoryPage />
             </FeedRoute>
           } />
-          <Route path="/post/:postId" element={
-            <FeedRoute>
-              <CategoryPage />
-            </FeedRoute>
-          } />
           <Route path="/matching" element={
             <FeedRoute>
               <MatchingPage />

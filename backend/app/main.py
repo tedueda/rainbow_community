@@ -2,6 +2,9 @@ from fastapi import FastAPI, Depends
 from sqlalchemy import text
 from .database import get_db
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from app.routers import auth, users, profiles, posts, comments, reactions, follows, notifications
 from app.database import Base, engine
 import os
@@ -12,13 +15,16 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="LGBTQ Community API", version="1.0.0")
 
-# Disable CORS. Do not remove this for full-stack development.
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
+    allow_origins=["https://lgbtq-community-app-kuijp5dt.devinapps.com"],
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(auth.router)
