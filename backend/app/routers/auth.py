@@ -8,7 +8,7 @@ from app.models import User, Profile
 from app.schemas import UserCreate, User as UserSchema, Token
 from app.auth import authenticate_user, create_access_token, get_password_hash, get_current_active_user, get_current_admin_user, ACCESS_TOKEN_EXPIRE_MINUTES
 
-router = APIRouter(prefix="/auth", tags=["authentication"])
+router = APIRouter(prefix="/api/auth", tags=["authentication"])
 
 @router.get("/health")
 async def auth_health():

@@ -5,7 +5,7 @@ from app.models import User, Profile
 from app.schemas import Profile as ProfileSchema, ProfileUpdate
 from app.auth import get_current_active_user
 
-router = APIRouter(prefix="/profiles", tags=["profiles"])
+router = APIRouter(prefix="/api/profiles", tags=["profiles"])
 
 @router.get("/me", response_model=ProfileSchema)
 async def read_profile_me(

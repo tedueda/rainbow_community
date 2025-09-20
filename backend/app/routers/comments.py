@@ -7,7 +7,7 @@ from app.models import User, Comment, PointEvent
 from app.schemas import Comment as CommentSchema, CommentCreate, CommentUpdate
 from app.auth import get_current_active_user
 
-router = APIRouter(prefix="/comments", tags=["comments"])
+router = APIRouter(prefix="/api/comments", tags=["comments"])
 
 @router.get("/", response_model=List[CommentSchema])
 async def read_comments(

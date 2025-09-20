@@ -6,7 +6,7 @@ from app.models import User, Follow
 from app.schemas import Follow as FollowSchema, FollowCreate
 from app.auth import get_current_active_user
 
-router = APIRouter(prefix="/follows", tags=["follows"])
+router = APIRouter(prefix="/api/follows", tags=["follows"])
 
 @router.post("/", response_model=FollowSchema)
 async def create_follow(

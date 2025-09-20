@@ -8,7 +8,7 @@ from app.models import User, Post, PointEvent, Reaction, Tag, PostTag
 from app.schemas import Post as PostSchema, PostCreate, PostUpdate
 from app.auth import get_current_active_user, get_current_premium_user
 
-router = APIRouter(prefix="/posts", tags=["posts"], redirect_slashes=False)
+router = APIRouter(prefix="/api/posts", tags=["posts"], redirect_slashes=False)
 
 
 @router.get("", response_model=List[PostSchema])

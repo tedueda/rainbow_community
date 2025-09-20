@@ -5,7 +5,7 @@ from app.models import User, Reaction, PointEvent
 from app.schemas import Reaction as ReactionSchema, ReactionCreate
 from app.auth import get_current_active_user
 
-router = APIRouter(prefix="/reactions", tags=["reactions"])
+router = APIRouter(prefix="/api/reactions", tags=["reactions"])
 
 @router.post("/", response_model=ReactionSchema)
 async def create_reaction(

@@ -34,6 +34,10 @@ app.include_router(notifications.router)
 async def healthz():
     return {"status": "ok"}
 
+@app.head("/healthz")
+async def healthz_head():
+    return {"status": "ok"}
+
 @app.get("/")
 async def root():
     return {"message": "LGBTQ Community API", "version": "1.0.0"}

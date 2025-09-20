@@ -7,7 +7,7 @@ from app.models import User, Notification
 from app.schemas import Notification as NotificationSchema, NotificationUpdate
 from app.auth import get_current_active_user
 
-router = APIRouter(prefix="/notifications", tags=["notifications"])
+router = APIRouter(prefix="/api/notifications", tags=["notifications"])
 
 @router.get("/", response_model=List[NotificationSchema])
 async def read_notifications(

@@ -5,7 +5,7 @@ from app.models import User
 from app.schemas import User as UserSchema, UserUpdate
 from app.auth import get_current_active_user
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(prefix="/api/users", tags=["users"])
 
 @router.get("/me", response_model=UserSchema)
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
