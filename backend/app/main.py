@@ -7,7 +7,7 @@ from app.database import Base, engine
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="LGBTQ Community API", version="1.0.0", redirect_slashes=False)
+app = FastAPI(title="LGBTQ Community API", version="1.0.0")
 
 # Disable CORS. Do not remove this for full-stack development.
 app.add_middleware(

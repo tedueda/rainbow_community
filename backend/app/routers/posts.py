@@ -8,9 +8,10 @@ from app.models import User, Post, PointEvent, Reaction, Tag, PostTag
 from app.schemas import Post as PostSchema, PostCreate, PostUpdate
 from app.auth import get_current_active_user, get_current_premium_user
 
-router = APIRouter(prefix="/posts", tags=["posts"])
+router = APIRouter(prefix="/posts", tags=["posts"], redirect_slashes=False)
 
 
+@router.get("", response_model=List[PostSchema])
 @router.get("/", response_model=List[PostSchema])
 async def read_posts(
     skip: int = 0,
@@ -55,6 +56,7 @@ async def read_posts(
     posts = query.offset(skip).limit(limit).all()
     return posts
 
+@router.post("", response_model=PostSchema)
 @router.post("/", response_model=PostSchema)
 async def create_post(
     post: PostCreate,
