@@ -31,7 +31,16 @@ async def read_posts(
         query = query.filter(Post.visibility == "public")
     
     if category:
-        query = query.filter(Post.body.contains(f"#{category}"))
+        category_map = {
+            "board": "board",
+            "art": "art", 
+            "music": "music",
+            "shops": "shops",
+            "tours": "tours",
+            "comics": "comics"
+        }
+        hashtag = category_map.get(category, category)
+        query = query.filter(Post.body.contains(f"#{hashtag}"))
     
     if range != "all":
         now = datetime.utcnow()
