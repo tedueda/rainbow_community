@@ -43,9 +43,47 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
-    setIsAnonymous(true);
-    setIsLoading(false);
-  }, []);
+    const initializeAuth = async () => {
+      const storedToken = localStorage.getItem('token');
+      const isAnonymousMode = localStorage.getItem('anonymous') === 'true';
+      
+      if (storedToken && !isAnonymousMode) {
+        try {
+          const response = await fetch(`${API_URL}/api/auth/me`, {
+            headers: {
+              'Authorization': `Bearer ${storedToken}`,
+            },
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            setUser(userData);
+            setToken(storedToken);
+            setIsAnonymous(false);
+          } else {
+            localStorage.removeItem('token');
+            localStorage.removeItem('rememberMe');
+            setToken(null);
+            setUser(null);
+            setIsAnonymous(true);
+          }
+        } catch (error) {
+          console.error('Error validating token:', error);
+          localStorage.removeItem('token');
+          localStorage.removeItem('rememberMe');
+          setToken(null);
+          setUser(null);
+          setIsAnonymous(true);
+        }
+      } else {
+        setIsAnonymous(true);
+      }
+      
+      setIsLoading(false);
+    };
+
+    initializeAuth();
+  }, [API_URL]);
 
 
   const login = async (email: string, password: string, rememberMe: boolean = true): Promise<boolean> => {
@@ -66,13 +104,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('Login response data:', data);
         const newToken = data.access_token;
         console.log('Storing token:', newToken ? 'Token received' : 'No token received');
-        localStorage.setItem('token', newToken);
-        localStorage.setItem('rememberMe', rememberMe.toString());
-        setToken(newToken);
-        setIsAnonymous(false);
-        localStorage.removeItem('anonymous');
-        console.log('Token stored in localStorage:', localStorage.getItem('token'));
-        return true;
+        
+        try {
+          const userResponse = await fetch(`${API_URL}/api/auth/me`, {
+            headers: {
+              'Authorization': `Bearer ${newToken}`,
+            },
+          });
+          
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            setUser(userData);
+            localStorage.setItem('token', newToken);
+            localStorage.setItem('rememberMe', rememberMe.toString());
+            setToken(newToken);
+            setIsAnonymous(false);
+            localStorage.removeItem('anonymous');
+            console.log('User data loaded:', userData);
+            console.log('Token stored in localStorage:', localStorage.getItem('token'));
+            return true;
+          } else {
+            console.error('Failed to fetch user data after login');
+            return false;
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          return false;
+        }
       } else {
         const errorData = await response.text();
         console.error('Login failed:', response.status, errorData);
