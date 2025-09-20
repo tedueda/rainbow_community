@@ -55,7 +55,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       formData.append('username', email);
       formData.append('password', password);
 
-      const response = await fetch(`${API_URL}/auth/token`, {
+      const response = await fetch(`${API_URL}/api/auth/token`, {
         method: 'POST',
         body: formData,
       });
@@ -86,7 +86,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (email: string, password: string, displayName: string): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_URL}/auth/register`, {
+      const response = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
