@@ -21,6 +21,12 @@ primary_region = "nrt"
   timeout = "5s"
   path = "/healthz"
 
+[[services.checks]]
+  type = "http"
+  interval = "15s"
+  timeout = "2s"
+  path = "/healthz"
+
 [machine]
   memory = "1gb"
   cpu_kind = "shared"
