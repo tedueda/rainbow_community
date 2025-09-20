@@ -171,10 +171,76 @@ const HomePage: React.FC = () => {
 
   const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
 
-  const initializePosts = () => {
-    setPosts(dummyPosts);
-    setUsers(dummyUsers);
-    setLoading(false);
+  const fetchPosts = async () => {
+    try {
+      const headers: any = {};
+      if (token && !isAnonymous) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`${API_URL}/api/posts?limit=20`, {
+        headers,
+      });
+
+      if (response.ok) {
+        const postsData = await response.json();
+        
+        const enhancedPosts = postsData.map((post: any) => ({
+          ...post,
+          like_count: Math.floor(Math.random() * 50) + 1,
+          comment_count: Math.floor(Math.random() * 20),
+          points: Math.floor(Math.random() * 100) + 10,
+          is_liked: false,
+          media_urls: post.body.includes('#art') || post.body.includes('#shops') 
+            ? [`https://picsum.photos/400/300?random=${post.id}`] 
+            : undefined,
+          youtube_url: post.body.includes('#music') 
+            ? `https://www.youtube.com/watch?v=dQw4w9WgXcQ` 
+            : undefined,
+        }));
+        
+        setPosts(enhancedPosts);
+        
+        const userIds = [...new Set(enhancedPosts.map((post: any) => post.user_id))];
+        const usersData: { [key: number]: any } = {};
+        
+        for (const userId of userIds) {
+          try {
+            const userHeaders: any = {};
+            if (token && !isAnonymous) {
+              userHeaders['Authorization'] = `Bearer ${token}`;
+            }
+            
+            const userResponse = await fetch(`${API_URL}/api/users/${userId}`, {
+              headers: userHeaders,
+            });
+            if (userResponse.ok) {
+              const userData = await userResponse.json();
+              usersData[userId as number] = userData;
+            }
+          } catch (error) {
+            console.error(`Error fetching user ${userId}:`, error);
+            usersData[userId as number] = {
+              id: userId,
+              display_name: `ユーザー${userId}`,
+              email: `user${userId}@example.com`
+            };
+          }
+        }
+        
+        setUsers(usersData);
+      } else {
+        console.error('Failed to fetch posts from API, using fallback data');
+        setPosts(dummyPosts);
+        setUsers(dummyUsers);
+      }
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      setPosts(dummyPosts);
+      setUsers(dummyUsers);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleReaction = async (postId: number, reactionType: string) => {
@@ -198,7 +264,7 @@ const HomePage: React.FC = () => {
       });
 
       if (response.ok) {
-        initializePosts();
+        fetchPosts();
       }
     } catch (error) {
       console.error('Error adding reaction:', error);
@@ -210,7 +276,7 @@ const HomePage: React.FC = () => {
     if (!user && !isAnonymous) {
       setAnonymousMode();
     }
-    initializePosts();
+    fetchPosts();
   }, [user, isAnonymous, setAnonymousMode]);
 
   useEffect(() => {
