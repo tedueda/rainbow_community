@@ -35,7 +35,7 @@ const PostFeed: React.FC = () => {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
-      const response = await fetch(`${API_URL}/posts/`, {
+      const response = await fetch(`${API_URL}/api/posts/`, {
         headers,
       });
 
@@ -53,7 +53,7 @@ const PostFeed: React.FC = () => {
               userHeaders['Authorization'] = `Bearer ${token}`;
             }
             
-            const userResponse = await fetch(`${API_URL}/users/${userId}`, {
+            const userResponse = await fetch(`${API_URL}/api/users/${userId}`, {
               headers: userHeaders,
             });
             if (userResponse.ok) {
@@ -83,7 +83,7 @@ const PostFeed: React.FC = () => {
     }
     
     try {
-      const response = await fetch(`${API_URL}/reactions`, {
+      const response = await fetch(`${API_URL}/api/reactions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

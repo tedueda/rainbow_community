@@ -48,7 +48,7 @@ const ProfilePage: React.FC = () => {
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch(`${API_URL}/profiles/me`, {
+      const response = await fetch(`${API_URL}/api/profiles/me`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -75,7 +75,7 @@ const ProfilePage: React.FC = () => {
     setError('');
 
     try {
-      const response = await fetch(`${API_URL}/profiles/me`, {
+      const response = await fetch(`${API_URL}/api/profiles/me`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

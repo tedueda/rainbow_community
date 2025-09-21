@@ -253,7 +253,7 @@ const HomePage: React.FC = () => {
     }
     
     try {
-      const response = await fetch(`${API_URL}/reactions`, {
+      const response = await fetch(`${API_URL}/api/reactions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

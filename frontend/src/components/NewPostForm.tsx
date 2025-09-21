@@ -122,7 +122,7 @@ const NewPostForm: React.FC<NewPostFormProps> = ({
         visibility: 'public',
       };
 
-      const response = await fetch(`${API_URL}/posts/`, {
+      const response = await fetch(`${API_URL}/api/posts/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
