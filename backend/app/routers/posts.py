@@ -8,7 +8,7 @@ from sqlalchemy import desc, func
 from typing import List, Optional
 from datetime import datetime, timedelta
 from app.database import get_db
-from app.models import User, Post, PointEvent, Reaction, Tag, PostTag
+from app.models import User, Post, PointEvent, Reaction, Tag, PostTag, MediaAsset
 from app.schemas import Post as PostSchema, PostCreate, PostUpdate
 from app.auth import get_current_active_user, get_current_premium_user
 
@@ -69,7 +69,28 @@ async def read_posts(
         query = query.order_by(desc(Post.created_at))
     
     posts = query.offset(skip).limit(limit).all()
-    return posts
+    
+    result = []
+    for post in posts:
+        post_dict = {
+            "id": post.id,
+            "user_id": post.user_id,
+            "title": post.title,
+            "body": post.body,
+            "visibility": post.visibility,
+            "youtube_url": post.youtube_url,
+            "media_id": post.media_id,
+            "media_url": None,
+            "created_at": post.created_at,
+            "updated_at": post.updated_at
+        }
+        if post.media_id:
+            media = db.query(MediaAsset).filter(MediaAsset.id == post.media_id).first()
+            if media:
+                post_dict["media_url"] = media.url
+        result.append(post_dict)
+    
+    return result
 
 @router.post("", response_model=PostSchema)
 @router.post("/", response_model=PostSchema)
@@ -100,7 +121,25 @@ async def read_post(post_id: int, db: Session = Depends(get_db)):
     post = db.query(Post).filter(Post.id == post_id).first()
     if post is None:
         raise HTTPException(status_code=404, detail="Post not found")
-    return post
+    
+    post_dict = {
+        "id": post.id,
+        "user_id": post.user_id,
+        "title": post.title,
+        "body": post.body,
+        "visibility": post.visibility,
+        "youtube_url": post.youtube_url,
+        "media_id": post.media_id,
+        "media_url": None,
+        "created_at": post.created_at,
+        "updated_at": post.updated_at
+    }
+    if post.media_id:
+        media = db.query(MediaAsset).filter(MediaAsset.id == post.media_id).first()
+        if media:
+            post_dict["media_url"] = media.url
+    
+    return post_dict
 
 @router.put("/{post_id}", response_model=PostSchema)
 async def update_post(

@@ -85,6 +85,8 @@ class PostBase(BaseModel):
     title: Optional[str] = None
     body: str
     visibility: VisibilityEnum = VisibilityEnum.public
+    youtube_url: Optional[str] = None
+    media_id: Optional[int] = None
 
 class PostCreate(PostBase):
     pass
@@ -93,10 +95,13 @@ class PostUpdate(BaseModel):
     title: Optional[str] = None
     body: Optional[str] = None
     visibility: Optional[VisibilityEnum] = None
+    youtube_url: Optional[str] = None
+    media_id: Optional[int] = None
 
 class Post(PostBase):
     id: int
     user_id: int
+    media_url: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     

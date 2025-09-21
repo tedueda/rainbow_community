@@ -109,20 +109,38 @@ const NewPostForm: React.FC<NewPostFormProps> = ({
     setIsSubmitting(true);
     
     try {
-      let mediaUrls: string[] = [];
+      let mediaId: number | null = null;
+      let uploadResult: any = null;
+      
       if (formData.images.length > 0) {
-        mediaUrls = formData.images.map((_, index) => 
-          `https://picsum.photos/400/300?random=${Date.now()}_${index}`
-        );
+        const imageFormData = new FormData();
+        imageFormData.append('file', formData.images[0]);
+        
+        const uploadResponse = await fetch(`${API_URL}/api/media/upload`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          body: imageFormData,
+        });
+        
+        if (uploadResponse.ok) {
+          uploadResult = await uploadResponse.json();
+          mediaId = uploadResult.id;
+        } else {
+          throw new Error('Image upload failed');
+        }
       }
 
       const postData = {
         title: formData.title || null,
         body: `${formData.body} #${categoryKey}`,
         visibility: 'public',
+        youtube_url: formData.youtubeUrl || null,
+        media_id: mediaId,
       };
 
-      const response = await fetch(`${API_URL}/api/posts/`, {
+      const response = await fetch(`${API_URL}/api/posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -135,7 +153,7 @@ const NewPostForm: React.FC<NewPostFormProps> = ({
         const newPost = await response.json();
         const enhancedPost: Post = {
           ...newPost,
-          media_urls: mediaUrls,
+          media_url: uploadResult?.url || undefined,
           youtube_url: formData.youtubeUrl || undefined,
           like_count: 0,
           comment_count: 0,

@@ -51,6 +51,38 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
     return date.toLocaleDateString('ja-JP');
   };
 
+  const getYouTubeEmbedUrl = (url: string): string => {
+    try {
+      const urlObj = new URL(url);
+      let videoId = '';
+      
+      if (urlObj.hostname === 'www.youtube.com' || urlObj.hostname === 'youtube.com') {
+        videoId = urlObj.searchParams.get('v') || '';
+      } else if (urlObj.hostname === 'youtu.be') {
+        videoId = urlObj.pathname.slice(1);
+      } else if (urlObj.hostname === 'm.youtube.com') {
+        videoId = urlObj.searchParams.get('v') || '';
+      }
+      
+      if (videoId) {
+        return `https://www.youtube.com/embed/${videoId}`;
+      }
+    } catch (error) {
+      console.error('Invalid YouTube URL:', error);
+    }
+    
+    return '';
+  };
+
+  const extractYouTubeUrl = (text: string): string | null => {
+    const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|m\.youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/;
+    const match = text.match(youtubeRegex);
+    if (match) {
+      return `https://www.youtube.com/watch?v=${match[1]}`;
+    }
+    return null;
+  };
+
   const fetchComments = async () => {
     if (!post) return;
     
@@ -104,7 +136,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          post_id: post.id,
+          authorName: currentUser?.display_name || 'Anonymous',
           body: newComment,
         }),
       });
@@ -137,15 +169,9 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
   };
 
   const nextImage = () => {
-    if (post.media_urls && post.media_urls.length > 1) {
-      setCurrentImageIndex((prev) => (prev + 1) % post.media_urls!.length);
-    }
   };
 
   const prevImage = () => {
-    if (post.media_urls && post.media_urls.length > 1) {
-      setCurrentImageIndex((prev) => (prev - 1 + post.media_urls!.length) % post.media_urls!.length);
-    }
   };
 
   useEffect(() => {
@@ -246,59 +272,28 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
         </div>
 
         <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
-          {post.media_urls && post.media_urls.length > 0 && (
+          {post.media_url && (
             <div className="relative">
               <div className="aspect-[3/2] bg-gray-100">
                 <img
-                  src={post.media_urls[currentImageIndex]}
-                  alt={`投稿画像 ${currentImageIndex + 1}`}
+                  src={`${API_URL}${post.media_url}`}
+                  alt="投稿画像"
                   className="w-full h-full object-cover"
                 />
               </div>
-              {post.media_urls.length > 1 && (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white hover:bg-black/70"
-                    onClick={prevImage}
-                    aria-label="前の画像"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white hover:bg-black/70"
-                    onClick={nextImage}
-                    aria-label="次の画像"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                    {post.media_urls.map((_, index) => (
-                      <div
-                        key={index}
-                        className={`w-2 h-2 rounded-full ${
-                          index === currentImageIndex ? 'bg-white' : 'bg-white/50'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
             </div>
           )}
 
-          {post.youtube_url && (
+          {(post.youtube_url || extractYouTubeUrl(post.body)) && (
             <div className="aspect-video w-full">
-              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-4xl mb-2">🎵</div>
-                  <p className="text-gray-600">YouTube動画プレイヤー</p>
-                  <p className="text-sm text-gray-500 mt-1">実装予定</p>
-                </div>
-              </div>
+              <iframe
+                src={getYouTubeEmbedUrl(post.youtube_url || extractYouTubeUrl(post.body) || '')}
+                title="YouTube video player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="w-full h-full rounded-lg"
+              />
             </div>
           )}
 

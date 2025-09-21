@@ -12,7 +12,7 @@ export interface Post {
   visibility: string;
   created_at: string;
   category?: string;
-  media_urls?: string[];
+  media_url?: string;
   youtube_url?: string;
   like_count?: number;
   comment_count?: number;

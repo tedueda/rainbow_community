@@ -1,19 +1,25 @@
 from fastapi import FastAPI, Depends
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from .database import get_db
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from app.routers import auth, users, profiles, posts, comments, reactions, follows, notifications
+from app.routers import auth, users, profiles, posts, comments, reactions, follows, notifications, media
 from app.database import Base, engine
 import os
+from pathlib import Path
 
 PORT = int(os.getenv("PORT", 8000))
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="LGBTQ Community API", version="1.0.0")
+
+MEDIA_DIR = Path("/home/ubuntu/lgbtq_community/backend/media")
+MEDIA_DIR.mkdir(exist_ok=True)
+app.mount("/media", StaticFiles(directory=str(MEDIA_DIR)), name="media")
 
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
@@ -35,6 +41,7 @@ app.include_router(comments.router)
 app.include_router(reactions.router)
 app.include_router(follows.router)
 app.include_router(notifications.router)
+app.include_router(media.router)
 
 @app.get("/healthz")
 async def healthz():

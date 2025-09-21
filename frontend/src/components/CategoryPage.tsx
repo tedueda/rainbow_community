@@ -104,9 +104,6 @@ const CategoryPage: React.FC = () => {
           media_urls: post.body.includes('#art') || post.body.includes('#shops') 
             ? [`https://picsum.photos/400/300?random=${post.id}`] 
             : undefined,
-          youtube_url: post.body.includes('#music') 
-            ? `https://www.youtube.com/watch?v=dQw4w9WgXcQ` 
-            : undefined,
         }));
         
         setPosts(enhancedPosts);
@@ -373,10 +370,10 @@ const CategoryPage: React.FC = () => {
               }}
             >
               {/* 画像ギャラリー */}
-              {post.media_urls && post.media_urls.length > 0 && (
+              {post.media_url && (
                 <div className="aspect-[3/2] w-full h-[220px] overflow-hidden rounded-t-2xl">
                   <img
-                    src={post.media_urls[0]}
+                    src={`${API_URL}${post.media_url}`}
                     alt={post.title || '投稿画像'}
                     className="w-full h-full object-cover"
                   />
