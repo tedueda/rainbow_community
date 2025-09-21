@@ -71,6 +71,11 @@ function AppContent() {
               <CreatePost />
             </FeedRoute>
           } />
+          <Route path="/create/:categoryKey" element={
+            <FeedRoute>
+              <CreatePost />
+            </FeedRoute>
+          } />
           <Route path="/category/:categoryKey" element={
             <FeedRoute>
               <CategoryPage />
