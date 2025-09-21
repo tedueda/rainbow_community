@@ -85,7 +85,6 @@ class PostBase(BaseModel):
     title: Optional[str] = None
     body: str
     visibility: VisibilityEnum = VisibilityEnum.public
-    media_id: Optional[int] = None
 
 class PostCreate(PostBase):
     pass
