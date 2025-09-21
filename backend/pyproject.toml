@@ -17,6 +17,7 @@ python-multipart = "^0.0.18"
 python-dotenv = "^1.0.0"
 pydantic = {extras = ["email"], version = "^2.5.0"}
 psycopg2-binary = "^2.9.10"
+slowapi = "^0.1.9"
 
 
 [build-system]
