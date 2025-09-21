@@ -313,7 +313,7 @@ const HomePage: React.FC = () => {
 
   useEffect(() => {
     const slideInterval = setInterval(() => {
-      setCurrentSlide((prev) => (prev === 0 ? 1 : 0));
+      setCurrentSlide((prev) => (prev + 1) % 5);
     }, 5000);
 
     return () => clearInterval(slideInterval);
@@ -336,7 +336,7 @@ const HomePage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold leading-tight text-pink-800">
-                自分を表現する、新しい仲間と出会う。
+                自分を表現して、<br />新しい仲間と出会おう！
               </h2>
               <p className="mt-3 text-slate-600">
                 悩み相談、アート、音楽、地元ツアー。ここから、あなたの物語が始まります。
@@ -388,6 +388,33 @@ const HomePage: React.FC = () => {
                 <img 
                   src="/images/hero-slide-2.jpg" 
                   alt="LGBTQ+ Community Illustration 2"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div 
+                className={`absolute inset-0 transition-opacity duration-1000 ${currentSlide === 2 ? 'opacity-100' : 'opacity-0'}`}
+              >
+                <img 
+                  src="/images/hero-slide-3.jpg" 
+                  alt="LGBTQ+ Community Illustration 3"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div 
+                className={`absolute inset-0 transition-opacity duration-1000 ${currentSlide === 3 ? 'opacity-100' : 'opacity-0'}`}
+              >
+                <img 
+                  src="/images/hero-slide-4.jpg" 
+                  alt="LGBTQ+ Community Illustration 4"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div 
+                className={`absolute inset-0 transition-opacity duration-1000 ${currentSlide === 4 ? 'opacity-100' : 'opacity-0'}`}
+              >
+                <img 
+                  src="/images/hero-slide-5.jpg" 
+                  alt="LGBTQ+ Community Illustration 5"
                   className="w-full h-full object-cover"
                 />
               </div>
