@@ -194,11 +194,8 @@ const HomePage: React.FC = () => {
           comment_count: Math.floor(Math.random() * 20),
           points: Math.floor(Math.random() * 100) + 10,
           is_liked: false,
-          media_urls: post.body.includes('#art') || post.body.includes('#shops') 
-            ? [`https://picsum.photos/400/300?random=${post.id}`] 
-            : undefined,
-          youtube_url: post.body.includes('#music') 
-            ? `https://www.youtube.com/watch?v=dQw4w9WgXcQ` 
+          media_url: post.body.includes('#art') || post.body.includes('#shops') 
+            ? `https://picsum.photos/400/300?random=${post.id}` 
             : undefined,
         }));
         
@@ -253,7 +250,7 @@ const HomePage: React.FC = () => {
     }
     
     try {
-      const response = await fetch(`${API_URL}/api/reactions`, {
+      const response = await fetch(`${API_URL}/api/reactions/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -272,6 +269,29 @@ const HomePage: React.FC = () => {
     } catch (error) {
       console.error('Error adding reaction:', error);
     }
+  };
+
+  const getYouTubeThumbnail = (url: string): string => {
+    try {
+      const urlObj = new URL(url);
+      let videoId = '';
+      
+      if (urlObj.hostname === 'www.youtube.com' || urlObj.hostname === 'youtube.com') {
+        videoId = urlObj.searchParams.get('v') || '';
+      } else if (urlObj.hostname === 'youtu.be') {
+        videoId = urlObj.pathname.slice(1);
+      } else if (urlObj.hostname === 'm.youtube.com') {
+        videoId = urlObj.searchParams.get('v') || '';
+      }
+      
+      if (videoId) {
+        return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+      }
+    } catch (error) {
+      console.error('Invalid YouTube URL:', error);
+    }
+    
+    return '';
   };
 
 
@@ -493,7 +513,18 @@ const HomePage: React.FC = () => {
                   <Dialog>
                     <DialogTrigger asChild>
                       <Card className="border-pink-200 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer group">
-                        <div className="h-40 bg-gradient-to-br from-pink-200 via-green-200 to-orange-200 rounded-t-lg" />
+                        <div className="h-40 bg-gradient-to-br from-pink-200 via-green-200 to-orange-200 rounded-t-lg relative overflow-hidden">
+                          {(post as any).youtube_url && (
+                            <img 
+                              src={getYouTubeThumbnail((post as any).youtube_url)}
+                              alt="YouTube thumbnail"
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          )}
+                        </div>
                         <CardContent className="p-4">
                           <div className="flex items-center gap-2 text-xs mb-2">
                             <span className="rounded-full bg-pink-100 text-pink-700 px-2 py-0.5">

@@ -9,7 +9,7 @@ from pathlib import Path
 
 router = APIRouter(prefix="/api/media", tags=["media"])
 
-MEDIA_DIR = Path("/home/ubuntu/lgbtq_community/backend/media")
+MEDIA_DIR = Path("media")
 MEDIA_DIR.mkdir(exist_ok=True)
 
 @router.post("/upload")

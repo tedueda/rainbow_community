@@ -47,6 +47,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const storedToken = localStorage.getItem('token');
       const isAnonymousMode = localStorage.getItem('anonymous') === 'true';
       
+      console.log('AuthContext initializeAuth:', { storedToken: !!storedToken, isAnonymousMode });
+      
       if (storedToken && !isAnonymousMode) {
         try {
           const response = await fetch(`${API_URL}/api/auth/me`, {
@@ -55,12 +57,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             },
           });
           
+          console.log('AuthContext API response status:', response.status);
+          
           if (response.ok) {
             const userData = await response.json();
+            console.log('AuthContext setting user data:', userData);
             setUser(userData);
             setToken(storedToken);
             setIsAnonymous(false);
+            console.log('AuthContext user state updated successfully');
           } else {
+            console.log('AuthContext API response not ok, clearing auth');
             localStorage.removeItem('token');
             localStorage.removeItem('rememberMe');
             setToken(null);
@@ -68,7 +75,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setIsAnonymous(true);
           }
         } catch (error) {
-          console.error('Error validating token:', error);
+          console.error('AuthContext error validating token:', error);
           localStorage.removeItem('token');
           localStorage.removeItem('rememberMe');
           setToken(null);
@@ -76,7 +83,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setIsAnonymous(true);
         }
       } else {
+        console.log('AuthContext no token or anonymous mode, setting anonymous');
         setIsAnonymous(true);
+        setUser(null);
+        setToken(null);
       }
       
       setIsLoading(false);

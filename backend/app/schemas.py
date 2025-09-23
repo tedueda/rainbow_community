@@ -101,6 +101,8 @@ class PostUpdate(BaseModel):
 class Post(PostBase):
     id: int
     user_id: int
+    youtube_url: Optional[str] = None
+    media_id: Optional[int] = None
     media_url: Optional[str] = None
     created_at: datetime
     updated_at: datetime

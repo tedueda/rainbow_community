@@ -7,7 +7,7 @@ import RegisterForm from './components/RegisterForm';
 import HomePage from './components/HomePage';
 import PostFeed from './components/PostFeed';
 import ProfilePage from './components/ProfilePage';
-import CreatePost from './components/CreatePost';
+import CreatePostWrapper from './components/CreatePostWrapper';
 import CategoryPage from './components/CategoryPage';
 // import MatchingPage from './components/MatchingPage';
 // import VirtualWeddingPage from './components/VirtualWeddingPage';
@@ -68,12 +68,12 @@ function AppContent() {
           } />
           <Route path="/create" element={
             <FeedRoute>
-              <CreatePost />
+              <CreatePostWrapper />
             </FeedRoute>
           } />
           <Route path="/create/:categoryKey" element={
             <FeedRoute>
-              <CreatePost />
+              <CreatePostWrapper />
             </FeedRoute>
           } />
           <Route path="/category/:categoryKey" element={

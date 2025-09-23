@@ -99,22 +99,43 @@ async def create_post(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    db_post = Post(**post.dict(), user_id=current_user.id)
-    db.add(db_post)
-    db.commit()
-    db.refresh(db_post)
-    
-    point_event = PointEvent(
-        user_id=current_user.id,
-        event_type="post_created",
-        points=10,
-        ref_type="post",
-        ref_id=db_post.id
-    )
-    db.add(point_event)
-    db.commit()
-    
-    return db_post
+    try:
+        post_data = {
+            "user_id": current_user.id,
+            "title": post.title,
+            "body": post.body,
+            "visibility": post.visibility
+        }
+        
+        try:
+            if post.youtube_url:
+                post_data["youtube_url"] = post.youtube_url
+            if post.media_id:
+                post_data["media_id"] = post.media_id
+        except Exception:
+            pass
+        
+        db_post = Post(**post_data)
+        db.add(db_post)
+        db.commit()
+        db.refresh(db_post)
+        
+        point_event = PointEvent(
+            user_id=current_user.id,
+            event_type="post_created",
+            points=10,
+            ref_type="post",
+            ref_id=db_post.id
+        )
+        db.add(point_event)
+        db.commit()
+        
+        return db_post
+        
+    except Exception as e:
+        db.rollback()
+        print(f"Post creation error: {e}")
+        raise HTTPException(status_code=500, detail="投稿の作成に失敗しました")
 
 @router.get("/{post_id}", response_model=PostSchema)
 async def read_post(post_id: int, db: Session = Depends(get_db)):

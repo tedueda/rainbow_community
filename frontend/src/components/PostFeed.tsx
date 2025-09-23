@@ -17,6 +17,8 @@ interface Post {
   user_id: number;
   visibility: string;
   created_at: string;
+  media_url?: string;
+  youtube_url?: string;
 }
 
 const PostFeed: React.FC = () => {
@@ -35,7 +37,7 @@ const PostFeed: React.FC = () => {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
-      const response = await fetch(`${API_URL}/api/posts/`, {
+      const response = await fetch(`${API_URL}/api/posts`, {
         headers,
       });
 
@@ -83,7 +85,7 @@ const PostFeed: React.FC = () => {
     }
     
     try {
-      const response = await fetch(`${API_URL}/api/reactions`, {
+      const response = await fetch(`${API_URL}/api/reactions/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -186,6 +188,22 @@ const PostFeed: React.FC = () => {
               {post.title && (
                 <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-3">{post.title}</h2>
               )}
+              
+              {post.media_url && (
+                <div className="mb-4">
+                  <div className="aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden">
+                    <img
+                      src={`${API_URL}${post.media_url}`}
+                      alt="投稿画像"
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-200 cursor-pointer"
+                      onClick={() => {
+                        console.log('Thumbnail clicked for post:', post.id);
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+              
               <p className="text-gray-700 mb-4 whitespace-pre-wrap text-sm sm:text-base">{post.body}</p>
               
               <div className="flex flex-wrap items-center gap-2 sm:gap-4 pt-3 border-t border-gray-100">

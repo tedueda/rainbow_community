@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Heart, MessageCircle, Share2, Flag, ChevronLeft, ChevronRight, Send } from 'lucide-react';
+import { X, Heart, MessageCircle, Share2, Flag, Send } from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { useAuth } from '../contexts/AuthContext';
@@ -22,12 +22,24 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
   onLike
 }) => {
   const { token, user: currentUser, isAnonymous } = useAuth();
+  
+  console.log('PostDetailModal render:', {
+    currentUser,
+    currentUserId: currentUser?.id,
+    postUserId: post.user_id,
+    shouldShowButtons: currentUser && currentUser.id === post.user_id,
+    isAnonymous,
+    token: !!token
+  });
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(post.is_liked || false);
   const [likeCount, setLikeCount] = useState(post.like_count || 0);
   const [showFullText, setShowFullText] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [editTitle, setEditTitle] = useState(post.title || '');
+  const [editBody, setEditBody] = useState(post.body);
   const modalRef = useRef<HTMLDivElement>(null);
 
   const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
@@ -168,11 +180,60 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
     onLike?.(post.id);
   };
 
-  const nextImage = () => {
+  const handleEditSave = async () => {
+    if (!token || !editBody.trim()) return;
+    
+    try {
+      const response = await fetch(`${API_URL}/api/posts/${post.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: editTitle || undefined,
+          body: editBody,
+        }),
+      });
+      
+      if (response.ok) {
+        post.title = editTitle;
+        post.body = editBody;
+        setIsEditing(false);
+        window.location.reload();
+      } else {
+        alert('投稿の編集に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error editing post:', error);
+      alert('投稿の編集に失敗しました');
+    }
   };
 
-  const prevImage = () => {
+  const handleDelete = async () => {
+    if (!token) return;
+    
+    try {
+      const response = await fetch(`${API_URL}/api/posts/${post.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (response.ok) {
+        alert('投稿を削除しました');
+        onClose();
+        window.location.reload();
+      } else {
+        alert('投稿の削除に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert('投稿の削除に失敗しました');
+    }
   };
+
 
   useEffect(() => {
     if (isOpen) {
@@ -180,7 +241,6 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
       fetchComments();
       setIsLiked(post.is_liked || false);
       setLikeCount(post.like_count || 0);
-      setCurrentImageIndex(0);
       setShowFullText(false);
       
       const handleKeyDown = (e: KeyboardEvent) => {
@@ -253,6 +313,38 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {(() => {
+              const shouldShowButtons = currentUser && currentUser.id === post.user_id;
+              console.log('PostDetailModal authorization check:', {
+                currentUser,
+                currentUserId: currentUser?.id,
+                postUserId: post.user_id,
+                shouldShowButtons,
+                userIdMatch: currentUser?.id === post.user_id
+              });
+              return shouldShowButtons;
+            })() && (
+              <>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setIsEditing(true)}
+                  className="text-blue-600 hover:text-blue-700" 
+                  aria-label="編集"
+                >
+                  編集
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="text-red-600 hover:text-red-700" 
+                  aria-label="削除"
+                >
+                  削除
+                </Button>
+              </>
+            )}
             <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700" aria-label="共有">
               <Share2 className="h-4 w-4" />
             </Button>
@@ -298,25 +390,74 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
           )}
 
           <div className="p-6">
-            {post.title && (
-              <h2 className="text-xl font-bold text-gray-900 mb-3">{post.title}</h2>
+            {isEditing ? (
+              <div className="space-y-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    タイトル（任意）
+                  </label>
+                  <input
+                    type="text"
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    placeholder="タイトルを入力..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    本文
+                  </label>
+                  <Textarea
+                    value={editBody}
+                    onChange={(e) => setEditBody(e.target.value)}
+                    className="w-full min-h-[120px] border-pink-200 focus:border-pink-400"
+                    placeholder="投稿内容を入力..."
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleEditSave}
+                    className="bg-pink-600 hover:bg-pink-700 text-white"
+                    disabled={!editBody.trim()}
+                  >
+                    保存
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsEditing(false);
+                      setEditTitle(post.title || '');
+                      setEditBody(post.body);
+                    }}
+                  >
+                    キャンセル
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {post.title && (
+                  <h2 className="text-xl font-bold text-gray-900 mb-3">{post.title}</h2>
+                )}
+                
+                <div className="text-gray-700 leading-7 mb-4">
+                  {showFullText || post.body.length <= 500 
+                    ? post.body 
+                    : `${post.body.substring(0, 500)}...`
+                  }
+                  {post.body.length > 500 && (
+                    <Button
+                      variant="link"
+                      className="p-0 h-auto text-pink-600 hover:text-pink-700 ml-2"
+                      onClick={() => setShowFullText(!showFullText)}
+                    >
+                      {showFullText ? '折りたたむ' : 'もっと見る'}
+                    </Button>
+                  )}
+                </div>
+              </>
             )}
-            
-            <div className="text-gray-700 leading-7 mb-4">
-              {showFullText || post.body.length <= 500 
-                ? post.body 
-                : `${post.body.substring(0, 500)}...`
-              }
-              {post.body.length > 500 && (
-                <Button
-                  variant="link"
-                  className="p-0 h-auto text-pink-600 hover:text-pink-700 ml-2"
-                  onClick={() => setShowFullText(!showFullText)}
-                >
-                  {showFullText ? '折りたたむ' : 'もっと見る'}
-                </Button>
-              )}
-            </div>
 
             <div className="flex items-center gap-6 py-4 border-t border-gray-100">
               <Button
@@ -466,6 +607,40 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
           </div>
         </div>
       </div>
+      
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center">
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowDeleteConfirm(false)}
+          />
+          <div className="relative bg-white rounded-lg shadow-xl p-6 mx-4 max-w-md w-full">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              投稿を削除しますか？
+            </h3>
+            <p className="text-gray-600 mb-6">
+              この操作は取り消すことができません。本当に削除しますか？
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                キャンセル
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  handleDelete();
+                }}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                削除
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

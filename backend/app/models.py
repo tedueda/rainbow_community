@@ -107,10 +107,14 @@ class Post(Base):
     title = Column(String(200))
     body = Column(Text, nullable=False)
     visibility = Column(String(20), default="public")
-    youtube_url = Column(String(500))
-    media_id = Column(Integer, ForeignKey("media_assets.id"))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    
+    try:
+        youtube_url = Column(String(500))
+        media_id = Column(Integer, ForeignKey("media_assets.id"))
+    except Exception:
+        pass
     
     __table_args__ = (
         CheckConstraint("visibility IN ('public', 'members', 'followers', 'private')", name="check_post_visibility"),
@@ -119,7 +123,11 @@ class Post(Base):
     user = relationship("User", back_populates="posts")
     comments = relationship("Comment", back_populates="post")
     tags = relationship("Tag", secondary="post_tags", back_populates="posts")
-    media = relationship("MediaAsset")
+    
+    try:
+        media = relationship("MediaAsset", foreign_keys=[media_id])
+    except Exception:
+        pass
 
 class Comment(Base):
     __tablename__ = "comments"

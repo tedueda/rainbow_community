@@ -17,7 +17,7 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="LGBTQ Community API", version="1.0.0")
 
-MEDIA_DIR = Path("/home/ubuntu/lgbtq_community/backend/media")
+MEDIA_DIR = Path("media")
 MEDIA_DIR.mkdir(exist_ok=True)
 app.mount("/media", StaticFiles(directory=str(MEDIA_DIR)), name="media")
 
