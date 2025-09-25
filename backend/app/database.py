@@ -4,11 +4,14 @@ from sqlalchemy.orm import sessionmaker
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+# .env は補完用途として読み込み、既存の環境変数は上書きしない
+# これにより、CLI で与えた DATABASE_URL が .env によって潰されない
+load_dotenv(override=False)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+# README: ローカル開発では SQLite フォールバックを使用
 if not DATABASE_URL:
-    raise ValueError("DATABASE_URL environment variable is required")
+    DATABASE_URL = "sqlite:///./lgbtq_community.db"
 
 print(f"🔄 Using database: {DATABASE_URL}")
 

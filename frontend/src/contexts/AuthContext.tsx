@@ -182,7 +182,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('rememberMe');
     setToken(null);
     setUser(null);
-    setIsAnonymous(false);
+    setIsAnonymous(true);
   };
 
   const setAnonymousMode = () => {

@@ -75,6 +75,7 @@ async def read_posts(
         post_dict = {
             "id": post.id,
             "user_id": post.user_id,
+            "user_display_name": post.user.display_name if getattr(post, "user", None) else None,
             "title": post.title,
             "body": post.body,
             "visibility": post.visibility,
@@ -195,7 +196,11 @@ async def delete_post(
     
     if post.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not enough permissions")
-    
+
+    # Delete dependent comments first to avoid FK constraint errors
+    from app.models import Comment
+    db.query(Comment).filter(Comment.post_id == post_id).delete(synchronize_session=False)
+
     db.delete(post)
     db.commit()
     return {"message": "Post deleted successfully"}

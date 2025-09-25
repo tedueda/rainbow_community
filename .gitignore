@@ -16,3 +16,5 @@ backend/debug_*.py
 **/__pycache__/
 *.pyc
 *.pyo
+
+backend/.venv/

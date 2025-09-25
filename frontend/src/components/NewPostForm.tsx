@@ -109,6 +109,7 @@ const NewPostForm: React.FC<NewPostFormProps> = ({
     setIsSubmitting(true);
     
     try {
+      console.debug('[NewPostForm] submit start', { categoryKey, API_URL, hasToken: !!token });
       let mediaId: number | null = null;
       let uploadResult: any = null;
       
@@ -128,7 +129,10 @@ const NewPostForm: React.FC<NewPostFormProps> = ({
           uploadResult = await uploadResponse.json();
           mediaId = uploadResult.id;
         } else {
-          throw new Error('Image upload failed');
+          const errText = await uploadResponse.text().catch(() => '');
+          console.error('[NewPostForm] Image upload failed', uploadResponse.status, errText);
+          setErrors({ submit: `画像アップロードに失敗しました (status ${uploadResponse.status})` });
+          return;
         }
       }
 
@@ -173,8 +177,15 @@ const NewPostForm: React.FC<NewPostFormProps> = ({
         });
         setSubmitStartTime(null);
       } else {
-        const errorData = await response.json();
-        setErrors({ submit: errorData.detail || '投稿の作成に失敗しました' });
+        let errorDetail = '';
+        try {
+          const errorData = await response.json();
+          errorDetail = errorData?.detail || '';
+        } catch (_e) {
+          errorDetail = await response.text().catch(() => '');
+        }
+        console.error('[NewPostForm] Create post failed', response.status, errorDetail);
+        setErrors({ submit: errorDetail || `投稿の作成に失敗しました (status ${response.status})` });
       }
     } catch (error) {
       console.error('Error creating post:', error);
