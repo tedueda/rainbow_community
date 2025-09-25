@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Heart, MessageCircle, Share2, Flag, ChevronLeft, ChevronRight, Send } from 'lucide-react';
+import { X, Heart, MessageCircle, Share2, Flag, Send } from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { useAuth } from '../contexts/AuthContext';
@@ -11,6 +11,8 @@ interface PostDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   onLike?: (postId: number) => void;
+  onUpdated?: (updated: Post) => void;
+  onDeleted?: (postId: number) => void;
 }
 
 
@@ -19,16 +21,23 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
   user,
   isOpen,
   onClose,
-  onLike
+  onLike,
+  onUpdated,
+  onDeleted
 }) => {
   const { token, user: currentUser, isAnonymous } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  // const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(post.is_liked || false);
   const [likeCount, setLikeCount] = useState(post.like_count || 0);
   const [showFullText, setShowFullText] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(post.title || '');
+  const [editBody, setEditBody] = useState(post.body || '');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
 
@@ -168,11 +177,9 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
     onLike?.(post.id);
   };
 
-  const nextImage = () => {
-  };
-
-  const prevImage = () => {
-  };
+  // Placeholder for future gallery navigation
+  // const nextImage = () => {};
+  // const prevImage = () => {};
 
   useEffect(() => {
     if (isOpen) {
@@ -180,8 +187,16 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
       fetchComments();
       setIsLiked(post.is_liked || false);
       setLikeCount(post.like_count || 0);
-      setCurrentImageIndex(0);
       setShowFullText(false);
+      setIsEditing(false);
+      setIsDeleting(false);
+      setEditTitle(post.title || '');
+      setEditBody(post.body || '');
+      console.debug('[PostDetailModal] open', {
+        currentUserId: currentUser?.id,
+        postUserId: post.user_id,
+        isAnonymous
+      });
       
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
@@ -219,6 +234,73 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
       };
     }
   }, [isOpen, post, onClose]);
+
+  const canEdit = !!currentUser && !isAnonymous && currentUser.id === post.user_id;
+
+  const handleUpdatePost = async () => {
+    if (!token) {
+      console.warn('[PostDetailModal] No token, cannot update');
+      return;
+    }
+    try {
+      console.debug('[PostDetailModal] Updating post', { id: post.id, editTitle, editBody });
+      const response = await fetch(`${API_URL}/api/posts/${post.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: editTitle,
+          body: editBody,
+        }),
+      });
+      if (response.ok) {
+        const updated = await response.json();
+        onUpdated?.(updated);
+        setIsEditing(false);
+      } else {
+        const text = await response.text();
+        console.error('[PostDetailModal] Update failed', response.status, text);
+      }
+    } catch (e) {
+      console.error('[PostDetailModal] Update error', e);
+    }
+  };
+
+  const handleDeletePost = async () => {
+    if (!token) {
+      console.warn('[PostDetailModal] No token, cannot delete');
+      return;
+    }
+    try {
+      setIsDeleting(true);
+      setDeleteError(null);
+      console.debug('[PostDetailModal] Deleting post', { id: post.id });
+      const response = await fetch(`${API_URL}/api/posts/${post.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (response.ok || response.status === 204) {
+        onDeleted?.(post.id);
+        onClose();
+      } else {
+        let text = '';
+        try {
+          text = await response.text();
+        } catch (_) {}
+        console.error('[PostDetailModal] Delete failed', { status: response.status, text });
+        setDeleteError(text || `削除に失敗しました (status ${response.status})`);
+      }
+    } catch (e: any) {
+      console.error('[PostDetailModal] Delete error', e?.message || String(e));
+      setDeleteError(e?.message || 'ネットワークエラーにより削除に失敗しました');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
 
   if (!isOpen) return null;
@@ -259,6 +341,58 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
             <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700" aria-label="通報">
               <Flag className="h-4 w-4" />
             </Button>
+            {canEdit && (
+              <>
+                {isEditing ? (
+                  <>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-pink-700 border-pink-300 hover:bg-pink-50"
+                      onClick={handleUpdatePost}
+                      aria-label="保存"
+                    >
+                      保存
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-gray-500 hover:text-gray-700"
+                      onClick={() => {
+                        setIsEditing(false);
+                        setEditTitle(post.title || '');
+                        setEditBody(post.body || '');
+                      }}
+                      aria-label="編集をやめる"
+                    >
+                      キャンセル
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-pink-700 hover:text-pink-900"
+                      onClick={() => setIsEditing(true)}
+                      aria-label="編集"
+                    >
+                      編集
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-red-600 hover:text-red-700"
+                      onClick={handleDeletePost}
+                      disabled={isDeleting}
+                      aria-label="削除"
+                    >
+                      {isDeleting ? '削除中...' : '削除'}
+                    </Button>
+                  </>
+                )}
+              </>
+            )}
             <Button 
               variant="ghost" 
               size="sm" 
@@ -271,12 +405,25 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
           </div>
         </div>
 
+        {/* Dev-only debug banner to diagnose permission check */}
+        {import.meta.env.DEV && (
+          <div className="mb-2 text-xs text-gray-600 bg-yellow-50 border border-yellow-200 rounded p-2">
+            <div className="font-semibold mb-1">[DEBUG] Permission state</div>
+            <div className="flex flex-wrap gap-3">
+              <span>currentUserId: {currentUser?.id ?? 'null'}</span>
+              <span>postUserId: {post.user_id}</span>
+              <span>isAnonymous: {String(isAnonymous)}</span>
+              <span>canEdit: {String(!!currentUser && !isAnonymous && currentUser.id === post.user_id)}</span>
+            </div>
+          </div>
+        )}
+
         <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
-          {post.media_url && (
+          {(post.media_url || (post.media_urls && post.media_urls[0])) && (
             <div className="relative">
               <div className="aspect-[3/2] bg-gray-100">
                 <img
-                  src={`${API_URL}${post.media_url}`}
+                  src={`${(post.media_url || (post.media_urls && post.media_urls[0]) || '').startsWith('http') ? '' : API_URL}${post.media_url || (post.media_urls && post.media_urls[0])}`}
                   alt="投稿画像"
                   className="w-full h-full object-cover"
                 />
@@ -298,23 +445,47 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
           )}
 
           <div className="p-6">
-            {post.title && (
-              <h2 className="text-xl font-bold text-gray-900 mb-3">{post.title}</h2>
+            {isEditing ? (
+              <input
+                type="text"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="w-full border border-pink-200 rounded-md px-3 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-pink-300"
+                placeholder="タイトル"
+                aria-label="タイトル編集"
+              />
+            ) : (
+              post.title && (
+                <h2 className="text-xl font-bold text-gray-900 mb-3">{post.title}</h2>
+              )
             )}
             
             <div className="text-gray-700 leading-7 mb-4">
-              {showFullText || post.body.length <= 500 
-                ? post.body 
-                : `${post.body.substring(0, 500)}...`
-              }
-              {post.body.length > 500 && (
-                <Button
-                  variant="link"
-                  className="p-0 h-auto text-pink-600 hover:text-pink-700 ml-2"
-                  onClick={() => setShowFullText(!showFullText)}
-                >
-                  {showFullText ? '折りたたむ' : 'もっと見る'}
-                </Button>
+              {isEditing ? (
+                <Textarea
+                  placeholder="本文を入力..."
+                  value={editBody}
+                  onChange={(e) => setEditBody(e.target.value)}
+                  className="border-pink-200 focus:border-pink-400 min-h-[140px]"
+                  rows={6}
+                  aria-label="本文編集"
+                />
+              ) : (
+                <>
+                  {showFullText || post.body.length <= 500 
+                    ? post.body 
+                    : `${post.body.substring(0, 500)}...`
+                  }
+                  {post.body.length > 500 && (
+                    <Button
+                      variant="link"
+                      className="p-0 h-auto text-pink-600 hover:text-pink-700 ml-2"
+                      onClick={() => setShowFullText(!showFullText)}
+                    >
+                      {showFullText ? '折りたたむ' : 'もっと見る'}
+                    </Button>
+                  )}
+                </>
               )}
             </div>
 

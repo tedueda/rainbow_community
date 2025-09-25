@@ -15,10 +15,12 @@ COPY pyproject.toml poetry.lock ./
 
 # Configure poetry and install dependencies
 RUN poetry config virtualenvs.create false \
-    && poetry install --no-dev
+    && poetry install --no-root
 
 # Copy application code
 COPY . .
+# Ensure media directory exists (for runtime mounting/serving)
+RUN mkdir -p media
 
 # Expose port
 EXPOSE 8000

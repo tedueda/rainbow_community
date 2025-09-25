@@ -9,10 +9,12 @@ export interface Post {
   title?: string;
   body: string;
   user_id: number;
+  user_display_name?: string;
   visibility: string;
   created_at: string;
   category?: string;
   media_url?: string;
+  media_urls?: string[];
   youtube_url?: string;
   like_count?: number;
   comment_count?: number;

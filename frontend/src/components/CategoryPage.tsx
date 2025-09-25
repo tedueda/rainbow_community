@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { ArrowLeft, Plus, Heart, MessageCircle, Filter, SortAsc } from 'lucide-react';
 import PostDetailModal from './PostDetailModal';
 import NewPostForm from './NewPostForm';
-import { Post, User } from '../types/Post';
+import { Post } from '../types/Post';
 
 
 const categories = {
@@ -59,7 +59,6 @@ const CategoryPage: React.FC = () => {
   const { token, user, isAnonymous } = useAuth();
   
   const [posts, setPosts] = useState<Post[]>([]);
-  const [users, setUsers] = useState<{ [key: number]: User }>({});
   const [loading, setLoading] = useState(true);
   const [showNewPostForm, setShowNewPostForm] = useState(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
@@ -94,7 +93,7 @@ const CategoryPage: React.FC = () => {
       
       if (response.ok) {
         const postsData = await response.json();
-        
+
         const enhancedPosts = postsData.map((post: Post) => ({
           ...post,
           like_count: Math.floor(Math.random() * 50) + 1,
@@ -105,29 +104,7 @@ const CategoryPage: React.FC = () => {
             ? [`https://picsum.photos/400/300?random=${post.id}`] 
             : undefined,
         }));
-        
         setPosts(enhancedPosts);
-        
-        const userIds = [...new Set(enhancedPosts.map((post: Post) => post.user_id))];
-        const usersData: { [key: number]: User } = {};
-        
-        for (const userId of userIds) {
-          try {
-            const userResponse = await fetch(`${API_URL}/api/users/${userId}`, {
-              headers: token ? {
-                'Authorization': `Bearer ${token}`,
-              } : {},
-            });
-            if (userResponse.ok) {
-              const userData = await userResponse.json();
-              usersData[userId as number] = userData;
-            }
-          } catch (error) {
-            console.error(`Error fetching user ${userId}:`, error);
-          }
-        }
-        
-        setUsers(usersData);
       }
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -170,6 +147,17 @@ const CategoryPage: React.FC = () => {
   const handlePostCreated = (newPost: Post) => {
     setPosts(prevPosts => [newPost, ...prevPosts]);
     setShowNewPostForm(false);
+  };
+
+  const handlePostUpdated = (updated: Post) => {
+    setPosts(prev => prev.map(p => (p.id === updated.id ? { ...p, ...updated } : p)));
+    setSelectedPost(prev => (prev && prev.id === updated.id ? { ...prev, ...updated } : prev));
+  };
+
+  const handlePostDeleted = (postId: number) => {
+    setPosts(prev => prev.filter(p => p.id !== postId));
+    setSelectedPost(null);
+    setIsModalOpen(false);
   };
 
   const handleLikePost = async (postId: number) => {
@@ -370,10 +358,10 @@ const CategoryPage: React.FC = () => {
               }}
             >
               {/* 画像ギャラリー */}
-              {post.media_url && (
+              {(post.media_url || (post.media_urls && post.media_urls[0])) && (
                 <div className="aspect-[3/2] w-full h-[220px] overflow-hidden rounded-t-2xl">
                   <img
-                    src={`${API_URL}${post.media_url}`}
+                    src={`${(post.media_url || (post.media_urls && post.media_urls[0]) || '').startsWith('http') ? '' : API_URL}${post.media_url || (post.media_urls && post.media_urls[0])}`}
                     alt={post.title || '投稿画像'}
                     className="w-full h-full object-cover"
                   />
@@ -389,7 +377,7 @@ const CategoryPage: React.FC = () => {
                 
                 {/* メタ情報 */}
                 <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                  <span className="font-medium">{users[post.user_id]?.display_name || '不明なユーザー'}</span>
+                  <span className="font-medium">{post.user_display_name || '不明なユーザー'}</span>
                   <span>{getRelativeTime(post.created_at)}</span>
                 </div>
                 
@@ -419,10 +407,12 @@ const CategoryPage: React.FC = () => {
       {selectedPost && (
         <PostDetailModal
           post={selectedPost}
-          user={users[selectedPost.user_id]}
+          user={{ id: selectedPost.user_id, display_name: selectedPost.user_display_name || 'ユーザー', email: '' } as any}
           isOpen={isModalOpen}
           onClose={closePostModal}
           onLike={() => handleLikePost(selectedPost.id)}
+          onUpdated={handlePostUpdated}
+          onDeleted={handlePostDeleted}
         />
       )}
     </div>
