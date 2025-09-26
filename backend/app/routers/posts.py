@@ -176,9 +176,10 @@ async def delete_post(
     if post.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
-    # Delete dependent comments first to avoid FK constraint errors
-    from app.models import Comment
+    # Delete dependent comments and tag mappings first to avoid FK constraint errors
+    from app.models import Comment, PostTag
     db.query(Comment).filter(Comment.post_id == post_id).delete(synchronize_session=False)
+    db.query(PostTag).filter(PostTag.post_id == post_id).delete(synchronize_session=False)
 
     db.delete(post)
     db.commit()
