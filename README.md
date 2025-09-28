@@ -8,6 +8,45 @@ LGBTQ+コミュニティ向けの安心・品位あるコミュニティサイ�
 - **バックエンドAPI**: https://rainbow-community.fly.dev
 - **API仕様書**: https://rainbow-community.fly.dev/docs
 
+## 🗄️ 本番DB（AWS RDS）接続情報と運用指針（非機密）
+
+以下は機密を含まない情報のみを記載します。パスワード等の秘密は Secrets にのみ保存し、このリポジトリには絶対にコミットしません。
+
+- 接続先ホスト（RDS エンドポイント）
+  - `rainbow-community-db.czqogwkequrm.ap-northeast-3.rds.amazonaws.com`
+- データベース名
+  - `lgbtq_community`
+- ユーザー名（マスター）
+  - `dbadmin`
+- ドライバ/プロトコル
+  - SQLAlchemy 2.x では `postgresql+psycopg2` を推奨
+- 接続文字列フォーマット（例）
+  - `postgresql+psycopg2://dbadmin:<PASSWORD>@rainbow-community-db.czqogwkequrm.ap-northeast-3.rds.amazonaws.com:5432/lgbtq_community?sslmode=require`
+
+### Secrets（Fly.io）への設定手順
+
+1. このリポジトリには秘密を記載しないこと（.env/fly.toml に直書き禁止）
+2. Fly.io にてアプリ `rainbow-community` の Secrets に設定
+
+```bash
+fly secrets set DATABASE_URL='postgresql+psycopg2://dbadmin:<PASSWORD>@rainbow-community-db.czqogwkequrm.ap-northeast-3.rds.amazonaws.com:5432/lgbtq_community?sslmode=require' -a rainbow-community
+```
+
+### マイグレーション（Alembic）の適用
+
+- 本番起動時 `start.sh` で `alembic upgrade head` が自動実行されます
+- 手動で実行したい場合（Fly マシン内）
+
+```bash
+fly ssh console -a rainbow-community --command "cd /app && alembic upgrade head"
+```
+
+### 運用時の注意
+
+- RDS をパブリックアクセス可にする場合は、セキュリティグループの 5432/TCP を最小限の送信元に限定してください
+- 本番では `backend/app/database.py` が `DATABASE_URL` 未設定時に起動失敗するため、SQLite にはフォールバックしません
+- 変更反映後は `/healthz`（内部） および `/api/health`（外部）で疎通を確認してください
+
 ## 📁 プロジェクト構成
 ```
 lgbtq_community/
