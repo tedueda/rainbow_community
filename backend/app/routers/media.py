@@ -6,11 +6,15 @@ from app.auth import get_current_active_user
 import os
 import uuid
 from pathlib import Path
+import os
 
 router = APIRouter(prefix="/api/media", tags=["media"])
 
-MEDIA_DIR = Path("media")
-MEDIA_DIR.mkdir(exist_ok=True)
+media_base = os.getenv("MEDIA_DIR")
+if not media_base:
+    media_base = "/data/media" if os.path.exists("/data") else "media"
+MEDIA_DIR = Path(media_base)
+MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 
 @router.post("/upload")
 async def upload_image(

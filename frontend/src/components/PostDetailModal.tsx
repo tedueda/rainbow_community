@@ -38,6 +38,11 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
   const [editBody, setEditBody] = useState(post.body || '');
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [newImageFile, setNewImageFile] = useState<File | null>(null);
+  const [newImagePreview, setNewImagePreview] = useState<string | null>(null);
+  const [removeCurrentImage, setRemoveCurrentImage] = useState<boolean>(false);
+  const [isUploadingImage, setIsUploadingImage] = useState<boolean>(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
 
@@ -192,6 +197,10 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
       setIsDeleting(false);
       setEditTitle(post.title || '');
       setEditBody(post.body || '');
+      setNewImageFile(null);
+      setNewImagePreview(null);
+      setRemoveCurrentImage(false);
+      setUploadError(null);
       console.debug('[PostDetailModal] open', {
         currentUserId: currentUser?.id,
         postUserId: post.user_id,
@@ -237,6 +246,67 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
 
   const canEdit = !!currentUser && !isAnonymous && currentUser.id === post.user_id;
 
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setUploadError(null);
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        setUploadError('画像ファイルを選択してください');
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        setUploadError('画像は10MB以下にしてください');
+        return;
+      }
+      setNewImageFile(file);
+      setNewImagePreview(URL.createObjectURL(file));
+      setRemoveCurrentImage(false);
+    } else {
+      setNewImageFile(null);
+      setNewImagePreview(null);
+    }
+  };
+
+  const handleRemoveImageToggle = () => {
+    setRemoveCurrentImage((prev) => !prev);
+    if (!removeCurrentImage) {
+      // when marking for removal, clear new selection if any
+      setNewImageFile(null);
+      setNewImagePreview(null);
+    }
+  };
+
+  const uploadNewImageIfNeeded = async (): Promise<{ mediaId: number | null, mediaUrl?: string } | null> => {
+    if (!token) return { mediaId: null };
+    if (!newImageFile) return null; // no change
+    try {
+      setIsUploadingImage(true);
+      const fd = new FormData();
+      fd.append('file', newImageFile);
+      const res = await fetch(`${API_URL}/api/media/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: fd,
+      });
+      if (!res.ok) {
+        const txt = await res.text().catch(() => '');
+        setUploadError(`画像アップロードに失敗しました (status ${res.status})`);
+        console.error('[PostDetailModal] upload image failed', res.status, txt);
+        return { mediaId: null };
+      }
+      const data = await res.json();
+      return { mediaId: data.id, mediaUrl: data.url as string };
+    } catch (e: any) {
+      setUploadError(e?.message || '画像アップロードに失敗しました');
+      console.error('[PostDetailModal] upload image error', e);
+      return { mediaId: null };
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
   const handleUpdatePost = async () => {
     if (!token) {
       console.warn('[PostDetailModal] No token, cannot update');
@@ -244,6 +314,18 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
     }
     try {
       console.debug('[PostDetailModal] Updating post', { id: post.id, editTitle, editBody });
+      let mediaIdToSet: number | null | undefined = undefined;
+      let mediaUrlToSet: string | undefined = undefined;
+      if (removeCurrentImage) {
+        mediaIdToSet = null;
+      } else {
+        const uploaded = await uploadNewImageIfNeeded();
+        if (uploaded && uploaded.mediaId) {
+          mediaIdToSet = uploaded.mediaId;
+          mediaUrlToSet = uploaded.mediaUrl;
+        }
+      }
+
       const response = await fetch(`${API_URL}/api/posts/${post.id}`, {
         method: 'PUT',
         headers: {
@@ -253,11 +335,20 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
         body: JSON.stringify({
           title: editTitle,
           body: editBody,
+          // include media_id only if changed
+          ...(mediaIdToSet !== undefined ? { media_id: mediaIdToSet } : {}),
         }),
       });
       if (response.ok) {
         const updated = await response.json();
-        onUpdated?.(updated);
+        // complement response with media_url if we just uploaded or removed
+        const patched = {
+          ...updated,
+          media_url: mediaUrlToSet !== undefined
+            ? mediaUrlToSet
+            : (removeCurrentImage ? undefined : (updated.media_url ?? post.media_url)),
+        } as Post;
+        onUpdated?.(patched);
         setIsEditing(false);
       } else {
         const text = await response.text();
@@ -405,6 +496,12 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
           </div>
         </div>
 
+        {deleteError && (
+          <div className="mx-4 mb-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded p-2">
+            {deleteError}
+          </div>
+        )}
+
         {/* Dev-only debug banner to diagnose permission check */}
         {import.meta.env.DEV && (
           <div className="mb-2 text-xs text-gray-600 bg-yellow-50 border border-yellow-200 rounded p-2">
@@ -422,11 +519,34 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
           {(post.media_url || (post.media_urls && post.media_urls[0])) && (
             <div className="relative">
               <div className="aspect-[3/2] bg-gray-100">
-                <img
-                  src={`${(post.media_url || (post.media_urls && post.media_urls[0]) || '').startsWith('http') ? '' : API_URL}${post.media_url || (post.media_urls && post.media_urls[0])}`}
-                  alt="投稿画像"
-                  className="w-full h-full object-cover"
-                />
+                {isEditing ? (
+                  <>
+                    {/* Preview priority: new selected image > current image (unless marked for removal) */}
+                    {newImagePreview ? (
+                      <img
+                        src={newImagePreview}
+                        alt="新しい画像プレビュー"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : !removeCurrentImage ? (
+                      <img
+                        src={`${(post.media_url || (post.media_urls && post.media_urls[0]) || '').startsWith('http') ? '' : API_URL}${post.media_url || (post.media_urls && post.media_urls[0])}`}
+                        alt="投稿画像"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        画像は削除されます
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <img
+                    src={`${(post.media_url || (post.media_urls && post.media_urls[0]) || '').startsWith('http') ? '' : API_URL}${post.media_url || (post.media_urls && post.media_urls[0])}`}
+                    alt="投稿画像"
+                    className="w-full h-full object-cover"
+                  />
+                )}
               </div>
             </div>
           )}
@@ -458,6 +578,36 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
               post.title && (
                 <h2 className="text-xl font-bold text-gray-900 mb-3">{post.title}</h2>
               )
+            )}
+
+            {isEditing && (
+              <div className="mb-4 space-y-2">
+                <div className="text-sm font-medium text-gray-700">画像</div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <label htmlFor="edit-image" className="inline-flex items-center px-3 py-2 border border-pink-300 rounded-md text-sm text-pink-700 hover:bg-pink-50 cursor-pointer">
+                    画像を選択
+                  </label>
+                  <input id="edit-image" type="file" accept="image/*" className="hidden" onChange={handleImageFileChange} />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className={`border-red-300 text-red-600 hover:bg-red-50 ${removeCurrentImage ? 'bg-red-50' : ''}`}
+                    onClick={handleRemoveImageToggle}
+                  >
+                    {removeCurrentImage ? '画像削除を取り消す' : '画像を削除する'}
+                  </Button>
+                  {isUploadingImage && (
+                    <span className="text-xs text-gray-500">画像アップロード中...</span>
+                  )}
+                  {uploadError && (
+                    <span className="text-xs text-red-600">{uploadError}</span>
+                  )}
+                  {newImageFile && (
+                    <span className="text-xs text-gray-500">選択中: {newImageFile.name}</span>
+                  )}
+                </div>
+              </div>
             )}
             
             <div className="text-gray-700 leading-7 mb-4">

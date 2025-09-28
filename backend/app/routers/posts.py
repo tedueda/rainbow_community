@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
+import logging
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -20,10 +21,11 @@ limiter = Limiter(key_func=get_remote_address)
 @router.get("", response_model=List[PostSchema])
 @router.get("/", response_model=List[PostSchema])
 async def read_posts(
-    skip: int = 0,
+    page: int = 1,
     limit: int = 20,
     visibility: Optional[str] = None,
     category: Optional[str] = None,
+    category_id: Optional[str] = None,
     sort: str = "newest",
     range: str = "all",
     tag: Optional[str] = None,
@@ -36,7 +38,11 @@ async def read_posts(
     else:
         query = query.filter(Post.visibility == "public")
     
-    if category:
+    # Support category via name or category_id (mapped to hashtag)
+    cat_value = category
+    if category_id and not cat_value:
+        cat_value = category_id
+    if cat_value:
         category_map = {
             "board": "board",
             "art": "art", 
@@ -45,7 +51,7 @@ async def read_posts(
             "tours": "tours",
             "comics": "comics"
         }
-        hashtag = category_map.get(category, category)
+        hashtag = category_map.get(cat_value, cat_value)
         query = query.filter(Post.body.contains(f"#{hashtag}"))
     
     if range != "all":
@@ -68,7 +74,10 @@ async def read_posts(
     else:
         query = query.order_by(desc(Post.created_at))
     
-    posts = query.offset(skip).limit(limit).all()
+    page = max(1, page)
+    limit = max(1, min(100, limit))
+    offset = (page - 1) * limit
+    posts = query.offset(offset).limit(limit).all()
     
     result = []
     for post in posts:
@@ -102,9 +111,7 @@ async def create_post(
 ):
     db_post = Post(**post.dict(), user_id=current_user.id)
     db.add(db_post)
-    db.commit()
-    db.refresh(db_post)
-    
+    db.flush()  # ensure db_post.id is available without full commit
     point_event = PointEvent(
         user_id=current_user.id,
         event_type="post_created",
@@ -114,7 +121,7 @@ async def create_post(
     )
     db.add(point_event)
     db.commit()
-    
+    db.refresh(db_post)
     return db_post
 
 @router.get("/{post_id}", response_model=PostSchema)
@@ -169,21 +176,59 @@ async def delete_post(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    post = db.query(Post).filter(Post.id == post_id).first()
-    if post is None:
-        raise HTTPException(status_code=404, detail="Post not found")
-    
-    if post.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+    logger = logging.getLogger("app.posts")
+    try:
+        post = db.query(Post).filter(Post.id == post_id).first()
+        if post is None:
+            raise HTTPException(status_code=404, detail="Post not found")
+        
+        if post.user_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Not enough permissions")
 
-    # Delete dependent comments and tag mappings first to avoid FK constraint errors
-    from app.models import Comment, PostTag
-    db.query(Comment).filter(Comment.post_id == post_id).delete(synchronize_session=False)
-    db.query(PostTag).filter(PostTag.post_id == post_id).delete(synchronize_session=False)
+        # Delete dependent comments, tag mappings, reactions, and point events to avoid FK/consistency issues
+        from app.models import Comment, PostTag, Reaction, PointEvent
+        db.query(Comment).filter(Comment.post_id == post_id).delete(synchronize_session=False)
+        db.query(PostTag).filter(PostTag.post_id == post_id).delete(synchronize_session=False)
+        db.query(Reaction).filter(Reaction.target_type == "post", Reaction.target_id == post_id).delete(synchronize_session=False)
+        db.query(PointEvent).filter(PointEvent.ref_type == "post", PointEvent.ref_id == post_id).delete(synchronize_session=False)
 
-    db.delete(post)
-    db.commit()
-    return {"message": "Post deleted successfully"}
+        # Remember media_id to potentially cleanup
+        media_id = post.media_id
+
+        # Delete the post row via bulk delete to avoid ORM relationship side-effects
+        db.query(Post).filter(Post.id == post_id).delete(synchronize_session=False)
+        db.commit()
+
+        # Cleanup orphaned media if no other posts reference it
+        if media_id:
+            in_use = db.query(Post).filter(Post.media_id == media_id).count()
+            if in_use == 0:
+                media = db.query(MediaAsset).filter(MediaAsset.id == media_id).first()
+                if media:
+                    # attempt to remove file from disk
+                    import os
+                    from pathlib import Path
+                    base_dir = os.getenv("MEDIA_DIR") or ("/data/media" if os.path.exists("/data") else "media")
+                    try:
+                        url = media.url or ""
+                        rel = url.replace("/media/", "", 1)
+                        path = Path(base_dir) / rel
+                        if path.is_file():
+                            path.unlink()
+                    except Exception:
+                        pass
+                    db.delete(media)
+                    db.commit()
+        return {"message": "Post deleted successfully"}
+    except HTTPException:
+        # ensure transaction state is clean
+        db.rollback()
+        raise
+    except Exception as e:
+        logger.exception("Failed to delete post %s", post_id)
+        db.rollback()
+        # Return error with message for quick diagnosis in prod
+        raise HTTPException(status_code=500, detail=f"delete_failed: {type(e).__name__}: {e}")
 
 @router.post("/{post_id}/like")
 async def toggle_like_post(

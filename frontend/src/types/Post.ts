@@ -13,6 +13,7 @@ export interface Post {
   visibility: string;
   created_at: string;
   category?: string;
+  media_id?: number | null;
   media_url?: string;
   media_urls?: string[];
   youtube_url?: string;

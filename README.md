@@ -5,8 +5,8 @@ LGBTQ+コミュニティ向けの安心・品位あるコミュニティサイ�
 
 ## 🚀 デプロイ済みURL
 - **フロントエンド**: https://lgbtq-community-app-kuijp5dt.devinapps.com
-- **バックエンドAPI**: https://app-rosqqdae.fly.dev
-- **API仕様書**: https://app-rosqqdae.fly.dev/docs
+- **バックエンドAPI**: https://rainbow-community.fly.dev
+- **API仕様書**: https://rainbow-community.fly.dev/docs
 
 ## 📁 プロジェクト構成
 ```

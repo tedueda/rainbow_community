@@ -9,9 +9,16 @@ from dotenv import load_dotenv
 load_dotenv(override=False)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-# README: ローカル開発では SQLite フォールバックを使用
+FLY_APP = os.getenv("FLY_APP_NAME")
+
+# 本番(Fly)では必ず PostgreSQL を要求し、未設定なら起動失敗
+if FLY_APP and not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL is required in production (Fly)")
+
+# ローカルや非本番では SQLite フォールバック（/data があれば永続化）
 if not DATABASE_URL:
-    DATABASE_URL = "sqlite:///./lgbtq_community.db"
+    sqlite_path = "/data/lgbtq_community.db" if os.path.exists("/data") else "./lgbtq_community.db"
+    DATABASE_URL = f"sqlite:///{sqlite_path}"
 
 print(f"🔄 Using database: {DATABASE_URL}")
 

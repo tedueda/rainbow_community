@@ -8,6 +8,7 @@ import { ArrowLeft, Plus, Heart, MessageCircle, Filter, SortAsc } from 'lucide-r
 import PostDetailModal from './PostDetailModal';
 import NewPostForm from './NewPostForm';
 import { Post } from '../types/Post';
+import { getYouTubeThumbnail, extractYouTubeUrlFromText } from '../utils/youtube';
 
 
 const categories = {
@@ -357,16 +358,24 @@ const CategoryPage: React.FC = () => {
                 }
               }}
             >
-              {/* 画像ギャラリー */}
-              {(post.media_url || (post.media_urls && post.media_urls[0])) && (
-                <div className="aspect-[3/2] w-full h-[220px] overflow-hidden rounded-t-2xl">
-                  <img
-                    src={`${(post.media_url || (post.media_urls && post.media_urls[0]) || '').startsWith('http') ? '' : API_URL}${post.media_url || (post.media_urls && post.media_urls[0])}`}
-                    alt={post.title || '投稿画像'}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
+              {/* 画像ギャラリー（投稿画像がなければ YouTube サムネを使用） */}
+              {(() => {
+                const firstMedia = post.media_url || (post.media_urls && post.media_urls[0]) || '';
+                const ytUrl = post.youtube_url || extractYouTubeUrlFromText(post.body || '') || '';
+                const ytThumb = !firstMedia ? getYouTubeThumbnail(ytUrl) : null;
+                const imageSrc = firstMedia || ytThumb || '';
+                if (!imageSrc) return null;
+                const finalSrc = imageSrc.startsWith('http') ? imageSrc : `${API_URL}${imageSrc}`;
+                return (
+                  <div className="aspect-[3/2] w-full h-[220px] overflow-hidden rounded-t-2xl">
+                    <img
+                      src={finalSrc}
+                      alt={post.title || '投稿画像'}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                );
+              })()}
               
               {/* コンテンツ */}
               <CardContent className="p-4">
