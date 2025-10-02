@@ -262,3 +262,56 @@ npm run dev
 
 このドキュメントは windsurf.ai への引き継ぎ用として作成されました。
 追加の技術詳細が必要な場合は、各ファイルのコメントとコードを参照してください。
+
+## 🧩 現在のDB課題と方針（試作段階メモ）
+
+本試作ではローカル実行時に SQLite フォールバックを使用していますが、環境依存でバックエンドの待受が不安定になる事象がありました（`/healthz` が読み込み中のままとなる等）。今後は AWS RDS(PostgreSQL) に接続して安定動作を図ります。
+
+- 現状の症状
+  - `http://localhost:8001/healthz` が応答しない場合がある
+  - フロント `http://localhost:5173/feed` でデータ取得が止まることがある
+
+- 当面の方針
+  - バックエンドを RDS(PostgreSQL) に接続して起動（ローカル SQLite から切替）
+  - フロントは `VITE_API_URL=http://localhost:8001` で固定し疎通確認
+
+- 次回作業（手順）
+  1) `backend/.env` に本番相当の接続情報を設定（例）
+     ```env
+     DATABASE_URL=postgresql+psycopg2://<USER>:<PASSWORD>@<HOST>:5432/<DBNAME>?sslmode=require
+     SECRET_KEY=change-me-please
+     ```
+     - 秘密情報は必ず .env にのみ記載し、リポジトリにコミットしないこと（.gitignore維持）
+  2) PostgreSQL ドライバ導入
+     ```bash
+     pip3 install psycopg2-binary
+     ```
+  3) バックエンド再起動（RDS接続）
+     ```bash
+     # 既存 8001 を停止
+     lsof -ti :8001 | xargs kill -9 2>/dev/null || true
+     # RDS 接続で起動
+     python3 -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
+     ```
+  4) 疎通確認
+     ```bash
+     curl -i [http://127.0.0.1](http://127.0.0.1):8001/healthz
+     curl -i [http://127.0.0.1](http://127.0.0.1):8001/api/health
+     ```
+  5) フロント設定（固定化 & 再起動）
+     ```bash
+     # frontend/.env.local
+     echo "VITE_API_URL=http://localhost:8001" > frontend/.env.local
+     # 再起動
+     lsof -ti :5173 | xargs kill -9 2>/dev/null || true
+     (cd frontend && npm run dev)
+     ```
+
+- 事前条件（RDS側）
+  - セキュリティグループで、ローカルのグローバルIPから 5432/TCP を許可
+  - 初回起動時は `Base.metadata.create_all(bind=engine)` によりスキーマが自動生成
+
+- セキュリティ注意
+  - 接続文字列・パスワード等の秘密は [.env](cci:7://file:///Users/tedueda/Desktop/LGBTQ_Community/rainbow_community-2/frontend/.env:0:0-0:0) のみに保存（VCSへコミット禁止）
+  - 将来的にパスワードローテーションを実施
+  
