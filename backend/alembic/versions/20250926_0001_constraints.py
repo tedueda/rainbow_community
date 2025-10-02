@@ -30,59 +30,73 @@ def upgrade():
     dialect = conn.dialect.name
 
     # profiles.user_id is already PK, but add an explicit UNIQUE constraint name if desired
-    # Note: many DBs imply uniqueness via PK; this will be a no-op on Postgres if created as PK only.
-    try:
-        op.create_unique_constraint('uq_profiles_user_id', 'profiles', ['user_id'])
-    except Exception:
-        pass
+    if not _has_constraint(conn, 'profiles', 'uq_profiles_user_id'):
+        try:
+            op.create_unique_constraint('uq_profiles_user_id', 'profiles', ['user_id'])
+        except Exception:
+            pass
 
     # For ON DELETE CASCADE, we must drop and re-create FKs where necessary
     # comments(post_id -> posts.id), comments(user_id -> users.id)
-    try:
-        op.drop_constraint('comments_post_id_fkey', 'comments', type_='foreignkey')
-    except Exception:
-        pass
-    op.create_foreign_key('comments_post_id_fkey', 'comments', 'posts', ['post_id'], ['id'], ondelete='CASCADE')
+    if _has_constraint(conn, 'comments', 'comments_post_id_fkey'):
+        try:
+            op.drop_constraint('comments_post_id_fkey', 'comments', type_='foreignkey')
+        except Exception:
+            pass
+    if not _has_constraint(conn, 'comments', 'comments_post_id_fkey'):
+        op.create_foreign_key('comments_post_id_fkey', 'comments', 'posts', ['post_id'], ['id'], ondelete='CASCADE')
 
-    try:
-        op.drop_constraint('comments_user_id_fkey', 'comments', type_='foreignkey')
-    except Exception:
-        pass
-    op.create_foreign_key('comments_user_id_fkey', 'comments', 'users', ['user_id'], ['id'], ondelete='CASCADE')
+    if _has_constraint(conn, 'comments', 'comments_user_id_fkey'):
+        try:
+            op.drop_constraint('comments_user_id_fkey', 'comments', type_='foreignkey')
+        except Exception:
+            pass
+    if not _has_constraint(conn, 'comments', 'comments_user_id_fkey'):
+        op.create_foreign_key('comments_user_id_fkey', 'comments', 'users', ['user_id'], ['id'], ondelete='CASCADE')
 
     # post_tags(post_id -> posts.id), post_tags(tag_id -> tags.id)
-    try:
-        op.drop_constraint('post_tags_post_id_fkey', 'post_tags', type_='foreignkey')
-    except Exception:
-        pass
-    op.create_foreign_key('post_tags_post_id_fkey', 'post_tags', 'posts', ['post_id'], ['id'], ondelete='CASCADE')
+    if _has_constraint(conn, 'post_tags', 'post_tags_post_id_fkey'):
+        try:
+            op.drop_constraint('post_tags_post_id_fkey', 'post_tags', type_='foreignkey')
+        except Exception:
+            pass
+    if not _has_constraint(conn, 'post_tags', 'post_tags_post_id_fkey'):
+        op.create_foreign_key('post_tags_post_id_fkey', 'post_tags', 'posts', ['post_id'], ['id'], ondelete='CASCADE')
 
-    try:
-        op.drop_constraint('post_tags_tag_id_fkey', 'post_tags', type_='foreignkey')
-    except Exception:
-        pass
-    op.create_foreign_key('post_tags_tag_id_fkey', 'post_tags', 'tags', ['tag_id'], ['id'], ondelete='CASCADE')
+    if _has_constraint(conn, 'post_tags', 'post_tags_tag_id_fkey'):
+        try:
+            op.drop_constraint('post_tags_tag_id_fkey', 'post_tags', type_='foreignkey')
+        except Exception:
+            pass
+    if not _has_constraint(conn, 'post_tags', 'post_tags_tag_id_fkey'):
+        op.create_foreign_key('post_tags_tag_id_fkey', 'post_tags', 'tags', ['tag_id'], ['id'], ondelete='CASCADE')
 
     # reactions(user_id -> users.id) is safe to cascade
-    try:
-        op.drop_constraint('reactions_user_id_fkey', 'reactions', type_='foreignkey')
-    except Exception:
-        pass
-    op.create_foreign_key('reactions_user_id_fkey', 'reactions', 'users', ['user_id'], ['id'], ondelete='CASCADE')
+    if _has_constraint(conn, 'reactions', 'reactions_user_id_fkey'):
+        try:
+            op.drop_constraint('reactions_user_id_fkey', 'reactions', type_='foreignkey')
+        except Exception:
+            pass
+    if not _has_constraint(conn, 'reactions', 'reactions_user_id_fkey'):
+        op.create_foreign_key('reactions_user_id_fkey', 'reactions', 'users', ['user_id'], ['id'], ondelete='CASCADE')
 
     # posts(user_id -> users.id), posts.media_id -> media_assets.id (do NOT cascade media)
-    try:
-        op.drop_constraint('posts_user_id_fkey', 'posts', type_='foreignkey')
-    except Exception:
-        pass
-    op.create_foreign_key('posts_user_id_fkey', 'posts', 'users', ['user_id'], ['id'], ondelete='CASCADE')
+    if _has_constraint(conn, 'posts', 'posts_user_id_fkey'):
+        try:
+            op.drop_constraint('posts_user_id_fkey', 'posts', type_='foreignkey')
+        except Exception:
+            pass
+    if not _has_constraint(conn, 'posts', 'posts_user_id_fkey'):
+        op.create_foreign_key('posts_user_id_fkey', 'posts', 'users', ['user_id'], ['id'], ondelete='CASCADE')
 
     # point_events(user_id -> users.id)
-    try:
-        op.drop_constraint('point_events_user_id_fkey', 'point_events', type_='foreignkey')
-    except Exception:
-        pass
-    op.create_foreign_key('point_events_user_id_fkey', 'point_events', 'users', ['user_id'], ['id'], ondelete='CASCADE')
+    if _has_constraint(conn, 'point_events', 'point_events_user_id_fkey'):
+        try:
+            op.drop_constraint('point_events_user_id_fkey', 'point_events', type_='foreignkey')
+        except Exception:
+            pass
+    if not _has_constraint(conn, 'point_events', 'point_events_user_id_fkey'):
+        op.create_foreign_key('point_events_user_id_fkey', 'point_events', 'users', ['user_id'], ['id'], ondelete='CASCADE')
 
 
 def downgrade():

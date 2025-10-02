@@ -25,7 +25,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
   onUpdated,
   onDeleted
 }) => {
-  const { token, user: currentUser, isAnonymous } = useAuth();
+  const { token, user: currentUser, isAnonymous, isLoading } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   // const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -244,7 +244,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
     }
   }, [isOpen, post, onClose]);
 
-  const canEdit = !!currentUser && !isAnonymous && currentUser.id === post.user_id;
+  const canEdit = !isLoading && !!currentUser && !isAnonymous && currentUser.id === post.user_id;
 
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
