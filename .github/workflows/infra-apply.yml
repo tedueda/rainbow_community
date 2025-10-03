@@ -1,14 +1,22 @@
 name: Terraform Apply
 
 on:
-  workflow_dispatch: {}   # 手動実行できるように
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Terraform action to perform"
+        required: true
+        type: choice
+        options:
+          - plan
+          - apply
+        default: plan
   push:
     branches:
-      - main              # main に push されたときも実行
-
+      - main
 
 env:
-  # すべてリポジトリVariables/Secrets由来に統一
+  # すべてリポジトリ Variables/Secrets 由来に統一
   AWS_REGION: ${{ vars.AWS_REGION }}          # 例: ap-northeast-3
   TF_VERSION: "1.9.6"
 
@@ -24,7 +32,7 @@ env:
   TF_VAR_ecr_repo_name: ${{ vars.TF_VAR_ECR_REPO_NAME }}
   TF_VAR_github_repo: ${{ vars.TF_VAR_GITHUB_REPO }}
   TF_VAR_github_oidc_role_arn: ${{ vars.TF_VAR_GITHUB_OIDC_ROLE_ARN }}
-  TF_VAR_aws_region: ${{ vars.TF_VAR_AWS_REGION }}                        # ap-northeast-3 と一致
+  TF_VAR_aws_region: ${{ vars.TF_VAR_AWS_REGION }}
 
 permissions:
   id-token: write
@@ -32,7 +40,8 @@ permissions:
 
 jobs:
   terraform:
-    name: Terraform ${{ inputs.action }}
+    # 手動実行時は inputs.action、push時は既定で plan
+    name: Terraform ${{ inputs.action || 'plan' }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -59,17 +68,12 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
-      - name: Import existing ECR repository (idempotent)
-        if: ${{ inputs.action == 'plan' || inputs.action == 'apply' }}
-        run: |
-          # 既に state に取り込まれているかを確認。無ければ import。
-          terraform state show module.ecr.aws_ecr_repository.main >/dev/null 2>&1 || \
-            terraform import module.ecr.aws_ecr_repository.main "${TF_VAR_ecr_repo_name}"
-
-　　　　- name: Terraform Plan
-        if: ${{ inputs.action == 'plan' || inputs.action == 'apply' }}
+      # 手動(plan) または push(main) のとき plan を実行
+      - name: Terraform Plan
+        if: ${{ inputs.action == 'plan' || github.event_name == 'push' }}
         run: terraform plan -out=tfplan -input=false
 
+      # 手動(apply) のときだけ apply
       - name: Terraform Apply
         if: ${{ inputs.action == 'apply' }}
         run: terraform apply -auto-approve -input=false tfplan
