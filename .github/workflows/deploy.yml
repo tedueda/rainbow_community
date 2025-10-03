@@ -12,6 +12,9 @@ permissions:
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}           # 例: ap-northeast-3
   ECR_REPO:   ${{ vars.TF_VAR_ECR_REPO_NAME }} # 例: rainbow-community-api
+  ECR_REGION: ap-northeast-1        # ← 東京
+  ECR_REPO: rainbow-community-api   # ← さきほど作成したリポジトリ名
+
 
 jobs:
   build-and-deploy:
