@@ -14,9 +14,14 @@ export PYTHONPATH="${PYTHONPATH:-/app}:/app"
 if [ -f "alembic.ini" ] && [ -d "alembic" ]; then
   echo "▶ Running Alembic migrations..."
   alembic upgrade head || {
-    echo "Alembic failed" >&2
-    exit 1
+    echo "⚠ Alembic migration failed on first attempt, retrying in 5 seconds..." >&2
+    sleep 5
+    alembic upgrade head || {
+      echo "❌ Alembic migration failed after retry" >&2
+      exit 1
+    }
   }
+  echo "✅ Alembic migrations completed successfully"
 else
   echo "ℹ Alembic configuration not found. Skipping migrations."
 fi

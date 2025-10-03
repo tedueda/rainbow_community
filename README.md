@@ -5,8 +5,40 @@ LGBTQ+コミュニティ向けの安心・品位あるコミュニティサイ�
 
 ## 🚀 デプロイ済みURL
 - **フロントエンド**: https://lgbtq-community-app-kuijp5dt.devinapps.com
-- **バックエンドAPI**: https://rainbow-community.fly.dev
-- **API仕様書**: https://rainbow-community.fly.dev/docs
+- **バックエンドAPI**: https://app-rosqqdae.fly.dev
+- **API仕様書**: https://app-rosqqdae.fly.dev/docs
+
+## ☁️ AWS App Runner への移行（準備完了）
+
+FastAPI バックエンドを Fly.io から AWS App Runner に移行するための Terraform インフラストラクチャが `infra/` ディレクトリに用意されています。
+
+### 主な機能
+- **ECR**: Docker イメージの自動管理とライフサイクルポリシー
+- **App Runner**: コンテナ化された FastAPI アプリのホスティング
+- **VPC Connector**: プライベート RDS への安全な接続
+- **Secrets Manager**: DATABASE_URL の安全な管理
+- **CloudWatch**: RDS モニタリングとアラーム
+- **GitHub Actions**: ECR への自動デプロイ（OIDC 認証）
+
+### 移行手順
+詳細な移行手順、ロールバック方法、トラブルシューティングについては [`infra/README.md`](./infra/README.md) を参照してください。
+
+**段階的な移行**:
+1. Terraform でインフラを構築（RDS は Public のまま）
+2. App Runner の動作確認
+3. レガシー CIDR ルールの削除
+4. RDS を Private に変更
+5. Fly.io のシャットダウン
+
+### クイックスタート
+```bash
+cd infra
+cp terraform.tfvars.example terraform.tfvars
+# terraform.tfvars を編集して認証情報を設定
+terraform init
+terraform plan
+terraform apply
+```
 
 ## 🗄️ 本番DB（AWS RDS）接続情報と運用指針（非機密）
 
@@ -314,4 +346,3 @@ npm run dev
 - セキュリティ注意
   - 接続文字列・パスワード等の秘密は [.env](cci:7://file:///Users/tedueda/Desktop/LGBTQ_Community/rainbow_community-2/frontend/.env:0:0-0:0) のみに保存（VCSへコミット禁止）
   - 将来的にパスワードローテーションを実施
-  
