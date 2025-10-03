@@ -2,102 +2,46 @@ name: Deploy to AWS App Runner
 
 on:
   push:
-    branches:
-      - main
-      - production
-    tags:
-      - 'v*'
-
-env:
-  AWS_REGION: ${{ vars.AWS_REGION }}
-  TF_VERSION: '1.9.6'
-
-  # ---- Terraform variables ----
-  TF_VAR_app_runner_service_name: ${{ secrets.TF_VAR_APP_RUNNER_SERVICE_NAME }}
-  TF_VAR_vpc_id: ${{ vars.TF_VAR_VPC_ID }}
-  TF_VAR_private_subnet_ids: ${{ vars.TF_VAR_PRIVATE_SUBNET_IDS }}
-  TF_VAR_rds_security_group_id: ${{ vars.TF_VAR_RDS_SECURITY_GROUP_ID }}
-  TF_VAR_rds_endpoint: ${{ vars.TF_VAR_RDS_ENDPOINT }}
-  TF_VAR_db_app_user: ${{ secrets.TF_VAR_DB_APP_USER }}
-  TF_VAR_db_app_password: ${{ secrets.TF_VAR_DB_APP_PASSWORD }}
-  TF_VAR_database_name: ${{ vars.TF_VAR_DATABASE_NAME }}
-  TF_VAR_ecr_repo_name: ${{ vars.TF_VAR_ECR_REPO_NAME }}
-  TF_VAR_github_repo: ${{ vars.TF_VAR_GITHUB_REPO }}
-  TF_VAR_github_oidc_role_arn: ${{ vars.TF_VAR_GITHUB_OIDC_ROLE_ARN }}
-  TF_VAR_aws_region: ${{ vars.TF_VAR_AWS_REGION }}
-
+    branches: [ main ]
+  workflow_dispatch: {}
 
 permissions:
   id-token: write
   contents: read
 
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}           # 例: ap-northeast-3
+  ECR_REPO:   ${{ vars.TF_VAR_ECR_REPO_NAME }} # 例: rainbow-community-api
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials via OIDC
+      # ★ これが “AWS 認証” ステップ（最優先で実行）
+      - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+          role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}   # 例: arn:aws:iam::123456789012:role/GitHubOIDCRole
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        id: login-ecr
+        id: ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Set image tag
-        id: image-tag
-        run: |
-          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
-            # Use tag name for version tags
-            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref }}" == "refs/heads/main" || "${{ github.ref }}" == "refs/heads/production" ]]; then
-            # Use 'latest' for main/production branches
-            echo "tag=latest" >> $GITHUB_OUTPUT
-          else
-            # Use commit SHA for other branches
-            echo "tag=sha-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Build, tag, and push Docker image to ECR
+      - name: Build & Push image to ECR
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ steps.image-tag.outputs.tag }}
+          ECR_REGISTRY:  ${{ steps.ecr.outputs.registry }}
+          IMAGE_TAG:     ${{ github.sha }}
         run: |
-          cd backend
-          
-          # Build the Docker image
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          
-          # Also tag as latest if this is a version tag
-          if [[ "$IMAGE_TAG" == v* ]]; then
-            docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          fi
-          
-          # Push the image
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          
-          # Push latest tag if applicable
-          if [[ "$IMAGE_TAG" == v* ]]; then
-            docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          fi
-          
-          echo "Image pushed: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          # 必要なら Dockerfile のパスを合わせてください（例は backend/Dockerfile）
+          docker build -t $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG -f backend/Dockerfile ./backend
+          docker push $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
 
-      - name: Wait for App Runner auto-deployment
-        run: |
-          echo "✅ Docker image pushed to ECR"
-          echo "🚀 App Runner will automatically deploy the new image (auto_deployments_enabled=true)"
-          echo "📊 Monitor deployment status in AWS Console or use AWS CLI"
-          echo ""
-          echo "To check deployment status:"
-          echo "  aws apprunner list-operations --service-arn <SERVICE_ARN> --region ${{ env.AWS_REGION }}"
-
-      - name: Notify deployment
-        if: success()
-        run: |
-          echo "::notice::Deployment successful! App Runner will update automatically."
+      # （App Runner 更新が必要ならこの下に追記）
+      # - name: Deploy to App Runner
+      #   run: |
+      #     aws apprunner start-deployment --service-arn <YOUR_APP_RUNNER_SERVICE_ARN>
