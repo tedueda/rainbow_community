@@ -11,11 +11,10 @@ on:
           - plan
           - apply
         default: 'plan'
-
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
   TF_VERSION: '1.9.6'
-  TF_VAR_APP_RUNNER_SERVICE_NAME: ${{ secrets.TF_VAR_APP_RUNNER_SERVICE_NAME }}
+  TF_VAR_app_runner_service_name: ${{ secrets.TF_VAR_APP_RUNNER_SERVICE_NAME }}
   TF_VAR_vpc_id: ${{ vars.TF_VAR_vpc_id }}
   TF_VAR_private_subnet_ids: ${{ vars.TF_VAR_private_subnet_ids }}
   TF_VAR_rds_security_group_id: ${{ vars.TF_VAR_rds_security_group_id }}
