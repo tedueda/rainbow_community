@@ -1,14 +1,11 @@
 name: Terraform Apply
 
 on:
-  workflow_dispatch:
-    inputs:
-      action:
-        description: 'Terraform action to perform'
-        required: true
-        type: choice
-        options: [plan, apply]
-        default: 'plan'
+  workflow_dispatch: {}   # 手動実行できるように
+  push:
+    branches:
+      - main              # main に push されたときも実行
+
 
 env:
   # すべてリポジトリVariables/Secrets由来に統一
