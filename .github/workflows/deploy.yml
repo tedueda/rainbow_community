@@ -1,0 +1,88 @@
+name: Deploy to AWS App Runner
+
+on:
+  push:
+    branches:
+      - main
+      - production
+    tags:
+      - 'v*'
+
+env:
+  AWS_REGION: ap-northeast-3
+  ECR_REPOSITORY: rainbow-community-api
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set image tag
+        id: image-tag
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            # Use tag name for version tags
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/main" || "${{ github.ref }}" == "refs/heads/production" ]]; then
+            # Use 'latest' for main/production branches
+            echo "tag=latest" >> $GITHUB_OUTPUT
+          else
+            # Use commit SHA for other branches
+            echo "tag=sha-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build, tag, and push Docker image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ steps.image-tag.outputs.tag }}
+        run: |
+          cd backend
+          
+          # Build the Docker image
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          
+          # Also tag as latest if this is a version tag
+          if [[ "$IMAGE_TAG" == v* ]]; then
+            docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          fi
+          
+          # Push the image
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          
+          # Push latest tag if applicable
+          if [[ "$IMAGE_TAG" == v* ]]; then
+            docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          fi
+          
+          echo "Image pushed: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      - name: Wait for App Runner auto-deployment
+        run: |
+          echo "✅ Docker image pushed to ECR"
+          echo "🚀 App Runner will automatically deploy the new image (auto_deployments_enabled=true)"
+          echo "📊 Monitor deployment status in AWS Console or use AWS CLI"
+          echo ""
+          echo "To check deployment status:"
+          echo "  aws apprunner list-operations --service-arn <SERVICE_ARN> --region ${{ env.AWS_REGION }}"
+
+      - name: Notify deployment
+        if: success()
+        run: |
+          echo "::notice::Deployment successful! App Runner will update automatically."

@@ -20,10 +20,10 @@ RUN poetry config virtualenvs.create false \
 # Copy application code
 COPY . .
 # Ensure media directory exists (for runtime mounting/serving)
-RUN mkdir -p media
+RUN mkdir -p media && chmod +x start.sh || true
 
 # Expose port
 EXPOSE 8000
 
-# Start command
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Start command via script (runs migrations if configured)
+CMD ["/bin/bash", "-lc", "./start.sh"]

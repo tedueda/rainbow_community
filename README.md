@@ -8,6 +8,106 @@ LGBTQ+コミュニティ向けの安心・品位あるコミュニティサイ�
 - **バックエンドAPI**: https://app-rosqqdae.fly.dev
 - **API仕様書**: https://app-rosqqdae.fly.dev/docs
 
+## ☁️ AWS App Runner への移行（準備完了）
+
+FastAPI バックエンドを Fly.io から AWS App Runner に移行するための Terraform インフラストラクチャが `infra/` ディレクトリに用意されています。
+
+### 主な機能
+- **ECR**: Docker イメージの自動管理とライフサイクルポリシー
+- **App Runner**: コンテナ化された FastAPI アプリのホスティング
+- **VPC Connector**: プライベート RDS への安全な接続
+- **Secrets Manager**: DATABASE_URL の安全な管理
+- **CloudWatch**: RDS モニタリングとアラーム
+- **GitHub Actions**: ECR への自動デプロイ（OIDC 認証）
+
+### 移行手順
+詳細な移行手順、ロールバック方法、トラブルシューティングについては [`infra/README.md`](./infra/README.md) を参照してください。
+
+**段階的な移行**:
+1. Terraform でインフラを構築（RDS は Public のまま）
+2. App Runner の動作確認
+3. レガシー CIDR ルールの削除
+4. RDS を Private に変更
+5. Fly.io のシャットダウン
+
+### クイックスタート
+```bash
+cd infra
+cp terraform.tfvars.example terraform.tfvars
+# terraform.tfvars を編集して認証情報を設定
+terraform init
+terraform plan
+terraform apply
+```
+
+### デプロイ済みリソース
+
+初回デプロイ後、以下の情報が利用可能になります：
+
+- **ECR Repository**: `[Terraform output から取得]`
+- **App Runner URL**: `[Terraform output から取得]`
+- **CloudWatch Logs**: `/aws/apprunner/rainbow-community-api/service`
+
+#### GitHub Actions での運用
+
+**インフラストラクチャのデプロイ**:
+1. Actions タブ → "Terraform Apply" ワークフロー
+2. "Run workflow" → action: `plan` で差分確認
+3. 問題なければ action: `apply` で本番反映
+
+**アプリケーションのデプロイ**:
+1. Actions タブ → "ECR Push" ワークフロー
+2. "Run workflow" で Docker イメージをビルド・プッシュ
+3. App Runner が自動的に新しいイメージをデプロイ
+
+**モニタリング**:
+```bash
+# ログの確認 (important-comment)
+aws logs tail /aws/apprunner/rainbow-community-api/service --follow --region ap-northeast-3
+
+# 出力値の確認 (important-comment)
+cd infra && terraform output -json
+```
+
+## 🗄️ 本番DB（AWS RDS）接続情報と運用指針（非機密）
+
+以下は機密を含まない情報のみを記載します。パスワード等の秘密は Secrets にのみ保存し、このリポジトリには絶対にコミットしません。
+
+- 接続先ホスト（RDS エンドポイント）
+  - `rainbow-community-db.czqogwkequrm.ap-northeast-3.rds.amazonaws.com`
+- データベース名
+  - `lgbtq_community`
+- ユーザー名（マスター）
+  - `dbadmin`
+- ドライバ/プロトコル
+  - SQLAlchemy 2.x では `postgresql+psycopg2` を推奨
+- 接続文字列フォーマット（例）
+  - `postgresql+psycopg2://dbadmin:<PASSWORD>@rainbow-community-db.czqogwkequrm.ap-northeast-3.rds.amazonaws.com:5432/lgbtq_community?sslmode=require`
+
+### Secrets（Fly.io）への設定手順
+
+1. このリポジトリには秘密を記載しないこと（.env/fly.toml に直書き禁止）
+2. Fly.io にてアプリ `rainbow-community` の Secrets に設定
+
+```bash
+fly secrets set DATABASE_URL='postgresql+psycopg2://dbadmin:<PASSWORD>@rainbow-community-db.czqogwkequrm.ap-northeast-3.rds.amazonaws.com:5432/lgbtq_community?sslmode=require' -a rainbow-community
+```
+
+### マイグレーション（Alembic）の適用
+
+- 本番起動時 `start.sh` で `alembic upgrade head` が自動実行されます
+- 手動で実行したい場合（Fly マシン内）
+
+```bash
+fly ssh console -a rainbow-community --command "cd /app && alembic upgrade head"
+```
+
+### 運用時の注意
+
+- RDS をパブリックアクセス可にする場合は、セキュリティグループの 5432/TCP を最小限の送信元に限定してください
+- 本番では `backend/app/database.py` が `DATABASE_URL` 未設定時に起動失敗するため、SQLite にはフォールバックしません
+- 変更反映後は `/healthz`（内部） および `/api/health`（外部）で疎通を確認してください
+
 ## 📁 プロジェクト構成
 ```
 lgbtq_community/
@@ -223,3 +323,55 @@ npm run dev
 
 このドキュメントは windsurf.ai への引き継ぎ用として作成されました。
 追加の技術詳細が必要な場合は、各ファイルのコメントとコードを参照してください。
+
+## 🧩 現在のDB課題と方針（試作段階メモ）
+
+本試作ではローカル実行時に SQLite フォールバックを使用していますが、環境依存でバックエンドの待受が不安定になる事象がありました（`/healthz` が読み込み中のままとなる等）。今後は AWS RDS(PostgreSQL) に接続して安定動作を図ります。
+
+- 現状の症状
+  - `http://localhost:8001/healthz` が応答しない場合がある
+  - フロント `http://localhost:5173/feed` でデータ取得が止まることがある
+
+- 当面の方針
+  - バックエンドを RDS(PostgreSQL) に接続して起動（ローカル SQLite から切替）
+  - フロントは `VITE_API_URL=http://localhost:8001` で固定し疎通確認
+
+- 次回作業（手順）
+  1) `backend/.env` に本番相当の接続情報を設定（例）
+     ```env
+     DATABASE_URL=postgresql+psycopg2://<USER>:<PASSWORD>@<HOST>:5432/<DBNAME>?sslmode=require
+     SECRET_KEY=change-me-please
+     ```
+     - 秘密情報は必ず .env にのみ記載し、リポジトリにコミットしないこと（.gitignore維持）
+  2) PostgreSQL ドライバ導入
+     ```bash
+     pip3 install psycopg2-binary
+     ```
+  3) バックエンド再起動（RDS接続）
+     ```bash
+     # 既存 8001 を停止
+     lsof -ti :8001 | xargs kill -9 2>/dev/null || true
+     # RDS 接続で起動
+     python3 -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8001
+     ```
+  4) 疎通確認
+     ```bash
+     curl -i [http://127.0.0.1](http://127.0.0.1):8001/healthz
+     curl -i [http://127.0.0.1](http://127.0.0.1):8001/api/health
+     ```
+  5) フロント設定（固定化 & 再起動）
+     ```bash
+     # frontend/.env.local
+     echo "VITE_API_URL=http://localhost:8001" > frontend/.env.local
+     # 再起動
+     lsof -ti :5173 | xargs kill -9 2>/dev/null || true
+     (cd frontend && npm run dev)
+     ```
+
+- 事前条件（RDS側）
+  - セキュリティグループで、ローカルのグローバルIPから 5432/TCP を許可
+  - 初回起動時は `Base.metadata.create_all(bind=engine)` によりスキーマが自動生成
+
+- セキュリティ注意
+  - 接続文字列・パスワード等の秘密は [.env](cci:7://file:///Users/tedueda/Desktop/LGBTQ_Community/rainbow_community-2/frontend/.env:0:0-0:0) のみに保存（VCSへコミット禁止）
+  - 将来的にパスワードローテーションを実施

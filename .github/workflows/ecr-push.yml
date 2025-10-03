@@ -1,0 +1,96 @@
+name: ECR Push
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Docker image tag'
+        required: false
+        default: 'latest'
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  ECR_REPOSITORY: rainbow-community-api
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Get ECR repository URL from Terraform
+        id: ecr-url
+        run: |
+          cd infra
+          terraform init -backend=false
+          ECR_URL=$(terraform output -raw ecr_repository_url 2>/dev/null || echo "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}")
+          echo "ecr_url=$ECR_URL" >> $GITHUB_OUTPUT
+          echo "Using ECR URL: $ECR_URL"
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ steps.ecr-url.outputs.ecr_url }}:${{ inputs.tag }}
+
+      - name: Wait for deployment
+        run: |
+          echo "⏳ Waiting for App Runner auto-deployment (30 seconds)..."
+          sleep 30
+
+      - name: Get App Runner URL
+        id: app-runner-url
+        run: |
+          cd infra
+          APP_URL=$(terraform output -raw app_runner_service_url 2>/dev/null || echo "")
+          if [ -z "$APP_URL" ]; then
+            echo "⚠️ Unable to get App Runner URL from Terraform output"
+            echo "Please check manually: https://console.aws.amazon.com/apprunner"
+            exit 0
+          fi
+          echo "app_url=$APP_URL" >> $GITHUB_OUTPUT
+          echo "App Runner URL: $APP_URL"
+
+      - name: Health check
+        if: steps.app-runner-url.outputs.app_url != ''
+        run: |
+          APP_URL="${{ steps.app-runner-url.outputs.app_url }}"
+          echo "🔍 Testing health endpoint: $APP_URL/api/health"
+          
+          for i in {1..10}; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$APP_URL/api/health" || echo "000")
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ Health check passed! (HTTP $HTTP_CODE)"
+              curl -s "$APP_URL/api/health" | jq .
+              exit 0
+            fi
+            echo "⏳ Attempt $i/10: HTTP $HTTP_CODE - Waiting for service to be ready..."
+            sleep 10
+          done
+          
+          echo "❌ Health check failed after 10 attempts"
+          exit 1
+
+      - name: View logs
+        if: always()
+        run: |
+          echo "📊 To view App Runner logs, run:"
+          echo "aws logs tail /aws/apprunner/rainbow-community-api/service --follow --region ${{ env.AWS_REGION }}"
