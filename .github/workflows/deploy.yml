@@ -9,22 +9,23 @@ on:
       - 'v*'
 
 env:
-  AWS_REGION: ${{  vars.AWS_REGION }}
+  AWS_REGION: ${{ vars.AWS_REGION }}
   TF_VERSION: '1.9.6'
 
-  # --- Terraform variables (GitHub Variables 側の大文字キーに合わせる) ---
+  # ---- Terraform variables ----
   TF_VAR_app_runner_service_name: ${{ secrets.TF_VAR_APP_RUNNER_SERVICE_NAME }}
-  TF_VAR_vpc_id:                ${{ vars.TF_VAR_VPC_ID }}
-  TF_VAR_private_subnet_ids:    ${{ vars.TF_VAR_PRIVATE_SUBNET_IDS }}
+  TF_VAR_vpc_id: ${{ vars.TF_VAR_VPC_ID }}
+  TF_VAR_private_subnet_ids: ${{ vars.TF_VAR_PRIVATE_SUBNET_IDS }}
   TF_VAR_rds_security_group_id: ${{ vars.TF_VAR_RDS_SECURITY_GROUP_ID }}
-  TF_VAR_rds_endpoint:          ${{ vars.TF_VAR_RDS_ENDPOINT }}
-  TF_VAR_db_app_user:           ${{ secrets.TF_VAR_DB_APP_USER }}
-  TF_VAR_db_app_password:       ${{ secrets.TF_VAR_DB_APP_PASSWORD }}
-  TF_VAR_database_name:         ${{ vars.TF_VAR_DATABASE_NAME }}
-  TF_VAR_ecr_repo_name:         ${{ vars.TF_VAR_ECR_REPO_NAME }}
-  TF_VAR_github_repo:           ${{ vars.TF_VAR_GITHUB_REPO }}
-  TF_VAR_github_oidc_role_arn:  ${{ vars.TF_VAR_GITHUB_OIDC_ROLE_ARN }}
-  TF_VAR_aws_region:            ${{ vars.TF_VAR_AWS_REGION }}
+  TF_VAR_rds_endpoint: ${{ vars.TF_VAR_RDS_ENDPOINT }}
+  TF_VAR_db_app_user: ${{ secrets.TF_VAR_DB_APP_USER }}
+  TF_VAR_db_app_password: ${{ secrets.TF_VAR_DB_APP_PASSWORD }}
+  TF_VAR_database_name: ${{ vars.TF_VAR_DATABASE_NAME }}
+  TF_VAR_ecr_repo_name: ${{ vars.TF_VAR_ECR_REPO_NAME }}
+  TF_VAR_github_repo: ${{ vars.TF_VAR_GITHUB_REPO }}
+  TF_VAR_github_oidc_role_arn: ${{ vars.TF_VAR_GITHUB_OIDC_ROLE_ARN }}
+  TF_VAR_aws_region: ${{ vars.TF_VAR_AWS_REGION }}
+
 
 permissions:
   id-token: write
