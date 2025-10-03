@@ -40,6 +40,35 @@ terraform plan
 terraform apply
 ```
 
+### デプロイ済みリソース
+
+初回デプロイ後、以下の情報が利用可能になります：
+
+- **ECR Repository**: `[Terraform output から取得]`
+- **App Runner URL**: `[Terraform output から取得]`
+- **CloudWatch Logs**: `/aws/apprunner/rainbow-community-api/service`
+
+#### GitHub Actions での運用
+
+**インフラストラクチャのデプロイ**:
+1. Actions タブ → "Terraform Apply" ワークフロー
+2. "Run workflow" → action: `plan` で差分確認
+3. 問題なければ action: `apply` で本番反映
+
+**アプリケーションのデプロイ**:
+1. Actions タブ → "ECR Push" ワークフロー
+2. "Run workflow" で Docker イメージをビルド・プッシュ
+3. App Runner が自動的に新しいイメージをデプロイ
+
+**モニタリング**:
+```bash
+# ログの確認 (important-comment)
+aws logs tail /aws/apprunner/rainbow-community-api/service --follow --region ap-northeast-3
+
+# 出力値の確認 (important-comment)
+cd infra && terraform output -json
+```
+
 ## 🗄️ 本番DB（AWS RDS）接続情報と運用指針（非機密）
 
 以下は機密を含まない情報のみを記載します。パスワード等の秘密は Secrets にのみ保存し、このリポジトリには絶対にコミットしません。
