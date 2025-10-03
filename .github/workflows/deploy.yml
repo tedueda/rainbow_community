@@ -1,10 +1,10 @@
 name: Deploy to AWS App Runner
 
 on:
-　workflow_dispatch:        # ← 手動実行ボタンを出す
+  workflow_dispatch:        # ← 手動実行ボタンを出す
   push:
-    branches: [ main ]
-  workflow_dispatch: {}
+    branches: [ main ]      # ← main への push でも走ります
+
 
 permissions:
   id-token: write
