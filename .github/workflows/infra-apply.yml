@@ -61,18 +61,13 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
-　　　- name: Terraform Plan
-        if: inputs.action == 'plan' || inputs.action == 'apply'
-        env:
-        TF_LOG: INFO                # Terraformのログを出す
-        AWS_MAX_ATTEMPTS: "3"       # AWS SDK リトライを抑制（デバッグ短縮）
-        AWS_RETRY_MODE: standard
-        run: terraform plan -input=false -no-color -parallelism=4 -out=tfplan
+      - name: Terraform Plan
+        if: ${{ inputs.action == 'plan' || inputs.action == 'apply' }}
+        run: terraform plan -out=tfplan
 
       - name: Terraform Apply
-        if: inputs.action == 'apply'
+        if: ${{ inputs.action == 'apply' }}
         run: terraform apply -auto-approve tfplan
-
       - name: Terraform Output
         if: inputs.action == 'apply'
         run: |
