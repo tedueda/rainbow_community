@@ -1,55 +1,40 @@
 name: Deploy to AWS App Runner
 
 on:
-  workflow_dispatch:        # ← 手動実行ボタンを出す
   push:
-    branches: [ main ]      # ← main への push でも走ります
-
+    branches: [ "main" ]
+  workflow_dispatch:
 
 permissions:
   id-token: write
   contents: read
 
-env:
-  AWS_REGION: ${{ vars.AWS_REGION }}           # 例: ap-northeast-3
-  ECR_REPO:   ${{ vars.TF_VAR_ECR_REPO_NAME }} # 例: rainbow-community-api
-  ECR_REGION: ap-northeast-1        # ← 東京
-  ECR_REPO: rainbow-community-api   # ← さきほど作成したリポジトリ名
-
-
 jobs:
   build-and-deploy:
+    name: Build & Push image to ECR
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ★ これが “AWS 認証” ステップ（最優先で実行）
-      - name: Configure AWS credentials (OIDC for Tokyo ECR)
+      - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-        role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
-        aws-region: ${{ env.ECR_REGION }}  
+          role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        id: ecr
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build & Push image to ECR
-        uses: docker/build-push-action@v5
-        with:
-        context: ./backend
-        push: true
-        tags: |
-          ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPO }}:${{ github.sha }}
-          ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPO }}:latest
+        env:
+          REGISTRY:  ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ vars.TF_VAR_ECR_REPO_NAME }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          # 必要なら Dockerfile のパスを合わせてください（例は backend/Dockerfile）
-          docker build -t $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG -f backend/Dockerfile ./backend
-          docker push $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
-
-      # （App Runner 更新が必要ならこの下に追記）
-      # - name: Deploy to App Runner
-      #   run: |
-      #     aws apprunner start-deployment --service-arn <YOUR_APP_RUNNER_SERVICE_ARN>
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f backend/Dockerfile backend
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+          docker tag  $REGISTRY/$REPOSITORY:$IMAGE_TAG  $REGISTRY/$REPOSITORY:latest
+          docker push $REGISTRY/$REPOSITORY:latest
