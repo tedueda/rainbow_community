@@ -62,7 +62,14 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
-      - name: Terraform Plan
+      - name: Import existing ECR repository (idempotent)
+        if: ${{ inputs.action == 'plan' || inputs.action == 'apply' }}
+        run: |
+          # 既に state に取り込まれているかを確認。無ければ import。
+          terraform state show module.ecr.aws_ecr_repository.main >/dev/null 2>&1 || \
+            terraform import module.ecr.aws_ecr_repository.main "${TF_VAR_ecr_repo_name}"
+
+　　　　- name: Terraform Plan
         if: ${{ inputs.action == 'plan' || inputs.action == 'apply' }}
         run: terraform plan -out=tfplan -input=false
 
