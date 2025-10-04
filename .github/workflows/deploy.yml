@@ -28,7 +28,7 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build & Push image to ECR
+      - name: Build & Push image to ECR (Osaka)
         env:
           REGISTRY:  ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ vars.TF_VAR_ECR_REPO_NAME }}
@@ -38,3 +38,32 @@ jobs:
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
           docker tag  $REGISTRY/$REPOSITORY:$IMAGE_TAG  $REGISTRY/$REPOSITORY:latest
           docker push $REGISTRY/$REPOSITORY:latest
+
+      # ------- ここから Tokyo 用の追加 --------
+      - name: Configure AWS credentials (Tokyo)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
+          aws-region: ap-northeast-1
+
+      - name: Login to Amazon ECR (Tokyo)
+        id: login-ecr-tokyo
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Retag & Push image to ECR (Tokyo)
+        env:
+          ACCOUNT_ID: 192933325498
+          REPO: rainbow-community-api
+          OSAKA: ap-northeast-3
+          TOKYO: ap-northeast-1
+        run: |
+          TAG=${GITHUB_SHA}  # Osaka で push したのと同じフルSHAを使う
+          SRC="${ACCOUNT_ID}.dkr.ecr.${OSAKA}.amazonaws.com/${REPO}"
+          DST="${ACCOUNT_ID}.dkr.ecr.${TOKYO}.amazonaws.com/${REPO}"
+          docker tag ${SRC}:${TAG} ${DST}:${TAG}
+          docker tag ${SRC}:latest ${DST}:latest
+          docker push ${DST}:${TAG}
+          docker push ${DST}:latest
+      # ------- Tokyo 追加ここまで --------
+
+
