@@ -39,41 +39,42 @@ jobs:
           docker tag  $REGISTRY/$REPOSITORY:$IMAGE_TAG  $REGISTRY/$REPOSITORY:latest
           docker push $REGISTRY/$REPOSITORY:latest
 
-      # ------- ここから Tokyo 用の追加 --------
+           # ------- ここから Tokyo 用の追加（pullはしない・ローカルを再タグしてpush） -------
       - name: Configure AWS credentials (Tokyo)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
           aws-region: ap-northeast-1
 
-      - name: Sync image from Osaka ECR to Tokyo ECR
+      - name: Login to Amazon ECR (Tokyo)
+        id: login-ecr-tokyo
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Ensure Tokyo ECR repository exists
         env:
-          ACCOUNT_ID: 192933325498
-          REPO: rainbow-community-api
-          OSAKA: ap-northeast-3
-          TOKYO: ap-northeast-1
-          TAG: ${{ github.sha }}
+          REPO: ${{ vars.TF_VAR_ECR_REPO_NAME }}
         run: |
-          set -eux
-          SRC="${ACCOUNT_ID}.dkr.ecr.${OSAKA}.amazonaws.com/${REPO}"
-          DST="${ACCOUNT_ID}.dkr.ecr.${TOKYO}.amazonaws.com/${REPO}"
+          aws ecr describe-repositories \
+            --repository-names "$REPO" \
+            --region ap-northeast-1 >/dev/null 2>&1 \
+          || aws ecr create-repository \
+            --repository-name "$REPO" \
+            --region ap-northeast-1
 
-          # 両リージョンに明示ログイン（権限/トークンを確実化）
-          aws ecr get-login-password --region ${OSAKA} | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.${OSAKA}.amazonaws.com
-          aws ecr get-login-password --region ${TOKYO} | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.${TOKYO}.amazonaws.com
+      - name: Retag & Push image to ECR (Tokyo)
+        env:
+          SRC_REGISTRY: ${{ steps.login-ecr.outputs.registry }}          # Osaka のレジストリ
+          DST_REGISTRY: ${{ steps.login-ecr-tokyo.outputs.registry }}    # Tokyo のレジストリ
+          REPO:        ${{ vars.TF_VAR_ECR_REPO_NAME }}
+          IMAGE_TAG:   ${{ github.sha }}       # Osaka で付けたのと同じタグを使う
+        run: |
+          # Osaka で build 済みローカルイメージをそのまま再タグ付け
+          docker tag ${SRC_REGISTRY}/${REPO}:${IMAGE_TAG} ${DST_REGISTRY}/${REPO}:${IMAGE_TAG}
+          docker tag ${SRC_REGISTRY}/${REPO}:latest       ${DST_REGISTRY}/${REPO}:latest
 
-          # 大阪で push 済みのイメージを確実に取得（ローカルに無ければ pull）
-          docker pull ${SRC}:${TAG}
-          docker pull ${SRC}:latest || true
-
-          # 東京向けに付け替え
-          docker tag ${SRC}:${TAG} ${DST}:${TAG}
-          docker tag ${SRC}:latest ${DST}:latest || true
-
-          # 東京へ push
-          docker push ${DST}:${TAG}
-          docker push ${DST}:latest || true
-
+          # Tokyo へ push
+          docker push ${DST_REGISTRY}/${REPO}:${IMAGE_TAG}
+          docker push ${DST_REGISTRY}/${REPO}:latest
       # ------- Tokyo 追加ここまで --------
 
 
