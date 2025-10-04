@@ -46,24 +46,34 @@ jobs:
           role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
           aws-region: ap-northeast-1
 
-      - name: Login to Amazon ECR (Tokyo)
-        id: login-ecr-tokyo
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Retag & Push image to ECR (Tokyo)
+      - name: Sync image from Osaka ECR to Tokyo ECR
         env:
           ACCOUNT_ID: 192933325498
           REPO: rainbow-community-api
           OSAKA: ap-northeast-3
           TOKYO: ap-northeast-1
+          TAG: ${{ github.sha }}
         run: |
-          TAG=${GITHUB_SHA}  # Osaka で push したのと同じフルSHAを使う
+          set -eux
           SRC="${ACCOUNT_ID}.dkr.ecr.${OSAKA}.amazonaws.com/${REPO}"
           DST="${ACCOUNT_ID}.dkr.ecr.${TOKYO}.amazonaws.com/${REPO}"
+
+          # 両リージョンに明示ログイン（権限/トークンを確実化）
+          aws ecr get-login-password --region ${OSAKA} | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.${OSAKA}.amazonaws.com
+          aws ecr get-login-password --region ${TOKYO} | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.${TOKYO}.amazonaws.com
+
+          # 大阪で push 済みのイメージを確実に取得（ローカルに無ければ pull）
+          docker pull ${SRC}:${TAG}
+          docker pull ${SRC}:latest || true
+
+          # 東京向けに付け替え
           docker tag ${SRC}:${TAG} ${DST}:${TAG}
-          docker tag ${SRC}:latest ${DST}:latest
+          docker tag ${SRC}:latest ${DST}:latest || true
+
+          # 東京へ push
           docker push ${DST}:${TAG}
-          docker push ${DST}:latest
+          docker push ${DST}:latest || true
+
       # ------- Tokyo 追加ここまで --------
 
 
