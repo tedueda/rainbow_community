@@ -1,4 +1,4 @@
-name: Deploy to AWS App Runner
+name: Deploy to AWS App Runner (ECR Push)
 
 on:
   push:
@@ -10,41 +10,47 @@ permissions:
   contents: read
 
 jobs:
-  build-and-deploy:
-    name: Build & Push image to ECR
+  build-and-push:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials (OIDC)
+      # ===== Osaka (ap-northeast-3): Build & Push =====
+      - name: Configure AWS credentials (Osaka)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION_OSAKA }}
 
-      - name: Login to Amazon ECR
-        id: login-ecr
+      - name: Login to Amazon ECR (Osaka)
+        id: login-ecr-osaka
         uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Ensure Osaka ECR repository exists
+        env:
+          REPO: ${{ vars.TF_VAR_ECR_REPO_NAME }}
+        run: |
+          aws ecr describe-repositories --repository-names "$REPO" >/dev/null 2>&1 \
+          || aws ecr create-repository --repository-name "$REPO"
 
       - name: Build & Push image to ECR (Osaka)
         env:
-          REGISTRY:  ${{ steps.login-ecr.outputs.registry }}
+          REGISTRY:   ${{ steps.login-ecr-osaka.outputs.registry }}
           REPOSITORY: ${{ vars.TF_VAR_ECR_REPO_NAME }}
-          IMAGE_TAG: ${{ github.sha }}
+          IMAGE_TAG:  ${{ github.sha }}
         run: |
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f backend/Dockerfile backend
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
           docker tag  $REGISTRY/$REPOSITORY:$IMAGE_TAG  $REGISTRY/$REPOSITORY:latest
           docker push $REGISTRY/$REPOSITORY:latest
 
-      # ------- ここから Tokyo 用の追加（pullはしない・ローカルを再タグしてpush） -------
+      # ===== Tokyo (ap-northeast-1): Retag & Push =====
       - name: Configure AWS credentials (Tokyo)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
-          aws-region: ap-northeast-1
+          aws-region: ${{ vars.AWS_REGION_TOKYO }}
 
       - name: Login to Amazon ECR (Tokyo)
         id: login-ecr-tokyo
@@ -54,27 +60,17 @@ jobs:
         env:
           REPO: ${{ vars.TF_VAR_ECR_REPO_NAME }}
         run: |
-          aws ecr describe-repositories \
-            --repository-names "$REPO" \
-            --region ap-northeast-1 >/dev/null 2>&1 \
-          || aws ecr create-repository \
-            --repository-name "$REPO" \
-            --region ap-northeast-1
+          aws ecr describe-repositories --repository-names "$REPO" >/dev/null 2>&1 \
+          || aws ecr create-repository --repository-name "$REPO"
 
       - name: Retag & Push image to ECR (Tokyo)
         env:
-          SRC_REGISTRY: ${{ steps.login-ecr.outputs.registry }}          # Osaka のレジストリ
-          DST_REGISTRY: ${{ steps.login-ecr-tokyo.outputs.registry }}    # Tokyo のレジストリ
-          REPO:        ${{ vars.TF_VAR_ECR_REPO_NAME }}
-          IMAGE_TAG:   ${{ github.sha }}       # Osaka で付けたのと同じタグを使う
+          SRC_REGISTRY: ${{ steps.login-ecr-osaka.outputs.registry }}
+          DST_REGISTRY: ${{ steps.login-ecr-tokyo.outputs.registry }}
+          REPO:         ${{ vars.TF_VAR_ECR_REPO_NAME }}
+          IMAGE_TAG:    ${{ github.sha }}
         run: |
-          # Osaka で build 済みローカルイメージをそのまま再タグ付け
           docker tag ${SRC_REGISTRY}/${REPO}:${IMAGE_TAG} ${DST_REGISTRY}/${REPO}:${IMAGE_TAG}
           docker tag ${SRC_REGISTRY}/${REPO}:latest       ${DST_REGISTRY}/${REPO}:latest
-
-          # Tokyo へ push
           docker push ${DST_REGISTRY}/${REPO}:${IMAGE_TAG}
           docker push ${DST_REGISTRY}/${REPO}:latest
-      # ------- Tokyo 追加ここまで --------
-
-
