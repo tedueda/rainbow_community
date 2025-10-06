@@ -4,22 +4,23 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
 config = context.config
 
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
+# ログ設定
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Set DB URL from env if provided
-db_url = os.getenv("DB_MIGRATE_URL") or os.getenv("DATABASE_URL")
-if db_url:
-    config.set_main_option("sqlalchemy.url", db_url)
+# === DATABASE_URL 読み込み ===
+db_url = os.getenv("DATABASE_URL") or os.getenv("DB_MIGRATE_URL")
+if not db_url:
+    raise RuntimeError("❌ DATABASE_URL が設定されていません。Secrets Managerまたは環境変数を確認してください。")
 
-# add your model's MetaData object here
-# for 'autogenerate' support
+# ログに出力して確認（App Runnerログで見える）
+print(f"🔗 Using DATABASE_URL: {db_url}", flush=True)
+
+config.set_main_option("sqlalchemy.url", db_url)
+
+# === モデルのメタデータをインポート ===
 from app.database import Base  # type: ignore
 from app import models  # ensure models are imported for metadata population
 
@@ -66,3 +67,4 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
+
