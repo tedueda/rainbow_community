@@ -5,7 +5,6 @@ import os
 from dotenv import load_dotenv
 
 # .env は補完用途として読み込み、既存の環境変数は上書きしない
-# これにより、CLI で与えた DATABASE_URL が .env によって潰されない
 load_dotenv(override=False)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -20,12 +19,15 @@ if not DATABASE_URL:
     sqlite_path = "/data/lgbtq_community.db" if os.path.exists("/data") else "./lgbtq_community.db"
     DATABASE_URL = f"sqlite:///{sqlite_path}"
 
-print(f"🔄 Using database: {DATABASE_URL}")
+# ✅ ログ出力は純粋なURLを変数から参照して表示だけ
+print("🔄 Using database URL:")
+print(DATABASE_URL, flush=True)
 
+# ✅ SQLAlchemyにはURL文字列そのものを渡す（装飾文字列を含めない）
 if DATABASE_URL.startswith("sqlite"):
     engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 else:
-    engine = create_engine(DATABASE_URL)
+    engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -37,3 +39,4 @@ def get_db():
         yield db
     finally:
         db.close()
+
