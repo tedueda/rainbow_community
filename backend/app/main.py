@@ -14,8 +14,6 @@ import os
 
 PORT = int(os.getenv("PORT", 8000))
 
-Base.metadata.create_all(bind=engine)
-
 app = FastAPI(title="LGBTQ Community API", version="1.0.0")
 
 media_base = os.getenv("MEDIA_DIR")
