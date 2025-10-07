@@ -92,3 +92,6 @@ def posts_by_category(name: str, limit: int = 20, offset: int = 0, db=Depends(ge
     """)
     rows = db.execute(sql, {"name": name, "limit": limit, "offset": offset}).mappings().all()
     return {"items": rows, "count": len(rows)}
+@app.get("/healthz")
+def healthz():
+    return {"status": "ok"}
