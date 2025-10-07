@@ -27,17 +27,14 @@ limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# CORS: specify trusted frontends (cannot use '*' when credentials may be present)
-ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:57771",
-    "https://lgbtq-community-app-kuijp5dt.devinapps.com",
-]
-# Optionally include Windsurf production frontend from env
-windsurf_origin = os.getenv("WINDSURF_FRONTEND_URL")
-if windsurf_origin:
-    ALLOWED_ORIGINS.append(windsurf_origin)
+origins_env = os.getenv("ALLOW_ORIGINS", "")
+if origins_env:
+    ALLOWED_ORIGINS = [o.strip() for o in origins_env.split(",") if o.strip()]
+else:
+    ALLOWED_ORIGINS = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
 
 app.add_middleware(
     CORSMiddleware,
