@@ -61,6 +61,10 @@ jobs:
             sleep 2
           done
 
+      - name: Create tables from models
+        working-directory: backend
+        run: poetry run python init_db_for_ci.py
+
       - name: Run Alembic migrations
         working-directory: backend
         run: poetry run alembic upgrade head

@@ -17,6 +17,8 @@ depends_on = None
 
 def _has_constraint(conn, table, name):
     insp = Inspector.from_engine(conn)
+    if not insp.has_table(table):
+        return False
     for fk in insp.get_foreign_keys(table):
         if fk.get('name') == name:
             return True
@@ -27,6 +29,11 @@ def _has_constraint(conn, table, name):
 
 def upgrade():
     conn = op.get_bind()
+    insp = Inspector.from_engine(conn)
+    
+    if not insp.has_table('users') or not insp.has_table('posts'):
+        return
+    
     dialect = conn.dialect.name
 
     # profiles.user_id is already PK, but add an explicit UNIQUE constraint name if desired
