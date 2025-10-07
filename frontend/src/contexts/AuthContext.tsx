@@ -89,12 +89,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string, rememberMe: boolean = true): Promise<boolean> => {
     try {
       console.log('Login attempt with:', { email, rememberMe, API_URL });
-      const formData = new FormData();
+      const formData = new URLSearchParams();
       formData.append('username', email);
       formData.append('password', password);
 
       const response = await fetch(`${API_URL}/api/auth/token`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
         body: formData,
       });
 
