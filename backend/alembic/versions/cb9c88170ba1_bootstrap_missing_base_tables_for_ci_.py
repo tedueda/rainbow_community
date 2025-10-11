@@ -20,6 +20,22 @@ def upgrade():
     bind = op.get_bind()
     inspector = inspect(bind)
     
+    if "users" not in inspector.get_table_names():
+        op.create_table(
+            "users",
+            sa.Column("id", sa.Integer, primary_key=True),
+            sa.Column("email", sa.String, nullable=False),
+            sa.Column("password_hash", sa.String, nullable=False),
+            sa.Column("display_name", sa.String(100), nullable=False),
+            sa.Column("membership_type", sa.String(20), server_default="premium"),
+            sa.Column("is_active", sa.Boolean, server_default="true"),
+            sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=True),
+            sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=True),
+        )
+        op.execute("ALTER TABLE users ADD CONSTRAINT check_membership_type CHECK (membership_type IN ('free', 'premium', 'admin'))")
+        op.execute("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_email ON users (email)")
+        op.execute("CREATE INDEX IF NOT EXISTS ix_users_id ON users (id)")
+    
     if "media_assets" not in inspector.get_table_names():
         op.create_table(
             "media_assets",
@@ -32,10 +48,24 @@ def upgrade():
             sa.Column("height", sa.Integer, nullable=True),
             sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=True),
         )
-        
-        existing_indexes = {ix["name"] for ix in inspector.get_indexes("media_assets")}
-        if "ix_media_assets_id" not in existing_indexes:
-            op.create_index("ix_media_assets_id", "media_assets", ["id"], unique=False)
+        op.execute("CREATE INDEX IF NOT EXISTS ix_media_assets_id ON media_assets (id)")
+    
+    # Create posts table (depends on users and media_assets)
+    if "posts" not in inspector.get_table_names():
+        op.create_table(
+            "posts",
+            sa.Column("id", sa.Integer, primary_key=True),
+            sa.Column("user_id", sa.Integer, sa.ForeignKey("users.id"), nullable=False),
+            sa.Column("title", sa.String(200), nullable=True),
+            sa.Column("body", sa.Text, nullable=False),
+            sa.Column("visibility", sa.String(20), server_default="public"),
+            sa.Column("youtube_url", sa.String(500), nullable=True),
+            sa.Column("media_id", sa.Integer, sa.ForeignKey("media_assets.id"), nullable=True),
+            sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=True),
+            sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=True),
+        )
+        op.execute("ALTER TABLE posts ADD CONSTRAINT check_post_visibility CHECK (visibility IN ('public', 'members', 'followers', 'private'))")
+        op.execute("CREATE INDEX IF NOT EXISTS ix_posts_id ON posts (id)")
 
 
 def downgrade():
