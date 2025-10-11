@@ -120,6 +120,7 @@ class Post(Base):
     comments = relationship("Comment", back_populates="post")
     tags = relationship("Tag", secondary="post_tags", back_populates="posts")
     media = relationship("MediaAsset")
+    media_assets = relationship("MediaAsset", secondary="post_media", order_by="PostMedia.order_index")
 
 class Comment(Base):
     __tablename__ = "comments"
@@ -150,6 +151,13 @@ class PostTag(Base):
     
     post_id = Column(Integer, ForeignKey("posts.id"), primary_key=True)
     tag_id = Column(Integer, ForeignKey("tags.id"), primary_key=True)
+
+class PostMedia(Base):
+    __tablename__ = "post_media"
+    
+    post_id = Column(Integer, ForeignKey("posts.id"), primary_key=True)
+    media_asset_id = Column(Integer, ForeignKey("media_assets.id"), primary_key=True)
+    order_index = Column(Integer, nullable=False, server_default='0')
 
 class Follow(Base):
     __tablename__ = "follows"

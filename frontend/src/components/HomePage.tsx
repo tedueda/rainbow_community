@@ -24,6 +24,8 @@ interface Post {
   visibility: string;
   created_at: string;
   category?: string;
+  media_urls?: string[];
+  youtube_url?: string;
 }
 
 const tabs = [
@@ -173,6 +175,20 @@ const HomePage: React.FC = () => {
   const navigate = useNavigate();
 
   const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
+
+  const extractYouTubeVideoId = (url: string): string | null => {
+    if (!url) return null;
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+      /youtube\.com\/watch\?.*v=([^&\n?#]+)/
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    return null;
+  };
 
   const fetchPosts = async () => {
     try {
@@ -493,7 +509,30 @@ const HomePage: React.FC = () => {
                   <Dialog>
                     <DialogTrigger asChild>
                       <Card className="border-pink-200 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer group">
-                        <div className="h-40 bg-gradient-to-br from-pink-200 via-green-200 to-orange-200 rounded-t-lg" />
+                        {post.media_urls && post.media_urls.length > 0 ? (
+                          <div className="h-40 overflow-hidden rounded-t-lg">
+                            <img 
+                              src={`${API_URL}${post.media_urls[0]}`} 
+                              alt={post.title || '投稿画像'}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : post.youtube_url ? (
+                          <div className="h-40 overflow-hidden rounded-t-lg bg-black">
+                            <img 
+                              src={`https://img.youtube.com/vi/${extractYouTubeVideoId(post.youtube_url)}/maxresdefault.jpg`}
+                              alt={post.title || 'YouTube動画'}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                if (post.youtube_url) {
+                                  (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${extractYouTubeVideoId(post.youtube_url)}/hqdefault.jpg`;
+                                }
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <div className="h-40 bg-gradient-to-br from-pink-200 via-green-200 to-orange-200 rounded-t-lg" />
+                        )}
                         <CardContent className="p-4">
                           <div className="flex items-center gap-2 text-xs mb-2">
                             <span className="rounded-full bg-pink-100 text-pink-700 px-2 py-0.5">
@@ -534,7 +573,42 @@ const HomePage: React.FC = () => {
                         </DialogTitle>
                       </DialogHeader>
                       <div className="space-y-4">
-                        <div className="h-64 bg-gradient-to-br from-pink-200 via-green-200 to-orange-200 rounded-lg" />
+                        {post.media_urls && post.media_urls.length > 0 ? (
+                          <div className="space-y-3">
+                            <div className="h-64 overflow-hidden rounded-lg">
+                              <img 
+                                src={`${API_URL}${post.media_urls[0]}`} 
+                                alt={post.title || '投稿画像'}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            {post.media_urls.length > 1 && (
+                              <div className="grid grid-cols-4 gap-2">
+                                {post.media_urls.slice(1, 5).map((url, idx) => (
+                                  <img 
+                                    key={idx}
+                                    src={`${API_URL}${url}`} 
+                                    alt={`追加画像 ${idx + 1}`}
+                                    className="w-full h-20 object-cover rounded"
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ) : post.youtube_url ? (
+                          <div className="aspect-video">
+                            <iframe
+                              src={`https://www.youtube.com/embed/${extractYouTubeVideoId(post.youtube_url)}`}
+                              title="YouTube video"
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                              className="w-full h-full rounded-lg"
+                            ></iframe>
+                          </div>
+                        ) : (
+                          <div className="h-64 bg-gradient-to-br from-pink-200 via-green-200 to-orange-200 rounded-lg" />
+                        )}
                         <div className="flex items-center gap-2 text-sm">
                           <span className="rounded-full bg-pink-100 text-pink-700 px-2 py-1">
                             {categories.find(c => c.key === post.category)?.title || '掲示板'}

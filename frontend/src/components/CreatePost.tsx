@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle, Music, Palette, MessageSquare, Store, MapPin, Film } from 'lucide-react';
+import { PlusCircle, Music, Palette, MessageSquare, Store, MapPin, Film, Upload, X } from 'lucide-react';
 
 const CreatePost: React.FC = () => {
   const [title, setTitle] = useState('');
@@ -15,6 +15,7 @@ const CreatePost: React.FC = () => {
   const [visibility, setVisibility] = useState('public');
   const [category, setCategory] = useState('board');
   const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [images, setImages] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
@@ -55,6 +56,17 @@ const CreatePost: React.FC = () => {
     return null;
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const newImages = [...images, ...files].slice(0, 5);
+    setImages(newImages);
+  };
+
+  const removeImage = (index: number) => {
+    const newImages = images.filter((_, i) => i !== index);
+    setImages(newImages);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -72,7 +84,52 @@ const CreatePost: React.FC = () => {
       return;
     }
 
+    if (images.length > 5) {
+      setError('画像は5枚まで選択できます');
+      setIsLoading(false);
+      return;
+    }
+
+    for (const image of images) {
+      if (image.size > 10 * 1024 * 1024) {
+        setError('画像ファイルは10MB以下にしてください');
+        setIsLoading(false);
+        return;
+      }
+      if (!image.type.startsWith('image/')) {
+        setError('画像ファイルのみアップロード可能です');
+        setIsLoading(false);
+        return;
+      }
+    }
+
     try {
+      const mediaIds: number[] = [];
+      
+      for (const image of images) {
+        const imageFormData = new FormData();
+        imageFormData.append('file', image);
+        
+        const uploadResponse = await fetch(`${API_URL}/api/media/upload`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          body: imageFormData,
+        });
+        
+        if (uploadResponse.ok) {
+          const uploadResult = await uploadResponse.json();
+          mediaIds.push(uploadResult.id);
+        } else {
+          const errText = await uploadResponse.text().catch(() => '');
+          console.error('Image upload failed', uploadResponse.status, errText);
+          setError(`画像アップロードに失敗しました (status ${uploadResponse.status})`);
+          setIsLoading(false);
+          return;
+        }
+      }
+
       const response = await fetch(`${API_URL}/api/posts`, {
         method: 'POST',
         headers: {
@@ -83,6 +140,8 @@ const CreatePost: React.FC = () => {
           title: title.trim() || null,
           body: `${body.trim()}${category === 'music' && youtubeUrl ? `\n\nYouTube: ${youtubeUrl}` : ''} #${category}`,
           visibility,
+          youtube_url: youtubeUrl || null,
+          media_ids: mediaIds.length > 0 ? mediaIds : null,
         }),
       });
 
@@ -152,6 +211,62 @@ const CreatePost: React.FC = () => {
                 className="border-orange-200 focus:border-orange-400 focus:ring-orange-400"
               />
             </div>
+
+            {(category === 'board' || category === 'tours' || category === 'shops' || category === 'comics') && (
+              <div className="space-y-2">
+                <Label className="text-gray-700">画像をアップロード（最大5枚、任意）</Label>
+                <div className="border-2 border-dashed border-orange-200 rounded-lg p-6 hover:border-orange-300 transition-colors">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    id="image-upload"
+                  />
+                  <label
+                    htmlFor="image-upload"
+                    className="cursor-pointer flex flex-col items-center justify-center"
+                  >
+                    <Upload className="h-10 w-10 text-orange-400 mb-3" />
+                    <span className="text-sm font-medium text-gray-700 mb-1">
+                      クリックして画像を選択
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      PNG, JPG, GIF (最大10MB、5枚まで)
+                    </span>
+                  </label>
+                </div>
+                {images.length > 0 && (
+                  <div className="grid grid-cols-3 gap-3 mt-4">
+                    {images.map((file, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={`アップロード画像 ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-lg"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removeImage(index)}
+                          aria-label={`画像${index + 1}を削除`}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                        {index === 0 && (
+                          <div className="absolute bottom-1 left-1 bg-black/70 text-white text-xs px-1 rounded">
+                            メイン
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {category === 'music' && (
               <div className="space-y-2">
