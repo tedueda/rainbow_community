@@ -1,0 +1,744 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Heart, MessageCircle, Share2, Flag, Send } from 'lucide-react';
+import { Button } from './ui/button';
+import { Textarea } from './ui/textarea';
+import { useAuth } from '../contexts/AuthContext';
+import { Post, User, Comment } from '../types/Post';
+
+const PostDetailPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { token, user: currentUser, isAnonymous, isLoading } = useAuth();
+  const [post, setPost] = useState<Post | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [showFullText, setShowFullText] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editBody, setEditBody] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [newImageFile, setNewImageFile] = useState<File | null>(null);
+  const [newImagePreview, setNewImagePreview] = useState<string | null>(null);
+  const [removeCurrentImage, setRemoveCurrentImage] = useState<boolean>(false);
+  const [isUploadingImage, setIsUploadingImage] = useState<boolean>(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
+
+  const formatNumber = (num: number): string => {
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'K';
+    }
+    return num.toString();
+  };
+
+  const getRelativeTime = (dateString: string): string => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return '今';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}分前`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}時間前`;
+    if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}日前`;
+    return date.toLocaleDateString('ja-JP');
+  };
+
+  const getYouTubeEmbedUrl = (url: string): string => {
+    try {
+      const urlObj = new URL(url);
+      let videoId = '';
+      
+      if (urlObj.hostname === 'www.youtube.com' || urlObj.hostname === 'youtube.com') {
+        videoId = urlObj.searchParams.get('v') || '';
+      } else if (urlObj.hostname === 'youtu.be') {
+        videoId = urlObj.pathname.slice(1);
+      } else if (urlObj.hostname === 'm.youtube.com') {
+        videoId = urlObj.searchParams.get('v') || '';
+      }
+      
+      if (videoId) {
+        return `https://www.youtube.com/embed/${videoId}`;
+      }
+    } catch (error) {
+      console.error('Invalid YouTube URL:', error);
+    }
+    
+    return '';
+  };
+
+  const extractYouTubeUrl = (text: string): string | null => {
+    const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|m\.youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/;
+    const match = text.match(youtubeRegex);
+    if (match) {
+      return `https://www.youtube.com/watch?v=${match[1]}`;
+    }
+    return null;
+  };
+
+  const fetchPost = async () => {
+    if (!id) {
+      setError('投稿IDが指定されていません');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const headers: any = {};
+      if (token && !isAnonymous) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${API_URL}/api/posts/${id}`, {
+        headers,
+      });
+
+      if (response.ok) {
+        const postData = await response.json();
+        setPost(postData);
+        setIsLiked(postData.is_liked || false);
+        setLikeCount(postData.like_count || 0);
+        setEditTitle(postData.title || '');
+        setEditBody(postData.body || '');
+
+        const userResponse = await fetch(`${API_URL}/api/users/${postData.user_id}`, {
+          headers,
+        });
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          setUser(userData);
+        }
+      } else if (response.status === 404) {
+        setError('投稿が見つかりませんでした');
+      } else {
+        setError('投稿の取得に失敗しました');
+      }
+    } catch (err) {
+      setError('ネットワークエラー');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchComments = async () => {
+    if (!id) return;
+    
+    try {
+      const response = await fetch(`${API_URL}/api/posts/${id}/comments`, {
+        headers: token ? {
+          'Authorization': `Bearer ${token}`,
+        } : {},
+      });
+      
+      if (response.ok) {
+        const commentsData = await response.json();
+        setComments(commentsData);
+      }
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!newComment.trim() || !token) return;
+    
+    try {
+      const response = await fetch(`${API_URL}/api/posts/${id}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          authorName: currentUser?.display_name || 'Anonymous',
+          body: newComment,
+        }),
+      });
+      
+      if (response.ok) {
+        const newCommentData = await response.json();
+        setComments(prev => [...prev, {
+          ...newCommentData,
+          user: { id: currentUser?.id || 0, display_name: currentUser?.display_name || 'あなた' }
+        }]);
+        setNewComment('');
+      }
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      const optimisticComment: Comment = {
+        id: Date.now(),
+        body: newComment,
+        created_at: new Date().toISOString(),
+        user: { id: currentUser?.id || 0, display_name: currentUser?.display_name || 'あなた' }
+      };
+      setComments(prev => [...prev, optimisticComment]);
+      setNewComment('');
+    }
+  };
+
+  const handleLike = () => {
+    setIsLiked(!isLiked);
+    setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+  };
+
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setUploadError(null);
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        setUploadError('画像ファイルを選択してください');
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        setUploadError('画像は10MB以下にしてください');
+        return;
+      }
+      setNewImageFile(file);
+      setNewImagePreview(URL.createObjectURL(file));
+      setRemoveCurrentImage(false);
+    } else {
+      setNewImageFile(null);
+      setNewImagePreview(null);
+    }
+  };
+
+  const handleRemoveImageToggle = () => {
+    setRemoveCurrentImage((prev) => !prev);
+    if (!removeCurrentImage) {
+      setNewImageFile(null);
+      setNewImagePreview(null);
+    }
+  };
+
+  const uploadNewImageIfNeeded = async (): Promise<{ mediaId: number | null, mediaUrl?: string } | null> => {
+    if (!token) return { mediaId: null };
+    if (!newImageFile) return null;
+    try {
+      setIsUploadingImage(true);
+      const fd = new FormData();
+      fd.append('file', newImageFile);
+      const res = await fetch(`${API_URL}/api/media/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: fd,
+      });
+      if (!res.ok) {
+        const txt = await res.text().catch(() => '');
+        setUploadError(`画像アップロードに失敗しました (status ${res.status})`);
+        console.error('[PostDetailPage] upload image failed', res.status, txt);
+        return { mediaId: null };
+      }
+      const data = await res.json();
+      return { mediaId: data.id, mediaUrl: data.url as string };
+    } catch (e: any) {
+      setUploadError(e?.message || '画像アップロードに失敗しました');
+      console.error('[PostDetailPage] upload image error', e);
+      return { mediaId: null };
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleUpdatePost = async () => {
+    if (!token || !post) {
+      console.warn('[PostDetailPage] No token, cannot update');
+      return;
+    }
+    try {
+      console.debug('[PostDetailPage] Updating post', { id: post.id, editTitle, editBody });
+      let mediaIdToSet: number | null | undefined = undefined;
+      let mediaUrlToSet: string | undefined = undefined;
+      if (removeCurrentImage) {
+        mediaIdToSet = null;
+      } else {
+        const uploaded = await uploadNewImageIfNeeded();
+        if (uploaded && uploaded.mediaId) {
+          mediaIdToSet = uploaded.mediaId;
+          mediaUrlToSet = uploaded.mediaUrl;
+        }
+      }
+
+      const response = await fetch(`${API_URL}/api/posts/${post.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: editTitle,
+          body: editBody,
+          ...(mediaIdToSet !== undefined ? { media_id: mediaIdToSet } : {}),
+        }),
+      });
+      if (response.ok) {
+        const updated = await response.json();
+        const patched = {
+          ...updated,
+          media_url: mediaUrlToSet !== undefined
+            ? mediaUrlToSet
+            : (removeCurrentImage ? undefined : (updated.media_url ?? post.media_url)),
+        } as Post;
+        setPost(patched);
+        setIsEditing(false);
+      } else {
+        const text = await response.text();
+        console.error('[PostDetailPage] Update failed', response.status, text);
+      }
+    } catch (e) {
+      console.error('[PostDetailPage] Update error', e);
+    }
+  };
+
+  const handleDeletePost = async () => {
+    if (!token || !post) {
+      console.warn('[PostDetailPage] No token, cannot delete');
+      return;
+    }
+    try {
+      setIsDeleting(true);
+      setDeleteError(null);
+      console.debug('[PostDetailPage] Deleting post', { id: post.id });
+      const response = await fetch(`${API_URL}/api/posts/${post.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (response.ok || response.status === 204) {
+        navigate('/feed');
+      } else {
+        let text = '';
+        try {
+          text = await response.text();
+        } catch (_) {}
+        console.error('[PostDetailPage] Delete failed', { status: response.status, text });
+        setDeleteError(text || `削除に失敗しました (status ${response.status})`);
+      }
+    } catch (e: any) {
+      console.error('[PostDetailPage] Delete error', e?.message || String(e));
+      setDeleteError(e?.message || 'ネットワークエラーにより削除に失敗しました');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPost();
+    fetchComments();
+  }, [id]);
+
+  const canEdit = !isLoading && !!currentUser && !isAnonymous && post && currentUser.id === post.user_id;
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto p-4 sm:p-6">
+        <div className="text-center text-gray-600">投稿を読み込み中...</div>
+      </div>
+    );
+  }
+
+  if (error || !post || !user) {
+    return (
+      <div className="max-w-4xl mx-auto p-4 sm:p-6">
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            戻る
+          </Button>
+        </div>
+        <div className="text-red-600 text-center bg-red-50 p-4 rounded-lg">
+          {error || '投稿が見つかりませんでした'}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-rose-50 via-white to-indigo-50">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6">
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            戻る
+          </Button>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div className="flex items-center justify-between p-4 border-b border-gray-200">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-pink-100 to-green-100 rounded-full flex items-center justify-center">
+                <span className="text-pink-600 font-semibold">
+                  {user?.display_name?.charAt(0) || '?'}
+                </span>
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">
+                  {user?.display_name || '不明なユーザー'}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {getRelativeTime(post.created_at)}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700" aria-label="共有">
+                <Share2 className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700" aria-label="通報">
+                <Flag className="h-4 w-4" />
+              </Button>
+              {canEdit && (
+                <>
+                  {isEditing ? (
+                    <>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-pink-700 border-pink-300 hover:bg-pink-50"
+                        onClick={handleUpdatePost}
+                        aria-label="保存"
+                      >
+                        保存
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-gray-500 hover:text-gray-700"
+                        onClick={() => {
+                          setIsEditing(false);
+                          setEditTitle(post.title || '');
+                          setEditBody(post.body || '');
+                        }}
+                        aria-label="編集をやめる"
+                      >
+                        キャンセル
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-pink-700 hover:text-pink-900"
+                        onClick={() => setIsEditing(true)}
+                        aria-label="編集"
+                      >
+                        編集
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-red-600 hover:text-red-700"
+                        onClick={handleDeletePost}
+                        disabled={isDeleting}
+                        aria-label="削除"
+                      >
+                        {isDeleting ? '削除中...' : '削除'}
+                      </Button>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          {deleteError && (
+            <div className="mx-4 mt-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded p-2">
+              {deleteError}
+            </div>
+          )}
+
+          <div className="overflow-y-auto">
+            {(post.media_url || (post.media_urls && post.media_urls[0])) && (
+              <div className="relative">
+                <div className="aspect-[3/2] bg-gray-100">
+                  {isEditing ? (
+                    <>
+                      {newImagePreview ? (
+                        <img
+                          src={newImagePreview}
+                          alt="新しい画像プレビュー"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : !removeCurrentImage ? (
+                        <img
+                          src={`${(post.media_url || (post.media_urls && post.media_urls[0]) || '').startsWith('http') ? '' : API_URL}${post.media_url || (post.media_urls && post.media_urls[0])}`}
+                          alt="投稿画像"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          画像は削除されます
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <img
+                      src={`${(post.media_url || (post.media_urls && post.media_urls[0]) || '').startsWith('http') ? '' : API_URL}${post.media_url || (post.media_urls && post.media_urls[0])}`}
+                      alt="投稿画像"
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+
+            {(post.youtube_url || extractYouTubeUrl(post.body)) && (
+              <div className="aspect-video w-full">
+                <iframe
+                  src={getYouTubeEmbedUrl(post.youtube_url || extractYouTubeUrl(post.body) || '')}
+                  title="YouTube video player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="w-full h-full rounded-lg"
+                />
+              </div>
+            )}
+
+            <div className="p-6">
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full border border-pink-200 rounded-md px-3 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-pink-300"
+                  placeholder="タイトル"
+                  aria-label="タイトル編集"
+                />
+              ) : (
+                post.title && (
+                  <h2 className="text-xl font-bold text-gray-900 mb-3">{post.title}</h2>
+                )
+              )}
+
+              {isEditing && (
+                <div className="mb-4 space-y-2">
+                  <div className="text-sm font-medium text-gray-700">画像</div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label htmlFor="edit-image" className="inline-flex items-center px-3 py-2 border border-pink-300 rounded-md text-sm text-pink-700 hover:bg-pink-50 cursor-pointer">
+                      画像を選択
+                    </label>
+                    <input id="edit-image" type="file" accept="image/*" className="hidden" onChange={handleImageFileChange} />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className={`border-red-300 text-red-600 hover:bg-red-50 ${removeCurrentImage ? 'bg-red-50' : ''}`}
+                      onClick={handleRemoveImageToggle}
+                    >
+                      {removeCurrentImage ? '画像削除を取り消す' : '画像を削除する'}
+                    </Button>
+                    {isUploadingImage && (
+                      <span className="text-xs text-gray-500">画像アップロード中...</span>
+                    )}
+                    {uploadError && (
+                      <span className="text-xs text-red-600">{uploadError}</span>
+                    )}
+                    {newImageFile && (
+                      <span className="text-xs text-gray-500">選択中: {newImageFile.name}</span>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              <div className="text-gray-700 leading-7 mb-4">
+                {isEditing ? (
+                  <Textarea
+                    placeholder="本文を入力..."
+                    value={editBody}
+                    onChange={(e) => setEditBody(e.target.value)}
+                    className="border-pink-200 focus:border-pink-400 min-h-[140px]"
+                    rows={6}
+                    aria-label="本文編集"
+                  />
+                ) : (
+                  <>
+                    {showFullText || post.body.length <= 500 
+                      ? post.body 
+                      : `${post.body.substring(0, 500)}...`
+                    }
+                    {post.body.length > 500 && (
+                      <Button
+                        variant="link"
+                        className="p-0 h-auto text-pink-600 hover:text-pink-700 ml-2"
+                        onClick={() => setShowFullText(!showFullText)}
+                      >
+                        {showFullText ? '折りたたむ' : 'もっと見る'}
+                      </Button>
+                    )}
+                  </>
+                )}
+              </div>
+
+              <div className="flex items-center gap-6 py-4 border-t border-gray-100">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLike}
+                  className={`flex items-center gap-2 ${
+                    isLiked 
+                      ? 'text-pink-600 hover:text-pink-700' 
+                      : 'text-gray-600 hover:text-pink-600'
+                  }`}
+                  aria-label={isLiked ? 'いいねを取り消す' : 'いいね'}
+                  aria-pressed={isLiked}
+                >
+                  <Heart className={`h-5 w-5 ${isLiked ? 'fill-current' : ''}`} />
+                  <span className="font-medium">{formatNumber(likeCount)}</span>
+                  {isLiked && (
+                    <span className="text-xs animate-bounce">+1</span>
+                  )}
+                </Button>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <MessageCircle className="h-5 w-5" />
+                  <span className="font-medium">{formatNumber(comments.length)}</span>
+                </div>
+                {post.points && (
+                  <div className="text-sm font-medium text-orange-600">
+                    {formatNumber(post.points)}pt
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t border-gray-100 pt-4">
+                <h4 className="font-semibold text-gray-900 mb-4">
+                  コメント ({formatNumber(comments.length)})
+                </h4>
+
+                {currentUser && !isAnonymous ? (
+                  <div className="mb-6">
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 bg-gradient-to-br from-pink-100 to-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-pink-600 font-semibold text-sm">
+                          {currentUser.display_name?.charAt(0) || '?'}
+                        </span>
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <Textarea
+                          placeholder="コメントを入力..."
+                          value={newComment}
+                          onChange={(e) => setNewComment(e.target.value)}
+                          className="border-pink-200 focus:border-pink-400 min-h-[80px] resize-none"
+                          rows={3}
+                          aria-label="コメント入力"
+                        />
+                        <div className="flex justify-between items-center">
+                          <p className="text-xs text-gray-500">
+                            {newComment.length}/1000文字
+                          </p>
+                          <Button 
+                            onClick={handleAddComment}
+                            size="sm"
+                            className="bg-pink-600 hover:bg-pink-700 text-white"
+                            disabled={!newComment.trim() || newComment.length > 1000}
+                          >
+                            <Send className="h-4 w-4 mr-1" />
+                            送信
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-6 bg-gray-50 rounded-lg mb-6">
+                    <p className="text-sm text-gray-500 mb-3">
+                      コメントするにはログインが必要です
+                    </p>
+                    <Button 
+                      size="sm"
+                      className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white"
+                      onClick={() => window.location.href = '/login'}
+                    >
+                      ログイン
+                    </Button>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  {comments.length === 0 ? (
+                    <div className="text-center py-8">
+                      <MessageCircle className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                      <p className="text-gray-500">最初のコメントを書きましょう</p>
+                    </div>
+                  ) : (
+                    comments.map((comment) => (
+                      <div key={comment.id} className="flex gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                        <div className="w-8 h-8 bg-gradient-to-br from-pink-100 to-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-pink-600 font-semibold text-sm">
+                            {comment.user?.display_name?.charAt(0) || '?'}
+                          </span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-semibold text-sm">
+                              {comment.user?.display_name || '不明なユーザー'}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {getRelativeTime(comment.created_at)}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-700 leading-relaxed">
+                            {comment.body}
+                          </p>
+                          <div className="flex items-center gap-3 mt-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-xs text-gray-500 hover:text-pink-600 p-0 h-auto"
+                            >
+                              返信
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-xs text-gray-500 hover:text-pink-600 p-0 h-auto"
+                            >
+                              <Heart className="h-3 w-3 mr-1" />
+                              {Math.floor(Math.random() * 5)}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                  
+                  {comments.length > 0 && (
+                    <div className="text-center py-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-pink-200 text-pink-600 hover:bg-pink-50"
+                      >
+                        さらに表示
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default PostDetailPage;

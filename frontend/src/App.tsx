@@ -9,6 +9,7 @@ import PostFeed from './components/PostFeed';
 import ProfilePage from './components/ProfilePage';
 import CreatePost from './components/CreatePost';
 import CategoryPage from './components/CategoryPage';
+import PostDetailPage from './components/PostDetailPage';
 // import MatchingPage from './components/MatchingPage';
 // import VirtualWeddingPage from './components/VirtualWeddingPage';
 // import DonationPage from './components/DonationPage';
@@ -59,6 +60,11 @@ function AppContent() {
           <Route path="/posts" element={
             <FeedRoute>
               <PostFeed />
+            </FeedRoute>
+          } />
+          <Route path="/posts/:id" element={
+            <FeedRoute>
+              <PostDetailPage />
             </FeedRoute>
           } />
           <Route path="/profile" element={
