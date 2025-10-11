@@ -1,7 +1,7 @@
 """add post_media junction table for multiple images
 
 Revision ID: 5d536f3622f2
-Revises: 68253ac0121c
+Revises: cb9c88170ba1
 Create Date: 2025-10-11 05:33:53.399612
 
 """
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 revision = '5d536f3622f2'
-down_revision = '68253ac0121c'
+down_revision = 'cb9c88170ba1'
 branch_labels = None
 depends_on = None
 
