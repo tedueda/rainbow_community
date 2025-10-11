@@ -89,7 +89,7 @@ class PostBase(BaseModel):
     media_id: Optional[int] = None
 
 class PostCreate(PostBase):
-    pass
+    media_ids: Optional[List[int]] = None
 
 class PostUpdate(BaseModel):
     title: Optional[str] = None
@@ -97,11 +97,13 @@ class PostUpdate(BaseModel):
     visibility: Optional[VisibilityEnum] = None
     youtube_url: Optional[str] = None
     media_id: Optional[int] = None
+    media_ids: Optional[List[int]] = None
 
 class Post(PostBase):
     id: int
     user_id: int
     media_url: Optional[str] = None
+    media_urls: Optional[List[str]] = None
     created_at: datetime
     updated_at: datetime
     

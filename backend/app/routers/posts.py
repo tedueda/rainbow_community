@@ -9,7 +9,7 @@ from sqlalchemy import desc, func
 from typing import List, Optional
 from datetime import datetime, timedelta
 from app.database import get_db
-from app.models import User, Post, PointEvent, Reaction, Tag, PostTag, MediaAsset
+from app.models import User, Post, PointEvent, Reaction, Tag, PostTag, MediaAsset, PostMedia
 from app.schemas import Post as PostSchema, PostCreate, PostUpdate
 from app.auth import get_current_active_user, get_current_premium_user
 
@@ -91,6 +91,7 @@ async def read_posts(
             "youtube_url": post.youtube_url,
             "media_id": post.media_id,
             "media_url": None,
+            "media_urls": [],
             "created_at": post.created_at,
             "updated_at": post.updated_at
         }
@@ -98,6 +99,16 @@ async def read_posts(
             media = db.query(MediaAsset).filter(MediaAsset.id == post.media_id).first()
             if media:
                 post_dict["media_url"] = media.url
+        
+        post_media_records = db.query(PostMedia).filter(PostMedia.post_id == post.id).order_by(PostMedia.order_index).all()
+        if post_media_records:
+            media_urls = []
+            for pm in post_media_records:
+                media = db.query(MediaAsset).filter(MediaAsset.id == pm.media_asset_id).first()
+                if media:
+                    media_urls.append(media.url)
+            post_dict["media_urls"] = media_urls
+        
         result.append(post_dict)
     
     return result
@@ -109,9 +120,20 @@ async def create_post(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    db_post = Post(**post.dict(), user_id=current_user.id)
+    post_data = post.dict(exclude={'media_ids'})
+    db_post = Post(**post_data, user_id=current_user.id)
     db.add(db_post)
-    db.flush()  # ensure db_post.id is available without full commit
+    db.flush()
+    
+    if post.media_ids:
+        for idx, media_id in enumerate(post.media_ids[:5]):
+            post_media = PostMedia(
+                post_id=db_post.id,
+                media_asset_id=media_id,
+                order_index=idx
+            )
+            db.add(post_media)
+    
     point_event = PointEvent(
         user_id=current_user.id,
         event_type="post_created",
@@ -139,6 +161,7 @@ async def read_post(post_id: int, db: Session = Depends(get_db)):
         "youtube_url": post.youtube_url,
         "media_id": post.media_id,
         "media_url": None,
+        "media_urls": [],
         "created_at": post.created_at,
         "updated_at": post.updated_at
     }
@@ -146,6 +169,15 @@ async def read_post(post_id: int, db: Session = Depends(get_db)):
         media = db.query(MediaAsset).filter(MediaAsset.id == post.media_id).first()
         if media:
             post_dict["media_url"] = media.url
+    
+    post_media_records = db.query(PostMedia).filter(PostMedia.post_id == post_id).order_by(PostMedia.order_index).all()
+    if post_media_records:
+        media_urls = []
+        for pm in post_media_records:
+            media = db.query(MediaAsset).filter(MediaAsset.id == pm.media_asset_id).first()
+            if media:
+                media_urls.append(media.url)
+        post_dict["media_urls"] = media_urls
     
     return post_dict
 
@@ -163,8 +195,19 @@ async def update_post(
     if post.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     
-    for field, value in post_update.dict(exclude_unset=True).items():
+    update_data = post_update.dict(exclude_unset=True, exclude={'media_ids'})
+    for field, value in update_data.items():
         setattr(post, field, value)
+    
+    if post_update.media_ids is not None:
+        db.query(PostMedia).filter(PostMedia.post_id == post_id).delete(synchronize_session=False)
+        for idx, media_id in enumerate(post_update.media_ids[:5]):
+            post_media = PostMedia(
+                post_id=post_id,
+                media_asset_id=media_id,
+                order_index=idx
+            )
+            db.add(post_media)
     
     db.commit()
     db.refresh(post)
@@ -185,12 +228,13 @@ async def delete_post(
         if post.user_id != current_user.id:
             raise HTTPException(status_code=403, detail="Not enough permissions")
 
-        # Delete dependent comments, tag mappings, reactions, and point events to avoid FK/consistency issues
+        # Delete dependent comments, tag mappings, reactions, point events, and post_media to avoid FK/consistency issues
         from app.models import Comment, PostTag, Reaction, PointEvent
         db.query(Comment).filter(Comment.post_id == post_id).delete(synchronize_session=False)
         db.query(PostTag).filter(PostTag.post_id == post_id).delete(synchronize_session=False)
         db.query(Reaction).filter(Reaction.target_type == "post", Reaction.target_id == post_id).delete(synchronize_session=False)
         db.query(PointEvent).filter(PointEvent.ref_type == "post", PointEvent.ref_id == post_id).delete(synchronize_session=False)
+        db.query(PostMedia).filter(PostMedia.post_id == post_id).delete(synchronize_session=False)
 
         # Remember media_id to potentially cleanup
         media_id = post.media_id
