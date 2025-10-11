@@ -6,8 +6,7 @@ import { Card, CardContent } from './ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
 import { Input } from './ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
-import { Heart, ThumbsUp, Search, MessageCircle, Calendar, ArrowRight } from 'lucide-react';
+import { Heart, Search, MessageCircle, Calendar, ArrowRight } from 'lucide-react';
 import UnderConstructionModal from './UnderConstructionModal';
 
 interface User {
@@ -246,33 +245,6 @@ const HomePage: React.FC = () => {
     }
   };
 
-  const handleReaction = async (postId: number, reactionType: string) => {
-    if (!user || isAnonymous) {
-      alert('リアクションするにはプレミアム会員登録が必要です');
-      return;
-    }
-    
-    try {
-      const response = await fetch(`${API_URL}/api/reactions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          target_type: 'post',
-          target_id: postId,
-          reaction_type: reactionType,
-        }),
-      });
-
-      if (response.ok) {
-        fetchPosts();
-      }
-    } catch (error) {
-      console.error('Error adding reaction:', error);
-    }
-  };
 
 
   useEffect(() => {
@@ -490,95 +462,43 @@ const HomePage: React.FC = () => {
             <CarouselContent className="-ml-2 md:-ml-4">
               {posts.slice(0, 9).map((post) => (
                 <CarouselItem key={post.id} className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Card className="border-pink-200 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer group">
-                        <div className="h-40 bg-gradient-to-br from-pink-200 via-green-200 to-orange-200 rounded-t-lg" />
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-2 text-xs mb-2">
-                            <span className="rounded-full bg-pink-100 text-pink-700 px-2 py-0.5">
-                              {categories.find(c => c.key === post.category)?.title || '掲示板'}
-                            </span>
-                            <span className="text-slate-500">
-                              {new Date(post.created_at).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
-                            </span>
-                          </div>
-                          {post.title && (
-                            <h4 className="font-semibold leading-snug text-pink-800 mb-1 group-hover:text-pink-900 line-clamp-2">
-                              {post.title}
-                            </h4>
-                          )}
-                          <p className="text-sm text-slate-600 line-clamp-2 mb-3">{post.body}</p>
-                          <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center gap-3 text-slate-500">
-                              <span className="flex items-center gap-1">
-                                <Heart className="h-3 w-3" />
-                                {Math.floor(Math.random() * 20) + 1}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <MessageCircle className="h-3 w-3" />
-                                {Math.floor(Math.random() * 10)}
-                              </span>
-                            </div>
-                            <span className="text-xs text-slate-400">
-                              {users[post.user_id]?.display_name || '不明なユーザー'}
-                            </span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle className="text-pink-800">
-                          {post.title || '投稿詳細'}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="h-64 bg-gradient-to-br from-pink-200 via-green-200 to-orange-200 rounded-lg" />
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="rounded-full bg-pink-100 text-pink-700 px-2 py-1">
-                            {categories.find(c => c.key === post.category)?.title || '掲示板'}
-                          </span>
-                          <span className="text-slate-500">
-                            {new Date(post.created_at).toLocaleDateString('ja-JP')}
-                          </span>
-                        </div>
-                        <p className="text-slate-700 whitespace-pre-wrap">{post.body}</p>
-                        <div className="flex items-center gap-4 pt-4 border-t">
-                          {user && !isAnonymous ? (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleReaction(post.id, 'like')}
-                                className="text-gray-600 hover:text-pink-600 hover:bg-pink-50"
-                              >
-                                <ThumbsUp className="h-4 w-4 mr-1" />
-                                いいね
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleReaction(post.id, 'love')}
-                                className="text-gray-600 hover:text-pink-600 hover:bg-pink-50"
-                              >
-                                <Heart className="h-4 w-4 mr-1" />
-                                愛
-                              </Button>
-                            </>
-                          ) : (
-                            <Button 
-                              onClick={() => navigate('/login')}
-                              size="sm"
-                              className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white"
-                            >
-                              プレミアム登録してリアクション
-                            </Button>
-                          )}
-                        </div>
+                  <Card 
+                    className="border-pink-200 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer group"
+                    onClick={() => navigate(`/posts/${post.id}`)}
+                  >
+                    <div className="h-40 bg-gradient-to-br from-pink-200 via-green-200 to-orange-200 rounded-t-lg" />
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 text-xs mb-2">
+                        <span className="rounded-full bg-pink-100 text-pink-700 px-2 py-0.5">
+                          {categories.find(c => c.key === post.category)?.title || '掲示板'}
+                        </span>
+                        <span className="text-slate-500">
+                          {new Date(post.created_at).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
+                        </span>
                       </div>
-                    </DialogContent>
-                  </Dialog>
+                      {post.title && (
+                        <h4 className="font-semibold leading-snug text-pink-800 mb-1 group-hover:text-pink-900 line-clamp-2">
+                          {post.title}
+                        </h4>
+                      )}
+                      <p className="text-sm text-slate-600 line-clamp-2 mb-3">{post.body}</p>
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-3 text-slate-500">
+                          <span className="flex items-center gap-1">
+                            <Heart className="h-3 w-3" />
+                            {Math.floor(Math.random() * 20) + 1}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <MessageCircle className="h-3 w-3" />
+                            {Math.floor(Math.random() * 10)}
+                          </span>
+                        </div>
+                        <span className="text-xs text-slate-400">
+                          {users[post.user_id]?.display_name || '不明なユーザー'}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </CarouselItem>
               ))}
             </CarouselContent>
