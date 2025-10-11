@@ -73,7 +73,7 @@ def upgrade():
                nullable=True,
                existing_server_default=sa.text('now()'))
     op.drop_index(op.f('idx_posts_user_created'), table_name='posts', if_exists=True)
-    op.create_index(op.f('ix_posts_id'), 'posts', ['id'], unique=False)
+    op.execute('CREATE INDEX IF NOT EXISTS ix_posts_id ON posts (id)')
     op.drop_constraint(op.f('posts_user_id_fkey'), 'posts', type_='foreignkey')
     op.create_foreign_key(None, 'posts', 'users', ['user_id'], ['id'])
     op.drop_constraint(op.f('uq_profiles_user_id'), 'profiles', type_='unique')
@@ -92,7 +92,7 @@ def upgrade():
                existing_type=postgresql.CITEXT(),
                type_=sa.String(),
                existing_nullable=False)
-    op.create_index(op.f('ix_tags_id'), 'tags', ['id'], unique=False)
+    op.execute('CREATE INDEX IF NOT EXISTS ix_tags_id ON tags (id)')
     op.alter_column('users', 'id',
                existing_type=sa.BIGINT(),
                type_=sa.Integer(),
@@ -125,8 +125,8 @@ def upgrade():
                existing_server_default=sa.text('now()'))
     op.drop_constraint(op.f('users_email_key'), 'users', type_='unique')
     op.drop_index(op.f('users_email_unique_lower'), table_name='users', if_exists=True)
-    op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
-    op.create_index(op.f('ix_users_id'), 'users', ['id'], unique=False)
+    op.execute('CREATE UNIQUE INDEX IF NOT EXISTS ix_users_email ON users (email)')
+    op.execute('CREATE INDEX IF NOT EXISTS ix_users_id ON users (id)')
     # ### end Alembic commands ###
 
 
