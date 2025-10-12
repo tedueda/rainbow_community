@@ -80,9 +80,19 @@ const CategoryPage: React.FC = () => {
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'newest');
   const [timeRange, setTimeRange] = useState(searchParams.get('range') || 'all');
   const [selectedTag, setSelectedTag] = useState(searchParams.get('tag') || '');
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
 
   const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
   const category = categoryKey ? categories[categoryKey as keyof typeof categories] : null;
+
+  const subcategories: Record<string, string[]> = {
+    board: ['悩み相談（カミングアウト／学校生活／職場環境）', '求人募集', '法律・手続き関係', '講座・勉強会', 'その他'],
+    music: ['ジャズ', 'Jポップ', 'ポップス', 'R&B', 'ロック', 'AOR', 'クラシック', 'Hip-Hop', 'ラップ', 'ファンク', 'レゲエ', 'ワールド・ミュージック', 'AI生成音楽', 'その他'],
+    shops: ['アパレル・ブティック', '雑貨店', 'レストラン・バー', '美容室・メイク', 'その他'],
+    tourism: [],
+    comics: ['映画', 'コミック', 'TVドラマ', '同人誌', 'その他'],
+    art: []
+  };
 
   const fetchPosts = async () => {
     try {
@@ -96,6 +106,10 @@ const CategoryPage: React.FC = () => {
       
       if (selectedTag) {
         params.set('tag', selectedTag);
+      }
+      
+      if (selectedSubcategory) {
+        params.set('subcategory', selectedSubcategory);
       }
       
       const response = await fetch(`${API_URL}/api/posts/?${params}`, {
@@ -201,7 +215,7 @@ const CategoryPage: React.FC = () => {
 
   useEffect(() => {
     fetchPosts();
-  }, [categoryKey, token, sortBy, timeRange, selectedTag]);
+  }, [categoryKey, token, sortBy, timeRange, selectedTag, selectedSubcategory]);
 
 
   if (!category) {
@@ -305,6 +319,35 @@ const CategoryPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Subcategory filters */}
+      {subcategories[categoryKey as keyof typeof subcategories]?.length > 0 && (
+        <div className="flex flex-wrap gap-2 bg-white p-4 rounded-lg border border-pink-100">
+          <button
+            onClick={() => setSelectedSubcategory(null)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              !selectedSubcategory
+                ? 'bg-gradient-to-r from-pink-500 to-orange-400 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            すべて
+          </button>
+          {subcategories[categoryKey as keyof typeof subcategories].map((sub) => (
+            <button
+              key={sub}
+              onClick={() => setSelectedSubcategory(sub)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                selectedSubcategory === sub
+                  ? 'bg-gradient-to-r from-pink-500 to-orange-400 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {sub}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* 新規投稿フォーム */}
       {showNewPostForm && (

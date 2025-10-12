@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle, Music, MessageSquare, Store, MapPin, Film, Upload, X } from 'lucide-react';
+import { PlusCircle, Music, MessageSquare, Store, MapPin, Film, FileText, Palette, Upload, X } from 'lucide-react';
 
 const CreatePost: React.FC = () => {
   const [title, setTitle] = useState('');
@@ -41,6 +41,8 @@ const CreatePost: React.FC = () => {
 
   const categories = [
     { key: 'board', name: '掲示板', icon: MessageSquare, description: '質問、相談、雑談など' },
+    { key: 'blog', name: 'ブログ', icon: FileText, description: '長文記事・体験談・エッセイ' },
+    { key: 'art', name: 'アート', icon: Palette, description: 'イラスト・写真・映像作品' },
     { key: 'music', name: '音楽', icon: Music, description: 'YouTube動画、音楽の共有' },
     { key: 'shops', name: 'お店', icon: Store, description: 'おすすめのお店情報' },
     { key: 'tourism', name: 'ツーリズム', icon: MapPin, description: '会員ガイドの交流型ツアー' },
@@ -52,7 +54,8 @@ const CreatePost: React.FC = () => {
     music: ['ジャズ', 'Jポップ', 'ポップス', 'R&B', 'ロック', 'AOR', 'クラシック', 'Hip-Hop', 'ラップ', 'ファンク', 'レゲエ', 'ワールド・ミュージック', 'AI生成音楽', 'その他'],
     shops: ['アパレル・ブティック', '雑貨店', 'レストラン・バー', '美容室・メイク', 'その他'],
     tourism: [],
-    comics: ['映画', 'コミック', 'TVドラマ', '同人誌', 'その他']
+    comics: ['映画', 'コミック', 'TVドラマ', '同人誌', 'その他'],
+    art: []
   };
 
   useEffect(() => {
@@ -164,7 +167,8 @@ const CreatePost: React.FC = () => {
         media_ids: mediaIds.length > 0 ? mediaIds : null,
         category: category,
         subcategory: subcategory || null,
-        post_type: category === 'tourism' ? 'tourism' : 'post',
+        post_type: category === 'blog' ? 'blog' : category === 'tourism' ? 'tourism' : 'post',
+        status: category === 'blog' ? 'published' : undefined,
       };
 
       if (category === 'tourism' && tourismData.prefecture) {
@@ -192,7 +196,11 @@ const CreatePost: React.FC = () => {
       });
 
       if (response.ok) {
-        navigate('/feed');
+        if (category === 'blog') {
+          navigate('/blog');
+        } else {
+          navigate('/feed');
+        }
       } else {
         const errorData = await response.json();
         setError(errorData.detail || '投稿の作成に失敗しました');

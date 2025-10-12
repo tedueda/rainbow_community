@@ -15,6 +15,7 @@ interface NewPostFormProps {
 
 const categories = {
   board: { title: "掲示板", emoji: "💬", desc: "悩み相談や雑談、生活の話題" },
+  art: { title: "アート", emoji: "🎨", desc: "イラスト・写真・映像作品の発表" },
   music: { title: "音楽", emoji: "🎵", desc: "お気に入りや自作・AI曲の共有" },
   shops: { title: "お店", emoji: "🏬", desc: "LGBTQフレンドリーなお店紹介" },
   tourism: { title: "ツーリズム", emoji: "📍", desc: "会員ガイドの交流型ツアー" },
@@ -71,7 +72,7 @@ const NewPostForm: React.FC<NewPostFormProps> = ({
       }
     }
 
-    if ((categoryKey === 'board' || categoryKey === 'shops' || categoryKey === 'tourism' || categoryKey === 'comics') && formData.images.length > 0) {
+    if ((categoryKey === 'board' || categoryKey === 'art' || categoryKey === 'shops' || categoryKey === 'tourism' || categoryKey === 'comics') && formData.images.length > 0) {
       if (formData.images.length > 5) {
         newErrors.images = '画像は5枚まで選択できます';
       } else {
