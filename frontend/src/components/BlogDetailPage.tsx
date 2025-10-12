@@ -8,7 +8,7 @@ import { Post } from '../types/Post';
 
 const BlogDetailPage: React.FC = () => {
   const { slug } = useParams();
-  const { token, user } = useAuth();
+  const { token } = useAuth();
   const navigate = useNavigate();
   const [blog, setBlog] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
