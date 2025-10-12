@@ -31,6 +31,7 @@ interface Post {
 const tabs = [
   { key: "all", label: "すべて" },
   { key: "board", label: "掲示板" },
+  { key: "art", label: "アート" },
   { key: "music", label: "音楽" },
   { key: "shops", label: "お店" },
   { key: "tourism", label: "ツーリズム" },

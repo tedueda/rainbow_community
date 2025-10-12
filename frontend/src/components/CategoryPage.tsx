@@ -317,37 +317,31 @@ const CategoryPage: React.FC = () => {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Subcategory filter dropdown */}
+          {subcategories[categoryKey as keyof typeof subcategories]?.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-gray-500" />
+              <Select 
+                value={selectedSubcategory || 'all'} 
+                onValueChange={(value) => setSelectedSubcategory(value === 'all' ? null : value)}
+              >
+                <SelectTrigger className="w-[180px] border-pink-200">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">すべて</SelectItem>
+                  {subcategories[categoryKey as keyof typeof subcategories].map((sub) => (
+                    <SelectItem key={sub} value={sub}>
+                      {sub}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Subcategory filters */}
-      {subcategories[categoryKey as keyof typeof subcategories]?.length > 0 && (
-        <div className="flex flex-wrap gap-2 bg-white p-4 rounded-lg border border-pink-100">
-          <button
-            onClick={() => setSelectedSubcategory(null)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              !selectedSubcategory
-                ? 'bg-gradient-to-r from-pink-500 to-orange-400 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            すべて
-          </button>
-          {subcategories[categoryKey as keyof typeof subcategories].map((sub) => (
-            <button
-              key={sub}
-              onClick={() => setSelectedSubcategory(sub)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                selectedSubcategory === sub
-                  ? 'bg-gradient-to-r from-pink-500 to-orange-400 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {sub}
-            </button>
-          ))}
-        </div>
-      )}
 
       {/* 新規投稿フォーム */}
       {showNewPostForm && (
