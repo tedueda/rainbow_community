@@ -81,15 +81,44 @@ class Profile(ProfileBase):
     class Config:
         from_attributes = True
 
+class PostTypeEnum(str, Enum):
+    post = "post"
+    blog = "blog"
+    tourism = "tourism"
+
+class PostStatusEnum(str, Enum):
+    draft = "draft"
+    published = "published"
+
 class PostBase(BaseModel):
     title: Optional[str] = None
     body: str
     visibility: VisibilityEnum = VisibilityEnum.public
     youtube_url: Optional[str] = None
     media_id: Optional[int] = None
+    category: Optional[str] = None
+    subcategory: Optional[str] = None
+    post_type: PostTypeEnum = PostTypeEnum.post
+    slug: Optional[str] = None
+    status: PostStatusEnum = PostStatusEnum.published
+    og_image_url: Optional[str] = None
+    excerpt: Optional[str] = None
+
+class PostTourismDetails(BaseModel):
+    prefecture: Optional[str] = None
+    event_datetime: Optional[datetime] = None
+    meet_place: Optional[str] = None
+    meet_address: Optional[str] = None
+    tour_content: Optional[str] = None
+    fee: Optional[int] = None
+    contact_phone: Optional[str] = None
+    contact_email: Optional[str] = None
+    deadline: Optional[datetime] = None
+    attachment_pdf_url: Optional[str] = None
 
 class PostCreate(PostBase):
     media_ids: Optional[List[int]] = None
+    tourism_details: Optional[PostTourismDetails] = None
 
 class PostUpdate(BaseModel):
     title: Optional[str] = None
@@ -98,12 +127,21 @@ class PostUpdate(BaseModel):
     youtube_url: Optional[str] = None
     media_id: Optional[int] = None
     media_ids: Optional[List[int]] = None
+    category: Optional[str] = None
+    subcategory: Optional[str] = None
+    post_type: Optional[PostTypeEnum] = None
+    slug: Optional[str] = None
+    status: Optional[PostStatusEnum] = None
+    og_image_url: Optional[str] = None
+    excerpt: Optional[str] = None
+    tourism_details: Optional[PostTourismDetails] = None
 
 class Post(PostBase):
     id: int
     user_id: int
     media_url: Optional[str] = None
     media_urls: Optional[List[str]] = None
+    tourism_details: Optional[PostTourismDetails] = None
     created_at: datetime
     updated_at: datetime
     

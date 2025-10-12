@@ -26,7 +26,7 @@ def create_ted_user():
     cursor.execute("""
         INSERT INTO profiles (user_id, handle, bio, is_profile_public)
         VALUES (?, ?, ?, ?)
-    """, (user_id, f"ted_ueda_{user_id}", "Rainbow Communityの開発者です。よろしくお願いします！", True))
+    """, (user_id, f"ted_ueda_{user_id}", "Caratの開発者です。よろしくお願いします！", True))
     
     conn.commit()
     conn.close()

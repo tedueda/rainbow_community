@@ -9,8 +9,9 @@ from sqlalchemy import desc, func
 from typing import List, Optional
 from datetime import datetime, timedelta
 from app.database import get_db
-from app.models import User, Post, PointEvent, Reaction, Tag, PostTag, MediaAsset, PostMedia
+from app.models import User, Post, PointEvent, Reaction, Tag, PostTag, MediaAsset, PostMedia, PostTourism
 from app.schemas import Post as PostSchema, PostCreate, PostUpdate
+import re
 from app.auth import get_current_active_user, get_current_premium_user
 
 router = APIRouter(prefix="/api/posts", tags=["posts"], redirect_slashes=False)
@@ -92,6 +93,14 @@ async def read_posts(
             "media_id": post.media_id,
             "media_url": None,
             "media_urls": [],
+            "category": post.category,
+            "subcategory": post.subcategory,
+            "post_type": post.post_type,
+            "slug": post.slug,
+            "status": post.status,
+            "og_image_url": post.og_image_url,
+            "excerpt": post.excerpt,
+            "tourism_details": None,
             "created_at": post.created_at,
             "updated_at": post.updated_at
         }
@@ -109,6 +118,22 @@ async def read_posts(
                     media_urls.append(media.url)
             post_dict["media_urls"] = media_urls
         
+        if post.post_type == 'tourism':
+            tourism = db.query(PostTourism).filter(PostTourism.post_id == post.id).first()
+            if tourism:
+                post_dict["tourism_details"] = {
+                    "prefecture": tourism.prefecture,
+                    "event_datetime": tourism.event_datetime,
+                    "meet_place": tourism.meet_place,
+                    "meet_address": tourism.meet_address,
+                    "tour_content": tourism.tour_content,
+                    "fee": tourism.fee,
+                    "contact_phone": tourism.contact_phone,
+                    "contact_email": tourism.contact_email,
+                    "deadline": tourism.deadline,
+                    "attachment_pdf_url": tourism.attachment_pdf_url
+                }
+        
         result.append(post_dict)
     
     return result
@@ -120,7 +145,18 @@ async def create_post(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    post_data = post.dict(exclude={'media_ids'})
+    post_data = post.dict(exclude={'media_ids', 'tourism_details'})
+    
+    if post.post_type == 'blog' and not post.slug and post.title:
+        base_slug = re.sub(r'[^\w\s-]', '', post.title.lower())
+        base_slug = re.sub(r'[-\s]+', '-', base_slug).strip('-')
+        slug = base_slug
+        counter = 1
+        while db.query(Post).filter(Post.slug == slug).first():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        post_data['slug'] = slug
+    
     db_post = Post(**post_data, user_id=current_user.id)
     db.add(db_post)
     db.flush()
@@ -133,6 +169,11 @@ async def create_post(
                 order_index=idx
             )
             db.add(post_media)
+    
+    if post.post_type == 'tourism' and post.tourism_details:
+        tourism_data = post.tourism_details.dict()
+        db_tourism = PostTourism(post_id=db_post.id, **tourism_data)
+        db.add(db_tourism)
     
     point_event = PointEvent(
         user_id=current_user.id,
@@ -162,6 +203,14 @@ async def read_post(post_id: int, db: Session = Depends(get_db)):
         "media_id": post.media_id,
         "media_url": None,
         "media_urls": [],
+        "category": post.category,
+        "subcategory": post.subcategory,
+        "post_type": post.post_type,
+        "slug": post.slug,
+        "status": post.status,
+        "og_image_url": post.og_image_url,
+        "excerpt": post.excerpt,
+        "tourism_details": None,
         "created_at": post.created_at,
         "updated_at": post.updated_at
     }
@@ -179,6 +228,22 @@ async def read_post(post_id: int, db: Session = Depends(get_db)):
                 media_urls.append(media.url)
         post_dict["media_urls"] = media_urls
     
+    if post.post_type == 'tourism':
+        tourism = db.query(PostTourism).filter(PostTourism.post_id == post_id).first()
+        if tourism:
+            post_dict["tourism_details"] = {
+                "prefecture": tourism.prefecture,
+                "event_datetime": tourism.event_datetime,
+                "meet_place": tourism.meet_place,
+                "meet_address": tourism.meet_address,
+                "tour_content": tourism.tour_content,
+                "fee": tourism.fee,
+                "contact_phone": tourism.contact_phone,
+                "contact_email": tourism.contact_email,
+                "deadline": tourism.deadline,
+                "attachment_pdf_url": tourism.attachment_pdf_url
+            }
+    
     return post_dict
 
 @router.put("/{post_id}", response_model=PostSchema)
@@ -195,7 +260,7 @@ async def update_post(
     if post.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     
-    update_data = post_update.dict(exclude_unset=True, exclude={'media_ids'})
+    update_data = post_update.dict(exclude_unset=True, exclude={'media_ids', 'tourism_details'})
     for field, value in update_data.items():
         setattr(post, field, value)
     
@@ -208,6 +273,17 @@ async def update_post(
                 order_index=idx
             )
             db.add(post_media)
+    
+    if post_update.tourism_details is not None:
+        existing_tourism = db.query(PostTourism).filter(PostTourism.post_id == post_id).first()
+        if existing_tourism:
+            tourism_data = post_update.tourism_details.dict(exclude_unset=True)
+            for field, value in tourism_data.items():
+                setattr(existing_tourism, field, value)
+        else:
+            tourism_data = post_update.tourism_details.dict()
+            db_tourism = PostTourism(post_id=post_id, **tourism_data)
+            db.add(db_tourism)
     
     db.commit()
     db.refresh(post)
@@ -228,13 +304,14 @@ async def delete_post(
         if post.user_id != current_user.id:
             raise HTTPException(status_code=403, detail="Not enough permissions")
 
-        # Delete dependent comments, tag mappings, reactions, point events, and post_media to avoid FK/consistency issues
+        # Delete dependent comments, tag mappings, reactions, point events, post_media, and post_tourism to avoid FK/consistency issues
         from app.models import Comment, PostTag, Reaction, PointEvent
         db.query(Comment).filter(Comment.post_id == post_id).delete(synchronize_session=False)
         db.query(PostTag).filter(PostTag.post_id == post_id).delete(synchronize_session=False)
         db.query(Reaction).filter(Reaction.target_type == "post", Reaction.target_id == post_id).delete(synchronize_session=False)
         db.query(PointEvent).filter(PointEvent.ref_type == "post", PointEvent.ref_id == post_id).delete(synchronize_session=False)
         db.query(PostMedia).filter(PostMedia.post_id == post_id).delete(synchronize_session=False)
+        db.query(PostTourism).filter(PostTourism.post_id == post_id).delete(synchronize_session=False)
 
         # Remember media_id to potentially cleanup
         media_id = post.media_id

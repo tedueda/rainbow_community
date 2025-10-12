@@ -109,11 +109,20 @@ class Post(Base):
     visibility = Column(String(20), default="public")
     youtube_url = Column(String(500))
     media_id = Column(Integer, ForeignKey("media_assets.id"))
+    category = Column(String(50))
+    subcategory = Column(String(100))
+    post_type = Column(String(20), server_default='post', nullable=False)
+    slug = Column(String(200), unique=True, index=True)
+    status = Column(String(20), server_default='published', nullable=False)
+    og_image_url = Column(String(500))
+    excerpt = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     __table_args__ = (
         CheckConstraint("visibility IN ('public', 'members', 'followers', 'private')", name="check_post_visibility"),
+        CheckConstraint("post_type IN ('post', 'blog', 'tourism')", name="check_post_type"),
+        CheckConstraint("status IN ('draft', 'published')", name="check_post_status"),
     )
     
     user = relationship("User", back_populates="posts")
@@ -121,6 +130,7 @@ class Post(Base):
     tags = relationship("Tag", secondary="post_tags", back_populates="posts")
     media = relationship("MediaAsset")
     media_assets = relationship("MediaAsset", secondary="post_media", order_by="PostMedia.order_index")
+    tourism_details = relationship("PostTourism", back_populates="post", uselist=False)
 
 class Comment(Base):
     __tablename__ = "comments"
@@ -158,6 +168,23 @@ class PostMedia(Base):
     post_id = Column(Integer, ForeignKey("posts.id"), primary_key=True)
     media_asset_id = Column(Integer, ForeignKey("media_assets.id"), primary_key=True)
     order_index = Column(Integer, nullable=False, server_default='0')
+
+class PostTourism(Base):
+    __tablename__ = "posts_tourism"
+    
+    post_id = Column(Integer, ForeignKey("posts.id"), primary_key=True)
+    prefecture = Column(String(50))
+    event_datetime = Column(DateTime(timezone=True))
+    meet_place = Column(String(200))
+    meet_address = Column(String(500))
+    tour_content = Column(Text)
+    fee = Column(Integer)
+    contact_phone = Column(String(20))
+    contact_email = Column(String(200))
+    deadline = Column(DateTime(timezone=True))
+    attachment_pdf_url = Column(String(500))
+    
+    post = relationship("Post", back_populates="tourism_details")
 
 class Follow(Base):
     __tablename__ = "follows"

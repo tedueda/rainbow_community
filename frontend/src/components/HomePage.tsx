@@ -99,7 +99,7 @@ const dummyPosts: Post[] = [
   {
     id: 1,
     title: "初めての投稿です！",
-    body: "こんにちは！Rainbow Communityに参加しました。温かいコミュニティで素敵な出会いがありそうです。よろしくお願いします。",
+    body: "こんにちは！Caratに参加しました。温かいコミュニティで素敵な出会いがありそうです。よろしくお願いします。",
     user_id: 1,
     visibility: "public",
     created_at: "2024-09-15T10:30:00Z",

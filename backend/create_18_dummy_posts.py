@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Create 18 Japanese dummy posts (3 per category) for Rainbow Community
+Create 18 Japanese dummy posts (3 per category) for Carat
 Categories: 掲示板, アート, 音楽, お店, ツアー, コミック・映画
 """
 

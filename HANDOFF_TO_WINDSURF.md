@@ -1,10 +1,10 @@
-# Rainbow Community - Windsurf 引き継ぎドキュメント
+# Carat - Windsurf 引き継ぎドキュメント
 
 最終更新: 2025年10月11日
 
 ## 🎯 プロジェクト概要
 
-**Rainbow Community API（FastAPI / SQLAlchemy）+ React Frontend**
+**Carat API（FastAPI / SQLAlchemy）+ React Frontend**
 - LGBTQコミュニティプラットフォーム
 - 投稿、プロフィール、メディアアップロード機能を提供
 - AWS App Runner（東京リージョン）でデプロイ済み
