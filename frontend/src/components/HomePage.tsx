@@ -69,6 +69,17 @@ const categories = [
   { key: "comics", title: "コミック・映画", desc: "LGBTQ+テーマの作品レビューと感想。", posts: 2840, emoji: "🎬" },
 ];
 
+const getCategoryPlaceholder = (category: string | undefined): string => {
+  const categoryMap: { [key: string]: string } = {
+    'board': '/assets/placeholders/board.svg',
+    'music': '/assets/placeholders/music.svg',
+    'shops': '/assets/placeholders/shops.svg',
+    'tourism': '/assets/placeholders/tourism.svg',
+    'comics': '/assets/placeholders/comics.svg',
+  };
+  return categoryMap[category || 'board'] || '/assets/placeholders/board.svg';
+};
+
 const newsArticles = [
   {
     id: "n1",
@@ -199,12 +210,6 @@ const HomePage: React.FC = () => {
           comment_count: Math.floor(Math.random() * 20),
           points: Math.floor(Math.random() * 100) + 10,
           is_liked: false,
-          media_urls: post.body.includes('#art') || post.body.includes('#shops') 
-            ? [`https://picsum.photos/400/300?random=${post.id}`] 
-            : undefined,
-          youtube_url: post.body.includes('#music') 
-            ? `https://www.youtube.com/watch?v=dQw4w9WgXcQ` 
-            : undefined,
         }));
         
         setPosts(enhancedPosts);
@@ -520,7 +525,13 @@ const HomePage: React.FC = () => {
                             />
                           </div>
                         ) : (
-                          <div className="h-40 bg-gradient-to-br from-pink-200 via-green-200 to-orange-200 rounded-t-lg" />
+                          <div className="h-40 overflow-hidden rounded-t-lg">
+                            <img 
+                              src={getCategoryPlaceholder(post.category)}
+                              alt={categories.find(c => c.key === post.category)?.title || '掲示板'}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
                         )}
                         <CardContent className="p-4">
                           <div className="flex items-center gap-2 text-xs mb-2">
@@ -596,7 +607,13 @@ const HomePage: React.FC = () => {
                             ></iframe>
                           </div>
                         ) : (
-                          <div className="h-64 bg-gradient-to-br from-pink-200 via-green-200 to-orange-200 rounded-lg" />
+                          <div className="h-64 overflow-hidden rounded-lg">
+                            <img 
+                              src={getCategoryPlaceholder(post.category)}
+                              alt={categories.find(c => c.key === post.category)?.title || '掲示板'}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
                         )}
                         <div className="flex items-center gap-2 text-sm">
                           <span className="rounded-full bg-pink-100 text-pink-700 px-2 py-1">

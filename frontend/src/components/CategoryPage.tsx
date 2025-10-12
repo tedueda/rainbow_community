@@ -40,6 +40,17 @@ const formatNumber = (num: number): string => {
   return num.toString();
 };
 
+const getCategoryPlaceholder = (category: string | undefined): string => {
+  const categoryMap: { [key: string]: string } = {
+    'board': '/assets/placeholders/board.svg',
+    'music': '/assets/placeholders/music.svg',
+    'shops': '/assets/placeholders/shops.svg',
+    'tourism': '/assets/placeholders/tourism.svg',
+    'comics': '/assets/placeholders/comics.svg',
+  };
+  return categoryMap[category || 'board'] || '/assets/placeholders/board.svg';
+};
+
 const getRelativeTime = (dateString: string): string => {
   const date = new Date(dateString);
   const now = new Date();
@@ -357,14 +368,13 @@ const CategoryPage: React.FC = () => {
                 }
               }}
             >
-              {/* 画像ギャラリー（投稿画像がなければ YouTube サムネを使用） */}
+              {/* 画像ギャラリー（投稿画像がなければ YouTube サムネ、なければプレースホルダーを使用） */}
               {(() => {
                 const firstMedia = post.media_url || (post.media_urls && post.media_urls[0]) || '';
                 const ytUrl = post.youtube_url || extractYouTubeUrlFromText(post.body || '') || '';
                 const ytThumb = !firstMedia ? getYouTubeThumbnail(ytUrl) : null;
-                const imageSrc = firstMedia || ytThumb || '';
-                if (!imageSrc) return null;
-                const finalSrc = imageSrc.startsWith('http') ? imageSrc : `${API_URL}${imageSrc}`;
+                const imageSrc = firstMedia || ytThumb || getCategoryPlaceholder(post.category);
+                const finalSrc = imageSrc.startsWith('http') || imageSrc.startsWith('/') ? imageSrc : `${API_URL}${imageSrc}`;
                 return (
                   <div className="aspect-[3/2] w-full h-[220px] overflow-hidden rounded-t-2xl">
                     <img
