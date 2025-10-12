@@ -68,6 +68,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
   const getCategoryPlaceholder = (category: string | undefined): string => {
     const categoryMap: { [key: string]: string } = {
       'board': '/assets/placeholders/board.svg',
+      'art': '/assets/placeholders/art.svg',
       'music': '/assets/placeholders/music.svg',
       'shops': '/assets/placeholders/shops.svg',
       'tourism': '/assets/placeholders/tourism.svg',

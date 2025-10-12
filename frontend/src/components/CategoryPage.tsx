@@ -13,6 +13,7 @@ import { getYouTubeThumbnail, extractYouTubeUrlFromText } from '../utils/youtube
 
 const categories = {
   board: { title: "掲示板", emoji: "💬", desc: "悩み相談や雑談、生活の話題", slug: "board" },
+  art: { title: "アート", emoji: "🎨", desc: "イラスト・写真・映像作品の発表", slug: "art" },
   music: { title: "音楽", emoji: "🎵", desc: "お気に入りや自作・AI曲の共有", slug: "music" },
   shops: { title: "お店", emoji: "🏬", desc: "LGBTQフレンドリーなお店紹介", slug: "shops" },
   tourism: { title: "ツーリズム", emoji: "📍", desc: "会員ガイドの交流型ツアー", slug: "tourism" },
@@ -43,6 +44,7 @@ const formatNumber = (num: number): string => {
 const getCategoryPlaceholder = (category: string | undefined): string => {
   const categoryMap: { [key: string]: string } = {
     'board': '/assets/placeholders/board.svg',
+    'art': '/assets/placeholders/art.svg',
     'music': '/assets/placeholders/music.svg',
     'shops': '/assets/placeholders/shops.svg',
     'tourism': '/assets/placeholders/tourism.svg',
