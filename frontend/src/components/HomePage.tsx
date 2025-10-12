@@ -64,6 +64,7 @@ const memberBenefits = [
 
 const categories = [
   { key: "board", title: "掲示板", desc: "悩み相談や雑談、生活の話題。", posts: 15230, emoji: "💬" },
+  { key: "art", title: "アート", desc: "イラスト・写真・映像作品の発表。", posts: 8932, emoji: "🎨" },
   { key: "music", title: "音楽", desc: "お気に入りや自作・AI曲の共有。", posts: 6240, emoji: "🎵" },
   { key: "shops", title: "お店", desc: "LGBTQフレンドリーなお店紹介。", posts: 1450, emoji: "🏬" },
   { key: "tourism", title: "ツーリズム", desc: "会員ガイドの交流型ツアー。", posts: 312, emoji: "📍" },
@@ -73,6 +74,7 @@ const categories = [
 const getCategoryPlaceholder = (category: string | undefined): string => {
   const categoryMap: { [key: string]: string } = {
     'board': '/assets/placeholders/board.svg',
+    'art': '/assets/placeholders/art.svg',
     'music': '/assets/placeholders/music.svg',
     'shops': '/assets/placeholders/shops.svg',
     'tourism': '/assets/placeholders/tourism.svg',
