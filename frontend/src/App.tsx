@@ -9,6 +9,8 @@ import PostFeed from './components/PostFeed';
 import ProfilePage from './components/ProfilePage';
 import CreatePost from './components/CreatePost';
 import CategoryPage from './components/CategoryPage';
+import BlogListPage from './components/BlogListPage';
+import BlogDetailPage from './components/BlogDetailPage';
 // import MatchingPage from './components/MatchingPage';
 // import VirtualWeddingPage from './components/VirtualWeddingPage';
 // import DonationPage from './components/DonationPage';
@@ -66,7 +68,7 @@ function AppContent() {
               <ProfilePage />
             </FeedRoute>
           } />
-          <Route path="/create" element={
+          <Route path="/create/:category?" element={
             <FeedRoute>
               <CreatePost />
             </FeedRoute>
@@ -106,6 +108,16 @@ function AppContent() {
           <Route path="/news" element={
             <FeedRoute>
               <NewsPage />
+            </FeedRoute>
+          } />
+          <Route path="/blog" element={
+            <FeedRoute>
+              <BlogListPage />
+            </FeedRoute>
+          } />
+          <Route path="/blog/:slug" element={
+            <FeedRoute>
+              <BlogDetailPage />
             </FeedRoute>
           } />
           <Route path="/" element={<Navigate to="/feed" />} />

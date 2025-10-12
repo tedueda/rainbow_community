@@ -34,6 +34,11 @@ const Header: React.FC = () => {
                 投稿
               </Button>
             </Link>
+            <Link to="/blog">
+              <Button variant="ghost" className="text-purple-700 hover:text-purple-900 hover:bg-purple-50 text-sm sm:text-base">
+                ブログ
+              </Button>
+            </Link>
             <Link to="/profile">
               <Button variant="ghost" className="text-orange-700 hover:text-orange-900 hover:bg-orange-50 text-sm sm:text-base">
                 <User className="h-4 w-4 mr-1 sm:mr-2" />

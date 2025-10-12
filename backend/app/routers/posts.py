@@ -27,6 +27,10 @@ async def read_posts(
     visibility: Optional[str] = None,
     category: Optional[str] = None,
     category_id: Optional[str] = None,
+    subcategory: Optional[str] = None,
+    post_type: Optional[str] = None,
+    status: Optional[str] = None,
+    slug: Optional[str] = None,
     sort: str = "newest",
     range: str = "all",
     tag: Optional[str] = None,
@@ -39,6 +43,15 @@ async def read_posts(
     else:
         query = query.filter(Post.visibility == "public")
     
+    if post_type:
+        query = query.filter(Post.post_type == post_type)
+    
+    if status:
+        query = query.filter(Post.status == status)
+    
+    if slug:
+        query = query.filter(Post.slug == slug)
+    
     # Support category via name or category_id (mapped to hashtag)
     cat_value = category
     if category_id and not cat_value:
@@ -46,6 +59,7 @@ async def read_posts(
     if cat_value:
         category_map = {
             "board": "board",
+            "art": "art",
             "music": "music",
             "shops": "shops",
             "tourism": "tourism",
@@ -53,6 +67,9 @@ async def read_posts(
         }
         hashtag = category_map.get(cat_value, cat_value)
         query = query.filter(Post.body.contains(f"#{hashtag}"))
+    
+    if subcategory:
+        query = query.filter(Post.subcategory == subcategory)
     
     if range != "all":
         now = datetime.utcnow()

@@ -13,6 +13,7 @@ export interface Post {
   visibility: string;
   created_at: string;
   category?: string;
+  subcategory?: string;
   media_id?: number | null;
   media_url?: string;
   media_urls?: string[];
@@ -22,6 +23,11 @@ export interface Post {
   points?: number;
   tags?: string[];
   is_liked?: boolean;
+  post_type?: string;
+  slug?: string;
+  status?: string;
+  excerpt?: string;
+  og_image_url?: string;
 }
 
 export interface Comment {
