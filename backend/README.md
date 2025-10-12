@@ -1,6 +1,6 @@
-# Rainbow Community API Backend
+# Carat API Backend
 
-FastAPI-based backend for the Rainbow Community LGBTQ+ platform.
+FastAPI-based backend for the Carat LGBTQ+ platform.
 
 ## 🏗️ Architecture
 

@@ -1,6 +1,6 @@
-# Rainbow Community - AWS App Runner Infrastructure
+# Carat - AWS App Runner Infrastructure
 
-This directory contains Terraform infrastructure-as-code for deploying the Rainbow Community FastAPI backend to AWS App Runner with private RDS connectivity.
+This directory contains Terraform infrastructure-as-code for deploying the Carat FastAPI backend to AWS App Runner with private RDS connectivity.
 
 ## 📋 Table of Contents
 
@@ -478,4 +478,4 @@ If you encounter issues:
 ---
 
 **Last Updated**: 2025-10-03  
-**Maintained By**: Rainbow Community Team
+**Maintained By**: Carat Team

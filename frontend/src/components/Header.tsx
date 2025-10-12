@@ -19,7 +19,7 @@ const Header: React.FC = () => {
         <div className="flex items-center justify-between">
           <Link to="/feed" className="flex items-center space-x-2">
             <Heart className="h-8 w-8 text-pink-500" />
-            <span className="text-xl sm:text-2xl font-bold text-pink-800">Rainbow Community</span>
+            <span className="text-xl sm:text-2xl font-bold text-pink-800">Carat</span>
           </Link>
 
           <div className="flex items-center space-x-2 sm:space-x-4">

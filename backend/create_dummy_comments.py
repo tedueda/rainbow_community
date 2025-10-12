@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Create 2 dummy comments per post (36 total comments) for Rainbow Community
+Create 2 dummy comments per post (36 total comments) for Carat
 """
 
 import psycopg2

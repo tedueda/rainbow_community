@@ -26,7 +26,7 @@ def create_admin_user():
     cursor.execute("""
         INSERT INTO profiles (user_id, handle, bio, is_profile_public)
         VALUES (?, ?, ?, ?)
-    """, (user_id, f"admin_{user_id}", "Rainbow Community Administrator", True))
+    """, (user_id, f"admin_{user_id}", "Carat Administrator", True))
     
     conn.commit()
     conn.close()

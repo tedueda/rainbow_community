@@ -53,7 +53,7 @@ const NewsPage: React.FC = () => {
       category: 'policy',
       tags: ['制度', 'パートナーシップ', '自治体', '政策'],
       date: '2024-09-15',
-      author: 'Rainbow Community編集部',
+      author: 'Carat編集部',
       featured: true,
       views: 1250,
       source: '内閣府調査',

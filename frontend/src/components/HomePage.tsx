@@ -31,10 +31,9 @@ interface Post {
 const tabs = [
   { key: "all", label: "すべて" },
   { key: "board", label: "掲示板" },
-  { key: "art", label: "アート" },
   { key: "music", label: "音楽" },
   { key: "shops", label: "お店" },
-  { key: "tours", label: "ツアー" },
+  { key: "tourism", label: "ツーリズム" },
   { key: "comics", label: "コミック・映画" },
 ];
 
@@ -64,12 +63,22 @@ const memberBenefits = [
 
 const categories = [
   { key: "board", title: "掲示板", desc: "悩み相談や雑談、生活の話題。", posts: 15230, emoji: "💬" },
-  { key: "art", title: "アート", desc: "イラスト・写真・映像作品の発表。", posts: 8932, emoji: "🎨" },
   { key: "music", title: "音楽", desc: "お気に入りや自作・AI曲の共有。", posts: 6240, emoji: "🎵" },
   { key: "shops", title: "お店", desc: "LGBTQフレンドリーなお店紹介。", posts: 1450, emoji: "🏬" },
-  { key: "tours", title: "ツアー", desc: "会員ガイドの交流型ツアー。", posts: 312, emoji: "📍" },
+  { key: "tourism", title: "ツーリズム", desc: "会員ガイドの交流型ツアー。", posts: 312, emoji: "📍" },
   { key: "comics", title: "コミック・映画", desc: "LGBTQ+テーマの作品レビューと感想。", posts: 2840, emoji: "🎬" },
 ];
+
+const getCategoryPlaceholder = (category: string | undefined): string => {
+  const categoryMap: { [key: string]: string } = {
+    'board': '/assets/placeholders/board.svg',
+    'music': '/assets/placeholders/music.svg',
+    'shops': '/assets/placeholders/shops.svg',
+    'tourism': '/assets/placeholders/tourism.svg',
+    'comics': '/assets/placeholders/comics.svg',
+  };
+  return categoryMap[category || 'board'] || '/assets/placeholders/board.svg';
+};
 
 const newsArticles = [
   {
@@ -99,7 +108,7 @@ const dummyPosts: Post[] = [
   {
     id: 1,
     title: "初めての投稿です！",
-    body: "こんにちは！Rainbow Communityに参加しました。温かいコミュニティで素敵な出会いがありそうです。よろしくお願いします。",
+    body: "こんにちは！Caratに参加しました。温かいコミュニティで素敵な出会いがありそうです。よろしくお願いします。",
     user_id: 1,
     visibility: "public",
     created_at: "2024-09-15T10:30:00Z",
@@ -107,15 +116,6 @@ const dummyPosts: Post[] = [
   },
   {
     id: 2,
-    title: "虹色のイラストを描きました",
-    body: "プライド月間に向けて、虹をテーマにしたデジタルアートを制作しました。色彩豊かな作品になったと思います。",
-    user_id: 2,
-    visibility: "public",
-    created_at: "2024-09-14T15:45:00Z",
-    category: "art"
-  },
-  {
-    id: 3,
     title: "おすすめのLGBTQ+楽曲",
     body: "最近聴いているアーティストの楽曲がとても心に響きます。同じような音楽が好きな方と語り合いたいです。",
     user_id: 3,
@@ -139,7 +139,7 @@ const dummyPosts: Post[] = [
     user_id: 5,
     visibility: "public",
     created_at: "2024-09-11T18:30:00Z",
-    category: "tours"
+    category: "tourism"
   },
   {
     id: 6,
@@ -210,12 +210,6 @@ const HomePage: React.FC = () => {
           comment_count: Math.floor(Math.random() * 20),
           points: Math.floor(Math.random() * 100) + 10,
           is_liked: false,
-          media_urls: post.body.includes('#art') || post.body.includes('#shops') 
-            ? [`https://picsum.photos/400/300?random=${post.id}`] 
-            : undefined,
-          youtube_url: post.body.includes('#music') 
-            ? `https://www.youtube.com/watch?v=dQw4w9WgXcQ` 
-            : undefined,
         }));
         
         setPosts(enhancedPosts);
@@ -531,7 +525,13 @@ const HomePage: React.FC = () => {
                             />
                           </div>
                         ) : (
-                          <div className="h-40 bg-gradient-to-br from-pink-200 via-green-200 to-orange-200 rounded-t-lg" />
+                          <div className="h-40 overflow-hidden rounded-t-lg">
+                            <img 
+                              src={getCategoryPlaceholder(post.category)}
+                              alt={categories.find(c => c.key === post.category)?.title || '掲示板'}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
                         )}
                         <CardContent className="p-4">
                           <div className="flex items-center gap-2 text-xs mb-2">
@@ -607,7 +607,13 @@ const HomePage: React.FC = () => {
                             ></iframe>
                           </div>
                         ) : (
-                          <div className="h-64 bg-gradient-to-br from-pink-200 via-green-200 to-orange-200 rounded-lg" />
+                          <div className="h-64 overflow-hidden rounded-lg">
+                            <img 
+                              src={getCategoryPlaceholder(post.category)}
+                              alt={categories.find(c => c.key === post.category)?.title || '掲示板'}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
                         )}
                         <div className="flex items-center gap-2 text-sm">
                           <span className="rounded-full bg-pink-100 text-pink-700 px-2 py-1">

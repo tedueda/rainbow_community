@@ -15,10 +15,9 @@ interface NewPostFormProps {
 
 const categories = {
   board: { title: "掲示板", emoji: "💬", desc: "悩み相談や雑談、生活の話題" },
-  art: { title: "アート", emoji: "🎨", desc: "イラスト・写真・映像作品の発表" },
   music: { title: "音楽", emoji: "🎵", desc: "お気に入りや自作・AI曲の共有" },
   shops: { title: "お店", emoji: "🏬", desc: "LGBTQフレンドリーなお店紹介" },
-  tours: { title: "ツアー", emoji: "📍", desc: "会員ガイドの交流型ツアー" },
+  tourism: { title: "ツーリズム", emoji: "📍", desc: "会員ガイドの交流型ツアー" },
   comics: { title: "コミック・映画", emoji: "🎬", desc: "LGBTQ+テーマの作品レビューと感想" },
 };
 
@@ -72,7 +71,7 @@ const NewPostForm: React.FC<NewPostFormProps> = ({
       }
     }
 
-    if ((categoryKey === 'art' || categoryKey === 'shops' || categoryKey === 'comics') && formData.images.length > 0) {
+    if ((categoryKey === 'board' || categoryKey === 'shops' || categoryKey === 'tourism' || categoryKey === 'comics') && formData.images.length > 0) {
       if (formData.images.length > 5) {
         newErrors.images = '画像は5枚まで選択できます';
       } else {
@@ -264,7 +263,7 @@ const NewPostForm: React.FC<NewPostFormProps> = ({
             </div>
           </div>
 
-          {(categoryKey === 'art' || categoryKey === 'shops' || categoryKey === 'comics') && (
+          {(categoryKey === 'board' || categoryKey === 'shops' || categoryKey === 'tourism' || categoryKey === 'comics') && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 画像をアップロード（最大5枚）

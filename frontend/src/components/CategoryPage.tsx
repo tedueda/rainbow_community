@@ -13,10 +13,9 @@ import { getYouTubeThumbnail, extractYouTubeUrlFromText } from '../utils/youtube
 
 const categories = {
   board: { title: "掲示板", emoji: "💬", desc: "悩み相談や雑談、生活の話題", slug: "board" },
-  art: { title: "アート", emoji: "🎨", desc: "イラスト・写真・映像作品の発表", slug: "art" },
   music: { title: "音楽", emoji: "🎵", desc: "お気に入りや自作・AI曲の共有", slug: "music" },
   shops: { title: "お店", emoji: "🏬", desc: "LGBTQフレンドリーなお店紹介", slug: "shops" },
-  tours: { title: "ツアー", emoji: "📍", desc: "会員ガイドの交流型ツアー", slug: "tours" },
+  tourism: { title: "ツーリズム", emoji: "📍", desc: "会員ガイドの交流型ツアー", slug: "tourism" },
   comics: { title: "コミック・映画", emoji: "🎬", desc: "LGBTQ+テーマの作品レビューと感想", slug: "comics" },
 };
 
@@ -39,6 +38,17 @@ const formatNumber = (num: number): string => {
     return (num / 1000).toFixed(1) + 'K';
   }
   return num.toString();
+};
+
+const getCategoryPlaceholder = (category: string | undefined): string => {
+  const categoryMap: { [key: string]: string } = {
+    'board': '/assets/placeholders/board.svg',
+    'music': '/assets/placeholders/music.svg',
+    'shops': '/assets/placeholders/shops.svg',
+    'tourism': '/assets/placeholders/tourism.svg',
+    'comics': '/assets/placeholders/comics.svg',
+  };
+  return categoryMap[category || 'board'] || '/assets/placeholders/board.svg';
 };
 
 const getRelativeTime = (dateString: string): string => {
@@ -358,14 +368,13 @@ const CategoryPage: React.FC = () => {
                 }
               }}
             >
-              {/* 画像ギャラリー（投稿画像がなければ YouTube サムネを使用） */}
+              {/* 画像ギャラリー（投稿画像がなければ YouTube サムネ、なければプレースホルダーを使用） */}
               {(() => {
                 const firstMedia = post.media_url || (post.media_urls && post.media_urls[0]) || '';
                 const ytUrl = post.youtube_url || extractYouTubeUrlFromText(post.body || '') || '';
                 const ytThumb = !firstMedia ? getYouTubeThumbnail(ytUrl) : null;
-                const imageSrc = firstMedia || ytThumb || '';
-                if (!imageSrc) return null;
-                const finalSrc = imageSrc.startsWith('http') ? imageSrc : `${API_URL}${imageSrc}`;
+                const imageSrc = firstMedia || ytThumb || getCategoryPlaceholder(post.category);
+                const finalSrc = imageSrc.startsWith('http') || imageSrc.startsWith('/') ? imageSrc : `${API_URL}${imageSrc}`;
                 return (
                   <div className="aspect-[3/2] w-full h-[220px] overflow-hidden rounded-t-2xl">
                     <img

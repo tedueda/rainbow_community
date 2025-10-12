@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Create 18 Japanese dummy posts (3 per category) for Rainbow Community
+Create 18 Japanese dummy posts (3 per category) for Carat
 Categories: 掲示板, アート, 音楽, お店, ツアー, コミック・映画
 """
 
@@ -88,20 +88,20 @@ CATEGORIES = {
             }
         ]
     },
-    'tours': {
-        'hashtag': '#tours',
+    'tourism': {
+        'hashtag': '#tourism',
         'posts': [
             {
                 'title': '東京レインボータウン散策',
-                'body': '新宿二丁目を中心としたLGBTQ+スポット巡りツアーを企画しました。歴史ある場所から新しいスポットまで、充実したコースです。 #tours'
+                'body': '新宿二丁目を中心としたLGBTQ+スポット巡りツアーを企画しました。歴史ある場所から新しいスポットまで、充実したコースです。 #tourism'
             },
             {
                 'title': 'プライド月間イベント巡り',
-                'body': '6月のプライド月間に合わせて、都内のイベントを巡るツアーを開催します。一緒に参加してくれる方を募集中です！ #tours'
+                'body': '6月のプライド月間に合わせて、都内のイベントを巡るツアーを開催します。一緒に参加してくれる方を募集中です！ #tourism'
             },
             {
                 'title': '海外プライドパレード参加記',
-                'body': 'サンフランシスコのプライドパレードに参加してきました。規模の大きさと参加者の熱気に圧倒されました。写真もたくさん撮りました。 #tours'
+                'body': 'サンフランシスコのプライドパレードに参加してきました。規模の大きさと参加者の熱気に圧倒されました。写真もたくさん撮りました。 #tourism'
             }
         ]
     },

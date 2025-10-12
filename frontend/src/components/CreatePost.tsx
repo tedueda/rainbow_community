@@ -7,17 +7,31 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle, Music, Palette, MessageSquare, Store, MapPin, Film, Upload, X } from 'lucide-react';
+import { PlusCircle, Music, MessageSquare, Store, MapPin, Film, Upload, X } from 'lucide-react';
 
 const CreatePost: React.FC = () => {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [visibility, setVisibility] = useState('public');
   const [category, setCategory] = useState('board');
+  const [subcategory, setSubcategory] = useState('');
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [images, setImages] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  const [tourismData, setTourismData] = useState({
+    prefecture: '',
+    eventDatetime: '',
+    meetPlace: '',
+    meetAddress: '',
+    tourContent: '',
+    fee: '',
+    contactPhone: '',
+    contactEmail: '',
+    deadline: '',
+    attachmentPdfUrl: ''
+  });
   
   const { token } = useAuth();
   const navigate = useNavigate();
@@ -27,21 +41,33 @@ const CreatePost: React.FC = () => {
 
   const categories = [
     { key: 'board', name: '掲示板', icon: MessageSquare, description: '質問、相談、雑談など' },
-    { key: 'art', name: 'アート', icon: Palette, description: '作品、創作活動の共有' },
     { key: 'music', name: '音楽', icon: Music, description: 'YouTube動画、音楽の共有' },
     { key: 'shops', name: 'お店', icon: Store, description: 'おすすめのお店情報' },
-    { key: 'tours', name: 'ツアー', icon: MapPin, description: '旅行、観光スポット' },
+    { key: 'tourism', name: 'ツーリズム', icon: MapPin, description: '会員ガイドの交流型ツアー' },
     { key: 'comics', name: 'コミック・映画', icon: Film, description: 'エンタメ作品のレビュー' }
   ];
+
+  const subcategories: Record<string, string[]> = {
+    board: ['悩み相談（カミングアウト／学校生活／職場環境）', '求人募集', '法律・手続き関係', '講座・勉強会', 'その他'],
+    music: ['ジャズ', 'Jポップ', 'ポップス', 'R&B', 'ロック', 'AOR', 'クラシック', 'Hip-Hop', 'ラップ', 'ファンク', 'レゲエ', 'ワールド・ミュージック', 'AI生成音楽', 'その他'],
+    shops: ['アパレル・ブティック', '雑貨店', 'レストラン・バー', '美容室・メイク', 'その他'],
+    tourism: [],
+    comics: ['映画', 'コミック', 'TVドラマ', '同人誌', 'その他']
+  };
 
   useEffect(() => {
     if (categoryKey) {
       const validCategory = categories.find(cat => cat.key === categoryKey);
       if (validCategory) {
         setCategory(categoryKey);
+        setSubcategory('');
       }
     }
   }, [categoryKey]);
+
+  useEffect(() => {
+    setSubcategory('');
+  }, [category]);
 
   const extractYouTubeVideoId = (url: string): string | null => {
     const patterns = [
@@ -130,19 +156,39 @@ const CreatePost: React.FC = () => {
         }
       }
 
+      const postData: any = {
+        title: title.trim() || null,
+        body: body.trim(),
+        visibility,
+        youtube_url: youtubeUrl || null,
+        media_ids: mediaIds.length > 0 ? mediaIds : null,
+        category: category,
+        subcategory: subcategory || null,
+        post_type: category === 'tourism' ? 'tourism' : 'post',
+      };
+
+      if (category === 'tourism' && tourismData.prefecture) {
+        postData.tourism_details = {
+          prefecture: tourismData.prefecture || null,
+          event_datetime: tourismData.eventDatetime || null,
+          meet_place: tourismData.meetPlace || null,
+          meet_address: tourismData.meetAddress || null,
+          tour_content: tourismData.tourContent || null,
+          fee: tourismData.fee ? parseInt(tourismData.fee) : null,
+          contact_phone: tourismData.contactPhone || null,
+          contact_email: tourismData.contactEmail || null,
+          deadline: tourismData.deadline || null,
+          attachment_pdf_url: tourismData.attachmentPdfUrl || null,
+        };
+      }
+
       const response = await fetch(`${API_URL}/api/posts`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          title: title.trim() || null,
-          body: `${body.trim()}${category === 'music' && youtubeUrl ? `\n\nYouTube: ${youtubeUrl}` : ''} #${category}`,
-          visibility,
-          youtube_url: youtubeUrl || null,
-          media_ids: mediaIds.length > 0 ? mediaIds : null,
-        }),
+        body: JSON.stringify(postData),
       });
 
       if (response.ok) {
@@ -200,8 +246,26 @@ const CreatePost: React.FC = () => {
               </div>
             )}
 
+            {subcategories[category] && subcategories[category].length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="subcategory" className="text-gray-700">サブカテゴリー</Label>
+                <Select value={subcategory} onValueChange={setSubcategory}>
+                  <SelectTrigger className="border-orange-200 focus:border-orange-400 focus:ring-orange-400">
+                    <SelectValue placeholder="選択してください..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subcategories[category].map((sub) => (
+                      <SelectItem key={sub} value={sub}>
+                        {sub}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div className="space-y-2">
-              <Label htmlFor="title" className="text-gray-700">タイトル（任意）</Label>
+              <Label htmlFor="title" className="text-gray-700">タイトル{category === 'tourism' ? ' *' : '（任意）'}</Label>
               <Input
                 id="title"
                 type="text"
@@ -209,10 +273,139 @@ const CreatePost: React.FC = () => {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="投稿にタイトルをつけてください..."
                 className="border-orange-200 focus:border-orange-400 focus:ring-orange-400"
+                required={category === 'tourism'}
               />
             </div>
 
-            {(category === 'board' || category === 'tours' || category === 'shops' || category === 'comics') && (
+            {category === 'tourism' && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="prefecture" className="text-gray-700">都道府県</Label>
+                    <Input
+                      id="prefecture"
+                      type="text"
+                      value={tourismData.prefecture}
+                      onChange={(e) => setTourismData({...tourismData, prefecture: e.target.value})}
+                      placeholder="例: 東京都"
+                      className="border-orange-200 focus:border-orange-400 focus:ring-orange-400"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="eventDatetime" className="text-gray-700">開催日時</Label>
+                    <Input
+                      id="eventDatetime"
+                      type="datetime-local"
+                      value={tourismData.eventDatetime}
+                      onChange={(e) => setTourismData({...tourismData, eventDatetime: e.target.value})}
+                      className="border-orange-200 focus:border-orange-400 focus:ring-orange-400"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="meetPlace" className="text-gray-700">集合場所</Label>
+                  <Input
+                    id="meetPlace"
+                    type="text"
+                    value={tourismData.meetPlace}
+                    onChange={(e) => setTourismData({...tourismData, meetPlace: e.target.value})}
+                    placeholder="例: 新宿駅南口"
+                    className="border-orange-200 focus:border-orange-400 focus:ring-orange-400"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="meetAddress" className="text-gray-700">集合場所（住所）</Label>
+                  <Input
+                    id="meetAddress"
+                    type="text"
+                    value={tourismData.meetAddress}
+                    onChange={(e) => setTourismData({...tourismData, meetAddress: e.target.value})}
+                    placeholder="例: 東京都新宿区西新宿1-1-1"
+                    className="border-orange-200 focus:border-orange-400 focus:ring-orange-400"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="tourContent" className="text-gray-700">ツアー内容（500字以内）</Label>
+                  <Textarea
+                    id="tourContent"
+                    value={tourismData.tourContent}
+                    onChange={(e) => setTourismData({...tourismData, tourContent: e.target.value})}
+                    placeholder="ツアーの詳細内容を記載してください..."
+                    maxLength={500}
+                    rows={4}
+                    className="border-orange-200 focus:border-orange-400 focus:ring-orange-400 resize-none"
+                  />
+                  <p className="text-xs text-gray-500">{tourismData.tourContent.length}/500文字</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="fee" className="text-gray-700">参加料金（円）</Label>
+                    <Input
+                      id="fee"
+                      type="number"
+                      value={tourismData.fee}
+                      onChange={(e) => setTourismData({...tourismData, fee: e.target.value})}
+                      placeholder="例: 5000"
+                      min="0"
+                      className="border-orange-200 focus:border-orange-400 focus:ring-orange-400"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="deadline" className="text-gray-700">応募期日</Label>
+                    <Input
+                      id="deadline"
+                      type="datetime-local"
+                      value={tourismData.deadline}
+                      onChange={(e) => setTourismData({...tourismData, deadline: e.target.value})}
+                      className="border-orange-200 focus:border-orange-400 focus:ring-orange-400"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="contactPhone" className="text-gray-700">連絡先（携帯番号）</Label>
+                    <Input
+                      id="contactPhone"
+                      type="tel"
+                      value={tourismData.contactPhone}
+                      onChange={(e) => setTourismData({...tourismData, contactPhone: e.target.value})}
+                      placeholder="例: 090-1234-5678"
+                      className="border-orange-200 focus:border-orange-400 focus:ring-orange-400"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="contactEmail" className="text-gray-700">連絡先（メール）</Label>
+                    <Input
+                      id="contactEmail"
+                      type="email"
+                      value={tourismData.contactEmail}
+                      onChange={(e) => setTourismData({...tourismData, contactEmail: e.target.value})}
+                      placeholder="例: example@email.com"
+                      className="border-orange-200 focus:border-orange-400 focus:ring-orange-400"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="attachmentPdf" className="text-gray-700">資料添付（PDF URL）</Label>
+                  <Input
+                    id="attachmentPdf"
+                    type="url"
+                    value={tourismData.attachmentPdfUrl}
+                    onChange={(e) => setTourismData({...tourismData, attachmentPdfUrl: e.target.value})}
+                    placeholder="PDFファイルのURL"
+                    className="border-orange-200 focus:border-orange-400 focus:ring-orange-400"
+                  />
+                </div>
+              </>
+            )}
+
+            {(category === 'board' || category === 'tourism' || category === 'shops' || category === 'comics') && (
               <div className="space-y-2">
                 <Label className="text-gray-700">画像をアップロード（最大5枚、任意）</Label>
                 <div className="border-2 border-dashed border-orange-200 rounded-lg p-6 hover:border-orange-300 transition-colors">
@@ -305,10 +498,9 @@ const CreatePost: React.FC = () => {
                 onChange={(e) => setBody(e.target.value)}
                 placeholder={
                   category === 'board' ? 'あなたの質問、相談、想いを共有してください...' :
-                  category === 'art' ? 'あなたの作品や創作活動について教えてください...' :
                   category === 'music' ? '音楽について、おすすめの楽曲やアーティストを教えてください...' :
                   category === 'shops' ? 'おすすめのお店やサービスを教えてください...' :
-                  category === 'tours' ? '旅行先や観光スポットの情報を共有してください...' :
+                  category === 'tourism' ? 'ツアーの見どころや参加者へのメッセージを記載してください...' :
                   category === 'comics' ? '本、映画、ドラマ、コミックのレビューを書いてください...' :
                   'あなたの想い、体験、質問などを共有してください...'
                 }

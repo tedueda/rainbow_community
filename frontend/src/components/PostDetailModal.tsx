@@ -65,6 +65,17 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
     return date.toLocaleDateString('ja-JP');
   };
 
+  const getCategoryPlaceholder = (category: string | undefined): string => {
+    const categoryMap: { [key: string]: string } = {
+      'board': '/assets/placeholders/board.svg',
+      'music': '/assets/placeholders/music.svg',
+      'shops': '/assets/placeholders/shops.svg',
+      'tourism': '/assets/placeholders/tourism.svg',
+      'comics': '/assets/placeholders/comics.svg',
+    };
+    return categoryMap[category || 'board'] || '/assets/placeholders/board.svg';
+  };
+
   const getYouTubeEmbedUrl = (url: string): string => {
     try {
       const urlObj = new URL(url);
@@ -551,7 +562,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
             </div>
           )}
 
-          {(post.youtube_url || extractYouTubeUrl(post.body)) && (
+          {(post.youtube_url || extractYouTubeUrl(post.body)) ? (
             <div className="aspect-video w-full">
               <iframe
                 src={getYouTubeEmbedUrl(post.youtube_url || extractYouTubeUrl(post.body) || '')}
@@ -560,6 +571,14 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
                 className="w-full h-full rounded-lg"
+              />
+            </div>
+          ) : !(post.media_url || (post.media_urls && post.media_urls[0])) && (
+            <div className="aspect-[3/2] bg-gray-100">
+              <img
+                src={getCategoryPlaceholder(post.category)}
+                alt="カテゴリプレースホルダー"
+                className="w-full h-full object-cover"
               />
             </div>
           )}
