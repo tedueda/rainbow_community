@@ -3,6 +3,7 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardHeader } from './ui/card';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { X, Upload, Youtube, Tag, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Post } from '../types/Post';
@@ -22,6 +23,15 @@ const categories = {
   comics: { title: "コミック・映画", emoji: "🎬", desc: "LGBTQ+テーマの作品レビューと感想" },
 };
 
+const subcategories: Record<string, string[]> = {
+  board: ['悩み相談（カミングアウト／学校生活／職場環境）', '求人募集', '法律・手続き関係', '講座・勉強会', 'その他'],
+  music: ['ジャズ', 'Jポップ', 'ポップス', 'R&B', 'ロック', 'AOR', 'クラシック', 'Hip-Hop', 'ラップ', 'ファンク', 'レゲエ', 'ワールド・ミュージック', 'AI生成音楽', 'その他'],
+  shops: ['アパレル・ブティック', '雑貨店', 'レストラン・バー', '美容室・メイク', 'その他'],
+  tourism: [],
+  comics: ['映画', 'コミック', 'TVドラマ', '同人誌', 'その他'],
+  art: []
+};
+
 const NewPostForm: React.FC<NewPostFormProps> = ({
   categoryKey,
   onPostCreated,
@@ -34,6 +44,7 @@ const NewPostForm: React.FC<NewPostFormProps> = ({
     tags: '',
     images: [] as File[],
     youtubeUrl: '',
+    subcategory: '',
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -142,6 +153,7 @@ const NewPostForm: React.FC<NewPostFormProps> = ({
         visibility: 'public',
         youtube_url: formData.youtubeUrl || null,
         media_id: mediaId,
+        subcategory: formData.subcategory || null,
       };
 
       const response = await fetch(`${API_URL}/api/posts`, {
@@ -174,6 +186,7 @@ const NewPostForm: React.FC<NewPostFormProps> = ({
           tags: '',
           images: [],
           youtubeUrl: '',
+          subcategory: '',
         });
         setSubmitStartTime(null);
       } else {
@@ -238,6 +251,29 @@ const NewPostForm: React.FC<NewPostFormProps> = ({
               </p>
             </div>
           </div>
+
+          {subcategories[categoryKey as keyof typeof subcategories]?.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                サブカテゴリー
+              </label>
+              <Select 
+                value={formData.subcategory} 
+                onValueChange={(value) => setFormData({ ...formData, subcategory: value })}
+              >
+                <SelectTrigger className="border-pink-200 focus:border-pink-400">
+                  <SelectValue placeholder="選択してください..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {subcategories[categoryKey as keyof typeof subcategories].map((sub) => (
+                    <SelectItem key={sub} value={sub}>
+                      {sub}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
