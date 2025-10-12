@@ -31,10 +31,9 @@ interface Post {
 const tabs = [
   { key: "all", label: "すべて" },
   { key: "board", label: "掲示板" },
-  { key: "art", label: "アート" },
   { key: "music", label: "音楽" },
   { key: "shops", label: "お店" },
-  { key: "tours", label: "ツアー" },
+  { key: "tourism", label: "ツーリズム" },
   { key: "comics", label: "コミック・映画" },
 ];
 
@@ -64,10 +63,9 @@ const memberBenefits = [
 
 const categories = [
   { key: "board", title: "掲示板", desc: "悩み相談や雑談、生活の話題。", posts: 15230, emoji: "💬" },
-  { key: "art", title: "アート", desc: "イラスト・写真・映像作品の発表。", posts: 8932, emoji: "🎨" },
   { key: "music", title: "音楽", desc: "お気に入りや自作・AI曲の共有。", posts: 6240, emoji: "🎵" },
   { key: "shops", title: "お店", desc: "LGBTQフレンドリーなお店紹介。", posts: 1450, emoji: "🏬" },
-  { key: "tours", title: "ツアー", desc: "会員ガイドの交流型ツアー。", posts: 312, emoji: "📍" },
+  { key: "tourism", title: "ツーリズム", desc: "会員ガイドの交流型ツアー。", posts: 312, emoji: "📍" },
   { key: "comics", title: "コミック・映画", desc: "LGBTQ+テーマの作品レビューと感想。", posts: 2840, emoji: "🎬" },
 ];
 
@@ -107,15 +105,6 @@ const dummyPosts: Post[] = [
   },
   {
     id: 2,
-    title: "虹色のイラストを描きました",
-    body: "プライド月間に向けて、虹をテーマにしたデジタルアートを制作しました。色彩豊かな作品になったと思います。",
-    user_id: 2,
-    visibility: "public",
-    created_at: "2024-09-14T15:45:00Z",
-    category: "art"
-  },
-  {
-    id: 3,
     title: "おすすめのLGBTQ+楽曲",
     body: "最近聴いているアーティストの楽曲がとても心に響きます。同じような音楽が好きな方と語り合いたいです。",
     user_id: 3,
@@ -139,7 +128,7 @@ const dummyPosts: Post[] = [
     user_id: 5,
     visibility: "public",
     created_at: "2024-09-11T18:30:00Z",
-    category: "tours"
+    category: "tourism"
   },
   {
     id: 6,

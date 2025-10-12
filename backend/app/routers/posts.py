@@ -46,10 +46,9 @@ async def read_posts(
     if cat_value:
         category_map = {
             "board": "board",
-            "art": "art", 
             "music": "music",
             "shops": "shops",
-            "tours": "tours",
+            "tourism": "tourism",
             "comics": "comics"
         }
         hashtag = category_map.get(cat_value, cat_value)
