@@ -509,7 +509,7 @@ const HomePage: React.FC = () => {
                         {post.media_urls && post.media_urls.length > 0 ? (
                           <div className="h-40 overflow-hidden rounded-t-lg">
                             <img 
-                              src={`${API_URL}${post.media_urls[0]}`} 
+                              src={`${post.media_urls[0].startsWith('http') ? '' : (post.media_urls[0].startsWith('/assets/') || post.media_urls[0].startsWith('/images/') ? '' : API_URL)}${post.media_urls[0]}`}
                               alt={post.title || '投稿画像'}
                               className="w-full h-full object-cover"
                             />
@@ -580,7 +580,7 @@ const HomePage: React.FC = () => {
                           <div className="space-y-3">
                             <div className="h-64 overflow-hidden rounded-lg">
                               <img 
-                                src={`${API_URL}${post.media_urls[0]}`} 
+                                src={`${post.media_urls[0].startsWith('http') ? '' : (post.media_urls[0].startsWith('/assets/') || post.media_urls[0].startsWith('/images/') ? '' : API_URL)}${post.media_urls[0]}`} 
                                 alt={post.title || '投稿画像'}
                                 className="w-full h-full object-cover"
                               />
@@ -590,7 +590,7 @@ const HomePage: React.FC = () => {
                                 {post.media_urls.slice(1, 5).map((url, idx) => (
                                   <img 
                                     key={idx}
-                                    src={`${API_URL}${url}`} 
+                                    src={`${url.startsWith('http') ? '' : (url.startsWith('/assets/') || url.startsWith('/images/') ? '' : API_URL)}${url}`} 
                                     alt={`追加画像 ${idx + 1}`}
                                     className="w-full h-20 object-cover rounded"
                                   />

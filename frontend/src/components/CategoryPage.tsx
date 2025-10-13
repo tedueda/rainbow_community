@@ -413,7 +413,12 @@ const CategoryPage: React.FC = () => {
                 const ytUrl = post.youtube_url || extractYouTubeUrlFromText(post.body || '') || '';
                 const ytThumb = !firstMedia ? getYouTubeThumbnail(ytUrl) : null;
                 const imageSrc = firstMedia || ytThumb || getCategoryPlaceholder(post.category);
-                const finalSrc = imageSrc.startsWith('http') || imageSrc.startsWith('/') ? imageSrc : `${API_URL}${imageSrc}`;
+                const finalSrc =
+                  imageSrc.startsWith('http')
+                    ? imageSrc
+                    : imageSrc.startsWith('/assets/')
+                      ? imageSrc
+                      : `${API_URL}${imageSrc}`;
                 return (
                   <div className="aspect-[3/2] w-full h-[220px] overflow-hidden rounded-t-2xl">
                     <img
