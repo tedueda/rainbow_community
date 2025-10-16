@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Heart, User, PlusCircle, LogIn, LogOut } from 'lucide-react';
+import { Heart, User, PlusCircle, LogIn, LogOut, Lock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const Header: React.FC = () => {
@@ -37,6 +37,12 @@ const Header: React.FC = () => {
             <Link to="/blog">
               <Button variant="ghost" className="text-purple-700 hover:text-purple-900 hover:bg-purple-50 text-sm sm:text-base">
                 ブログ
+              </Button>
+            </Link>
+            <Link to="/matching">
+              <Button variant="ghost" className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 text-sm sm:text-base">
+                <Lock className="h-4 w-4 mr-1 sm:mr-2" />
+                マッチング <span className="ml-1 text-[10px] sm:text-xs text-pink-600 font-semibold">Premium</span>
               </Button>
             </Link>
             <Link to="/profile">

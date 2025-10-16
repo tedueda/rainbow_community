@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from app.routers import auth, users, profiles, posts, comments, reactions, follows, notifications, media
+from app.routers import auth, users, profiles, posts, comments, reactions, follows, notifications, media, billing, matching
 from app.database import Base, engine
 import os
 from pathlib import Path
@@ -56,6 +56,13 @@ app.include_router(reactions.router)
 app.include_router(follows.router)
 app.include_router(notifications.router)
 app.include_router(media.router)
+app.include_router(billing.router)
+app.include_router(matching.router)
+
+@app.on_event("startup")
+def on_startup():
+    # 開発/SQLite環境では自動的にテーブルを作成（既存ならスキップ）
+    Base.metadata.create_all(bind=engine)
 
 @app.get("/healthz")
 async def healthz():
