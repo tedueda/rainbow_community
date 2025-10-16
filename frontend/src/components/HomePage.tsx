@@ -754,6 +754,14 @@ const HomePage: React.FC = () => {
                   <Button 
                     className="w-full bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white group-hover:shadow-md transition-all"
                     size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (benefit.id === 'matching' && benefit.link) {
+                        navigate(benefit.link);
+                      } else {
+                        setShowConstructionModal(true);
+                      }
+                    }}
                   >
                     利用する
                     <ArrowRight className="h-3 w-3 ml-1" />

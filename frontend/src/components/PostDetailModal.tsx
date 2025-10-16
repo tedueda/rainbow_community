@@ -256,7 +256,10 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
     }
   }, [isOpen, post, onClose]);
 
-  const canEdit = !isLoading && !!currentUser && !isAnonymous && currentUser.id === post.user_id;
+  // Normalize IDs to numbers to avoid strict equality issues (API may return strings)
+  const currentUserId = currentUser?.id != null ? Number(currentUser.id) : null;
+  const postAuthorId = post?.user_id != null ? Number(post.user_id) : null;
+  const canEdit = !isLoading && !!currentUser && !isAnonymous && currentUserId != null && postAuthorId != null && currentUserId === postAuthorId;
 
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
@@ -519,10 +522,10 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
           <div className="mb-2 text-xs text-gray-600 bg-yellow-50 border border-yellow-200 rounded p-2">
             <div className="font-semibold mb-1">[DEBUG] Permission state</div>
             <div className="flex flex-wrap gap-3">
-              <span>currentUserId: {currentUser?.id ?? 'null'}</span>
-              <span>postUserId: {post.user_id}</span>
+              <span>currentUserId: {currentUserId ?? 'null'}</span>
+              <span>postUserId: {postAuthorId}</span>
               <span>isAnonymous: {String(isAnonymous)}</span>
-              <span>canEdit: {String(!!currentUser && !isAnonymous && currentUser.id === post.user_id)}</span>
+              <span>canEdit: {String(canEdit)}</span>
             </div>
           </div>
         )}

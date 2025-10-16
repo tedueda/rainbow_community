@@ -11,10 +11,14 @@ import CreatePost from './components/CreatePost';
 import CategoryPage from './components/CategoryPage';
 import BlogListPage from './components/BlogListPage';
 import BlogDetailPage from './components/BlogDetailPage';
-// import MatchingPage from './components/MatchingPage';
-// import VirtualWeddingPage from './components/VirtualWeddingPage';
-// import DonationPage from './components/DonationPage';
 import NewsPage from './components/NewsPage';
+import PremiumGate from './components/matching/PremiumGate';
+import MatchingLayout from './components/matching/MatchingLayout';
+import MatchingSearchPage from './components/matching/MatchingSearchPage';
+import MatchingMatchesPage from './components/matching/MatchingMatchesPage';
+import MatchingChatsPage from './components/matching/MatchingChatsPage';
+import MatchingProfilePage from './components/matching/MatchingProfilePage';
+import MatchingChatDetailPage from './components/matching/MatchingChatDetailPage';
 
 
 const FeedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -105,6 +109,20 @@ function AppContent() {
             </FeedRoute>
           } />
           */}
+          {/* Matching routes */}
+          <Route path="/matching" element={
+            <FeedRoute>
+              <PremiumGate>
+                <MatchingLayout />
+              </PremiumGate>
+            </FeedRoute>
+          }>
+            <Route index element={<MatchingSearchPage />} />
+            <Route path="matches" element={<MatchingMatchesPage />} />
+            <Route path="chats" element={<MatchingChatsPage />} />
+            <Route path="chats/:id" element={<MatchingChatDetailPage />} />
+            <Route path="profile" element={<MatchingProfilePage />} />
+          </Route>
           <Route path="/news" element={
             <FeedRoute>
               <NewsPage />

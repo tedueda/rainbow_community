@@ -63,6 +63,7 @@ class Profile(Base):
     user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     handle = Column(String, unique=True, nullable=False)
     bio = Column(Text)
+    avatar_url = Column(String(500))
     orientation_id = Column(Integer, ForeignKey("orientations.id"), default=1)
     gender_id = Column(Integer, ForeignKey("genders.id"), default=1)
     pronoun_id = Column(Integer, ForeignKey("pronouns.id"), default=1)
@@ -334,3 +335,86 @@ class UserAward(Base):
     
     user = relationship("User", back_populates="user_awards")
     award = relationship("Award", back_populates="user_awards")
+
+# ===== Matching domain models =====
+
+class MatchingProfile(Base):
+    __tablename__ = "matching_profiles"
+
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    display_flag = Column(Boolean, nullable=False, default=True)
+    prefecture = Column(String(100), nullable=False, default="")
+    age_band = Column(String(50))  # e.g., '20s_early', '30s_late'
+    occupation = Column(String(100))
+    income_range = Column(String(100))
+    meet_pref = Column(String(50))  # e.g., 'meet_first'
+    bio = Column(Text)
+    identity = Column(String(50))  # e.g., 'gay','lesbian','transgender','bisexual','questioning'
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    user = relationship("User")
+
+
+class Hobby(Base):
+    __tablename__ = "hobbies"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), unique=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class MatchingProfileHobby(Base):
+    __tablename__ = "matching_profile_hobbies"
+
+    profile_id = Column(Integer, ForeignKey("matching_profiles.user_id"), primary_key=True)
+    hobby_id = Column(Integer, ForeignKey("hobbies.id"), primary_key=True)
+
+
+class Like(Base):
+    __tablename__ = "likes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    from_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    to_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    status = Column(String(20), nullable=False, default="active")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint("from_user_id", "to_user_id", name="uniq_like_from_to"),
+        CheckConstraint("status IN ('active','withdrawn')", name="check_like_status"),
+    )
+
+
+class Match(Base):
+    __tablename__ = "matches"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_a_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_b_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    active_flag = Column(Boolean, nullable=False, default=True)
+
+    __table_args__ = (
+        UniqueConstraint("user_a_id", "user_b_id", name="uniq_match_pair"),
+        CheckConstraint("user_a_id != user_b_id", name="check_match_distinct_users"),
+    )
+
+
+class Chat(Base):
+    __tablename__ = "chats"
+
+    id = Column(Integer, primary_key=True, index=True)
+    match_id = Column(Integer, ForeignKey("matches.id"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    chat_id = Column(Integer, ForeignKey("chats.id"), nullable=False)
+    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    body = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    read_at = Column(DateTime(timezone=True))
