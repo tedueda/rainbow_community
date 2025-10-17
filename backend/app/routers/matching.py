@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSock
 from sqlalchemy import and_, or_, func, select
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models import User, MatchingProfile, Hobby, MatchingProfileHobby, Like, Match, Chat, Message
+from app.models import User, MatchingProfile, Hobby, MatchingProfileHobby, MatchingProfileImage, Like, Match, Chat, Message
 from app.auth import get_current_active_user
 from jose import jwt, JWTError
 import os
@@ -31,6 +31,12 @@ def get_my_profile(current_user: User = Depends(require_premium), db: Session = 
         .filter(MatchingProfileHobby.profile_id == current_user.id)
         .all()
     )
+    images = (
+        db.query(MatchingProfileImage)
+        .filter(MatchingProfileImage.profile_id == current_user.id)
+        .order_by(MatchingProfileImage.display_order)
+        .all()
+    )
     return {
         "user_id": prof.user_id,
         "display_flag": prof.display_flag,
@@ -44,6 +50,7 @@ def get_my_profile(current_user: User = Depends(require_premium), db: Session = 
         "identity": prof.identity,
         "avatar_url": prof.avatar_url,
         "hobbies": [h[0] for h in hobbies],
+        "images": [{"id": img.id, "url": img.image_url, "order": img.display_order} for img in images],
     }
 
 
@@ -384,3 +391,68 @@ async def ws_chat(websocket: WebSocket):
             chat_connections.get(chat_id, set()).discard(websocket)
         except Exception:
             pass
+
+
+# ===== プロフィール画像管理 =====
+
+@router.post("/profiles/me/images")
+def add_profile_image(payload: dict, current_user: User = Depends(require_premium), db: Session = Depends(get_db)):
+    """プロフィール画像を追加（最大5枚）"""
+    image_url = payload.get("image_url")
+    if not image_url:
+        raise HTTPException(status_code=400, detail="image_url is required")
+    
+    # 現在の画像数を確認
+    count = db.query(MatchingProfileImage).filter(MatchingProfileImage.profile_id == current_user.id).count()
+    if count >= 5:
+        raise HTTPException(status_code=400, detail="Maximum 5 images allowed")
+    
+    # 次の display_order を決定
+    max_order = db.query(func.max(MatchingProfileImage.display_order)).filter(
+        MatchingProfileImage.profile_id == current_user.id
+    ).scalar()
+    next_order = (max_order + 1) if max_order is not None else 0
+    
+    img = MatchingProfileImage(
+        profile_id=current_user.id,
+        image_url=image_url,
+        display_order=next_order
+    )
+    db.add(img)
+    db.commit()
+    db.refresh(img)
+    return {"id": img.id, "url": img.image_url, "order": img.display_order}
+
+
+@router.delete("/profiles/me/images/{image_id}")
+def delete_profile_image(image_id: int, current_user: User = Depends(require_premium), db: Session = Depends(get_db)):
+    """プロフィール画像を削除"""
+    img = db.query(MatchingProfileImage).filter(
+        MatchingProfileImage.id == image_id,
+        MatchingProfileImage.profile_id == current_user.id
+    ).first()
+    if not img:
+        raise HTTPException(status_code=404, detail="Image not found")
+    
+    db.delete(img)
+    db.commit()
+    return {"status": "ok"}
+
+
+@router.put("/profiles/me/images/reorder")
+def reorder_profile_images(payload: dict, current_user: User = Depends(require_premium), db: Session = Depends(get_db)):
+    """プロフィール画像の順序を変更"""
+    image_ids = payload.get("image_ids", [])
+    if not isinstance(image_ids, list) or len(image_ids) > 5:
+        raise HTTPException(status_code=400, detail="Invalid image_ids")
+    
+    for idx, img_id in enumerate(image_ids):
+        img = db.query(MatchingProfileImage).filter(
+            MatchingProfileImage.id == img_id,
+            MatchingProfileImage.profile_id == current_user.id
+        ).first()
+        if img:
+            img.display_order = idx
+    
+    db.commit()
+    return {"status": "ok"}
