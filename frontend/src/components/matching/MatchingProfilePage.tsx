@@ -214,7 +214,11 @@ const MatchingProfilePage: React.FC = () => {
                   <div className="w-full h-64 bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={(profile.images || [])[currentImageIndex]?.url}
+                      src={(() => {
+                        const u = (profile.images || [])[currentImageIndex]?.url;
+                        if (!u) return '';
+                        return u.startsWith('http') ? u : `${API_URL}${u}`;
+                      })()}
                       alt={`プロフィール画像 ${currentImageIndex + 1}`}
                       className="max-w-full max-h-full object-contain"
                     />
