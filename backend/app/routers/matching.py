@@ -31,24 +31,32 @@ def get_my_profile(current_user: User = Depends(require_premium), db: Session = 
         .filter(MatchingProfileHobby.profile_id == current_user.id)
         .all()
     )
-    images = (
-        db.query(MatchingProfileImage)
-        .filter(MatchingProfileImage.profile_id == current_user.id)
-        .order_by(MatchingProfileImage.display_order)
-        .all()
-    )
+    
+    # 画像取得（テーブルが存在しない場合はスキップ）
+    images = []
+    try:
+        images = (
+            db.query(MatchingProfileImage)
+            .filter(MatchingProfileImage.profile_id == current_user.id)
+            .order_by(MatchingProfileImage.display_order)
+            .all()
+        )
+    except Exception:
+        # matching_profile_images テーブルがまだ存在しない場合
+        pass
+    
     return {
         "user_id": prof.user_id,
         "display_flag": prof.display_flag,
-        "prefecture": prof.prefecture,
-        "age_band": prof.age_band,
-        "occupation": prof.occupation,
-        "income_range": prof.income_range,
-        "meet_pref": prof.meet_pref,
-        "meeting_style": prof.meeting_style or prof.meet_pref,
-        "bio": prof.bio,
-        "identity": prof.identity,
-        "avatar_url": prof.avatar_url,
+        "prefecture": prof.prefecture or "",
+        "age_band": prof.age_band or "",
+        "occupation": prof.occupation or "",
+        "income_range": prof.income_range or "",
+        "meet_pref": prof.meet_pref or "",
+        "meeting_style": getattr(prof, 'meeting_style', None) or prof.meet_pref or "",
+        "bio": prof.bio or "",
+        "identity": prof.identity or "",
+        "avatar_url": getattr(prof, 'avatar_url', None) or "",
         "hobbies": [h[0] for h in hobbies],
         "images": [{"id": img.id, "url": img.image_url, "order": img.display_order} for img in images],
     }
@@ -80,8 +88,14 @@ def update_my_profile(payload: dict, current_user: User = Depends(require_premiu
     if "meeting_style" in payload and payload["meeting_style"] and payload["meeting_style"] not in VALID_MEETING_STYLES:
         raise HTTPException(status_code=422, detail=f"Invalid meeting_style. Must be one of: {VALID_MEETING_STYLES}")
     
-    for field in ["prefecture", "age_band", "occupation", "income_range", "meet_pref", "meeting_style", "bio", "identity", "avatar_url"]:
+    # フィールド更新（カラムが存在しない場合はスキップ）
+    for field in ["prefecture", "age_band", "occupation", "income_range", "meet_pref", "bio", "identity"]:
         if field in payload:
+            setattr(prof, field, payload.get(field))
+    
+    # 新しいカラム（マイグレーション後のみ）
+    for field in ["meeting_style", "avatar_url"]:
+        if field in payload and hasattr(prof, field):
             setattr(prof, field, payload.get(field))
     # hobbies
     if "hobbies" in payload and isinstance(payload["hobbies"], list):
@@ -398,61 +412,76 @@ async def ws_chat(websocket: WebSocket):
 @router.post("/profiles/me/images")
 def add_profile_image(payload: dict, current_user: User = Depends(require_premium), db: Session = Depends(get_db)):
     """プロフィール画像を追加（最大5枚）"""
-    image_url = payload.get("image_url")
-    if not image_url:
-        raise HTTPException(status_code=400, detail="image_url is required")
-    
-    # 現在の画像数を確認
-    count = db.query(MatchingProfileImage).filter(MatchingProfileImage.profile_id == current_user.id).count()
-    if count >= 5:
-        raise HTTPException(status_code=400, detail="Maximum 5 images allowed")
-    
-    # 次の display_order を決定
-    max_order = db.query(func.max(MatchingProfileImage.display_order)).filter(
-        MatchingProfileImage.profile_id == current_user.id
-    ).scalar()
-    next_order = (max_order + 1) if max_order is not None else 0
-    
-    img = MatchingProfileImage(
-        profile_id=current_user.id,
-        image_url=image_url,
-        display_order=next_order
-    )
-    db.add(img)
-    db.commit()
-    db.refresh(img)
-    return {"id": img.id, "url": img.image_url, "order": img.display_order}
+    try:
+        image_url = payload.get("image_url")
+        if not image_url:
+            raise HTTPException(status_code=400, detail="image_url is required")
+        
+        # 現在の画像数を確認
+        count = db.query(MatchingProfileImage).filter(MatchingProfileImage.profile_id == current_user.id).count()
+        if count >= 5:
+            raise HTTPException(status_code=400, detail="Maximum 5 images allowed")
+        
+        # 次の display_order を決定
+        max_order = db.query(func.max(MatchingProfileImage.display_order)).filter(
+            MatchingProfileImage.profile_id == current_user.id
+        ).scalar()
+        next_order = (max_order + 1) if max_order is not None else 0
+        
+        img = MatchingProfileImage(
+            profile_id=current_user.id,
+            image_url=image_url,
+            display_order=next_order
+        )
+        db.add(img)
+        db.commit()
+        db.refresh(img)
+        return {"id": img.id, "url": img.image_url, "order": img.display_order}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Image table not ready. Please run migration first: {str(e)}")
 
 
 @router.delete("/profiles/me/images/{image_id}")
 def delete_profile_image(image_id: int, current_user: User = Depends(require_premium), db: Session = Depends(get_db)):
     """プロフィール画像を削除"""
-    img = db.query(MatchingProfileImage).filter(
-        MatchingProfileImage.id == image_id,
-        MatchingProfileImage.profile_id == current_user.id
-    ).first()
-    if not img:
-        raise HTTPException(status_code=404, detail="Image not found")
-    
-    db.delete(img)
-    db.commit()
-    return {"status": "ok"}
+    try:
+        img = db.query(MatchingProfileImage).filter(
+            MatchingProfileImage.id == image_id,
+            MatchingProfileImage.profile_id == current_user.id
+        ).first()
+        if not img:
+            raise HTTPException(status_code=404, detail="Image not found")
+        
+        db.delete(img)
+        db.commit()
+        return {"status": "ok"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Image table not ready. Please run migration first: {str(e)}")
 
 
 @router.put("/profiles/me/images/reorder")
 def reorder_profile_images(payload: dict, current_user: User = Depends(require_premium), db: Session = Depends(get_db)):
     """プロフィール画像の順序を変更"""
-    image_ids = payload.get("image_ids", [])
-    if not isinstance(image_ids, list) or len(image_ids) > 5:
-        raise HTTPException(status_code=400, detail="Invalid image_ids")
-    
-    for idx, img_id in enumerate(image_ids):
-        img = db.query(MatchingProfileImage).filter(
-            MatchingProfileImage.id == img_id,
-            MatchingProfileImage.profile_id == current_user.id
-        ).first()
-        if img:
-            img.display_order = idx
-    
-    db.commit()
-    return {"status": "ok"}
+    try:
+        image_ids = payload.get("image_ids", [])
+        if not isinstance(image_ids, list) or len(image_ids) > 5:
+            raise HTTPException(status_code=400, detail="Invalid image_ids")
+        
+        for idx, img_id in enumerate(image_ids):
+            img = db.query(MatchingProfileImage).filter(
+                MatchingProfileImage.id == img_id,
+                MatchingProfileImage.profile_id == current_user.id
+            ).first()
+            if img:
+                img.display_order = idx
+        
+        db.commit()
+        return {"status": "ok"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Image table not ready. Please run migration first: {str(e)}")
