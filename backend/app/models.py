@@ -347,9 +347,11 @@ class MatchingProfile(Base):
     age_band = Column(String(50))  # e.g., '20s_early', '30s_late'
     occupation = Column(String(100))
     income_range = Column(String(100))
-    meet_pref = Column(String(50))  # e.g., 'meet_first'
+    meet_pref = Column(String(50))  # 旧フィールド（互換性のため残す）
+    meeting_style = Column(String(50))  # 新フィールド: 'msg_first', 'voice_after', etc.
     bio = Column(Text)
-    identity = Column(String(50))  # e.g., 'gay','lesbian','transgender','bisexual','questioning'
+    identity = Column(String(50))  # e.g., 'gay','lesbian','transgender','bisexual','questioning','other'
+    avatar_url = Column(String(500))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 

@@ -1,5 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  PREFECTURES,
+  AGE_BANDS,
+  OCCUPATIONS,
+  INCOME_RANGES,
+  MEET_PREFS,
+  IDENTITIES,
+  HOBBIES,
+} from '@/constants/matchingOptions';
 
 type Profile = {
   user_id: number;
@@ -8,7 +17,7 @@ type Profile = {
   age_band?: string;
   occupation?: string;
   income_range?: string;
-  meet_pref?: string;
+  meeting_style?: string;
   bio?: string;
   identity?: string;
   avatar_url?: string;
@@ -32,6 +41,24 @@ const MatchingProfilePage: React.FC = () => {
       const res = await fetch(`${API_URL}/api/matching/profiles/me`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
+      if (res.status === 404) {
+        // プロフィールが存在しない場合は空のフォームを表示
+        setProfile({
+          user_id: 0,
+          display_flag: false,
+          prefecture: '',
+          age_band: '',
+          occupation: '',
+          income_range: '',
+          meeting_style: '',
+          bio: '',
+          identity: '',
+          avatar_url: '',
+          hobbies: [],
+        });
+        setLoading(false);
+        return;
+      }
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
       setProfile({
@@ -41,7 +68,7 @@ const MatchingProfilePage: React.FC = () => {
         age_band: data.age_band || '',
         occupation: data.occupation || '',
         income_range: data.income_range || '',
-        meet_pref: data.meet_pref || '',
+        meeting_style: data.meeting_style || data.meet_pref || '',
         bio: data.bio || '',
         identity: data.identity || '',
         avatar_url: data.avatar_url || '',
@@ -64,7 +91,7 @@ const MatchingProfilePage: React.FC = () => {
         age_band: profile.age_band,
         occupation: profile.occupation,
         income_range: profile.income_range,
-        meet_pref: profile.meet_pref,
+        meeting_style: profile.meeting_style,
         bio: profile.bio,
         identity: profile.identity,
         avatar_url: profile.avatar_url,
@@ -144,7 +171,7 @@ const MatchingProfilePage: React.FC = () => {
                 <button onClick={() => fileInputRef.current?.click()} className="px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200">画像を選択</button>
                 <button onClick={saveProfile} disabled={saving} className="px-3 py-1 text-sm bg-pink-600 text-white rounded hover:bg-pink-700 disabled:opacity-60">保存</button>
               </div>
-              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files && e.target.files[0] && uploadAvatar(e.target.files[0])} />
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" aria-label="プロフィール画像を選択" onChange={(e) => e.target.files && e.target.files[0] && uploadAvatar(e.target.files[0])} />
             </div>
 
             <div className="flex items-center gap-2">
@@ -154,43 +181,125 @@ const MatchingProfilePage: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs text-gray-600 mb-1">都道府県</label>
-                <input value={profile.prefecture} onChange={(e) => setProfile({ ...profile, prefecture: e.target.value })} className="w-full border rounded px-3 py-2 text-sm" />
+                <label htmlFor="prefecture" className="block text-xs text-gray-600 mb-1">都道府県</label>
+                <select
+                  id="prefecture"
+                  value={profile.prefecture}
+                  onChange={(e) => setProfile({ ...profile, prefecture: e.target.value })}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                >
+                  <option value="">選択してください</option>
+                  {PREFECTURES.map((p) => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">年代</label>
-                <input value={profile.age_band} onChange={(e) => setProfile({ ...profile, age_band: e.target.value })} className="w-full border rounded px-3 py-2 text-sm" />
+                <label htmlFor="age_band" className="block text-xs text-gray-600 mb-1">年代</label>
+                <select
+                  id="age_band"
+                  value={profile.age_band}
+                  onChange={(e) => setProfile({ ...profile, age_band: e.target.value })}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                >
+                  <option value="">選択してください</option>
+                  {AGE_BANDS.map((a) => (
+                    <option key={a.value} value={a.value}>{a.label}</option>
+                  ))}
+                </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">職種</label>
-                <input value={profile.occupation} onChange={(e) => setProfile({ ...profile, occupation: e.target.value })} className="w-full border rounded px-3 py-2 text-sm" />
+                <label htmlFor="occupation" className="block text-xs text-gray-600 mb-1">職種</label>
+                <select
+                  id="occupation"
+                  value={profile.occupation}
+                  onChange={(e) => setProfile({ ...profile, occupation: e.target.value })}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                >
+                  <option value="">選択してください</option>
+                  {OCCUPATIONS.map((o) => (
+                    <option key={o} value={o}>{o}</option>
+                  ))}
+                </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">年収</label>
-                <input value={profile.income_range} onChange={(e) => setProfile({ ...profile, income_range: e.target.value })} className="w-full border rounded px-3 py-2 text-sm" />
+                <label htmlFor="income_range" className="block text-xs text-gray-600 mb-1">年収</label>
+                <select
+                  id="income_range"
+                  value={profile.income_range}
+                  onChange={(e) => setProfile({ ...profile, income_range: e.target.value })}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                >
+                  <option value="">選択してください</option>
+                  {INCOME_RANGES.map((i) => (
+                    <option key={i} value={i}>{i}</option>
+                  ))}
+                </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">出会い方</label>
-                <input value={profile.meet_pref} onChange={(e) => setProfile({ ...profile, meet_pref: e.target.value })} className="w-full border rounded px-3 py-2 text-sm" />
+                <label htmlFor="meeting_style" className="block text-xs text-gray-600 mb-1">出会い方</label>
+                <select
+                  id="meeting_style"
+                  value={profile.meeting_style}
+                  onChange={(e) => setProfile({ ...profile, meeting_style: e.target.value })}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                >
+                  <option value="">選択してください</option>
+                  {MEET_PREFS.map((m) => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">アイデンティティ</label>
-                <input value={profile.identity} onChange={(e) => setProfile({ ...profile, identity: e.target.value })} className="w-full border rounded px-3 py-2 text-sm" />
+                <label htmlFor="identity" className="block text-xs text-gray-600 mb-1">アイデンティティ</label>
+                <select
+                  id="identity"
+                  value={profile.identity}
+                  onChange={(e) => setProfile({ ...profile, identity: e.target.value })}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                >
+                  <option value="">選択してください</option>
+                  {IDENTITIES.map((i) => (
+                    <option key={i.value} value={i.value}>{i.label}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs text-gray-600 mb-1">趣味タグ（カンマ区切り）</label>
-              <input
-                value={(profile.hobbies || []).join(', ')}
-                onChange={(e) => setProfile({ ...profile, hobbies: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) })}
-                className="w-full border rounded px-3 py-2 text-sm"
-              />
+              <label htmlFor="hobbies" className="block text-xs text-gray-600 mb-1">趣味（最大20個まで選択可）</label>
+              <div className="border rounded px-3 py-2 min-h-[60px] flex flex-wrap gap-2">
+                {(profile.hobbies || []).map((h) => (
+                  <span
+                    key={h}
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-pink-100 text-pink-700 rounded text-xs cursor-pointer hover:bg-pink-200"
+                    onClick={() => setProfile({ ...profile, hobbies: (profile.hobbies || []).filter((x) => x !== h) })}
+                  >
+                    {h} <span className="text-pink-500">×</span>
+                  </span>
+                ))}
+              </div>
+              <select
+                id="hobbies"
+                value=""
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val && !(profile.hobbies || []).includes(val) && (profile.hobbies || []).length < 20) {
+                    setProfile({ ...profile, hobbies: [...(profile.hobbies || []), val] });
+                  }
+                }}
+                className="w-full border rounded px-3 py-2 text-sm mt-2"
+              >
+                <option value="">趣味を追加...</option>
+                {HOBBIES.filter((h) => !(profile.hobbies || []).includes(h)).map((h) => (
+                  <option key={h} value={h}>{h}</option>
+                ))}
+              </select>
             </div>
 
             <div>
-              <label className="block text-xs text-gray-600 mb-1">自己紹介（連絡先記載は禁止）</label>
-              <textarea value={profile.bio} onChange={(e) => setProfile({ ...profile, bio: e.target.value })} className="w-full border rounded px-3 py-2 text-sm h-28" />
+              <label htmlFor="bio" className="block text-xs text-gray-600 mb-1">自己紹介（連絡先記載は禁止）</label>
+              <textarea id="bio" value={profile.bio} onChange={(e) => setProfile({ ...profile, bio: e.target.value })} className="w-full border rounded px-3 py-2 text-sm h-28" />
             </div>
 
             <div className="flex gap-2">

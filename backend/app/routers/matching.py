@@ -39,6 +39,7 @@ def get_my_profile(current_user: User = Depends(require_premium), db: Session = 
         "occupation": prof.occupation,
         "income_range": prof.income_range,
         "meet_pref": prof.meet_pref,
+        "meeting_style": prof.meeting_style or prof.meet_pref,
         "bio": prof.bio,
         "identity": prof.identity,
         "avatar_url": prof.avatar_url,
@@ -59,7 +60,20 @@ def update_my_profile(payload: dict, current_user: User = Depends(require_premiu
         banned_patterns = ["@", "line:", "LINE:", "+81", "tel:", "電話", "gmail.com", "icloud.com"]
         if any(pat in bio for pat in banned_patterns):
             raise HTTPException(status_code=400, detail="bio contains prohibited contact info")
-    for field in ["prefecture", "age_band", "occupation", "income_range", "meet_pref", "bio", "identity", "avatar_url"]:
+    # バリデーション用の定数
+    VALID_AGE_BANDS = ['10s_late', '20s_early', '20s_late', '30s_early', '30s_late', '40s_early', '40s_late', '50s_early', '50s_late', '60s_early', '60s_late', '70plus']
+    VALID_IDENTITIES = ['gay', 'lesbian', 'bisexual', 'transgender', 'questioning', 'other']
+    VALID_MEETING_STYLES = ['msg_first', 'voice_after', 'video_after', 'cafe_meal', 'via_hobby', 'meet_if_conditions', 'meet_first', 'online_only']
+    
+    # バリデーション
+    if "age_band" in payload and payload["age_band"] and payload["age_band"] not in VALID_AGE_BANDS:
+        raise HTTPException(status_code=422, detail=f"Invalid age_band. Must be one of: {VALID_AGE_BANDS}")
+    if "identity" in payload and payload["identity"] and payload["identity"] not in VALID_IDENTITIES:
+        raise HTTPException(status_code=422, detail=f"Invalid identity. Must be one of: {VALID_IDENTITIES}")
+    if "meeting_style" in payload and payload["meeting_style"] and payload["meeting_style"] not in VALID_MEETING_STYLES:
+        raise HTTPException(status_code=422, detail=f"Invalid meeting_style. Must be one of: {VALID_MEETING_STYLES}")
+    
+    for field in ["prefecture", "age_band", "occupation", "income_range", "meet_pref", "meeting_style", "bio", "identity", "avatar_url"]:
         if field in payload:
             setattr(prof, field, payload.get(field))
     # hobbies
