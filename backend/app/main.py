@@ -83,6 +83,23 @@ def health(db=Depends(get_db)):
     return {"status": "ok", "db": "ok"}
 
 
+@app.get("/api/_routes")
+def list_routes():
+    try:
+        return {
+            "routes": [
+                {
+                    "path": getattr(r, "path", None),
+                    "name": getattr(r, "name", None),
+                    "methods": list(getattr(r, "methods", []) or []),
+                }
+                for r in app.routes
+            ]
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
 @app.get("/api/categories/{name}/posts")
 def posts_by_category(name: str, limit: int = 20, offset: int = 0, db=Depends(get_db)):
     sql = text("""
