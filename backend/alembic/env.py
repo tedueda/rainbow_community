@@ -12,11 +12,13 @@ if config.config_file_name is not None:
 
 # === DATABASE_URL 読み込み ===
 db_url = os.getenv("DATABASE_URL") or os.getenv("DB_MIGRATE_URL")
-if not db_url:
-    raise RuntimeError("❌ DATABASE_URL が設定されていません。Secrets Managerまたは環境変数を確認してください。")
 
-# ログに出力して確認（App Runnerログで見える）
-print(f"🔗 Using DATABASE_URL: {db_url}", flush=True)
+# 開発環境では SQLite フォールバック
+if not db_url:
+    db_url = "sqlite:///./lgbtq_community_dev.db"
+    print("⚠️  DATABASE_URL が未設定のため、開発用 SQLite を使用します", flush=True)
+else:
+    print(f"🔗 Using DATABASE_URL: {db_url}", flush=True)
 
 config.set_main_option("sqlalchemy.url", db_url)
 

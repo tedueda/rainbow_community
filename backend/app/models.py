@@ -100,6 +100,37 @@ class MediaAsset(Base):
     
     user = relationship("User", back_populates="media_assets")
 
+class Category(Base):
+    __tablename__ = "categories"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False, unique=True)
+    slug = Column(String(100), nullable=False, unique=True)
+    description = Column(Text)
+    icon = Column(String(100))  # Lucide icon name
+    order_index = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    subcategories = relationship("Subcategory", back_populates="category")
+    posts = relationship("Post", back_populates="category")
+
+class Subcategory(Base):
+    __tablename__ = "subcategories"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
+    name = Column(String(100), nullable=False)
+    slug = Column(String(100), nullable=False)
+    order_index = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    __table_args__ = (
+        UniqueConstraint('category_id', 'slug', name='uq_category_subcategory_slug'),
+    )
+    
+    category = relationship("Category", back_populates="subcategories")
+    posts = relationship("Post", back_populates="subcategory")
+
 class Post(Base):
     __tablename__ = "posts"
     
@@ -110,8 +141,15 @@ class Post(Base):
     visibility = Column(String(20), default="public")
     youtube_url = Column(String(500))
     media_id = Column(Integer, ForeignKey("media_assets.id"))
+    
+    # 新カテゴリーシステム（外部キー）
+    category_id = Column(Integer, ForeignKey("categories.id"))
+    subcategory_id = Column(Integer, ForeignKey("subcategories.id"))
+    
+    # 旧カテゴリー（後方互換性のため残す、後で削除予定）
     category = Column(String(50))
     subcategory = Column(String(100))
+    
     post_type = Column(String(20), server_default='post', nullable=False)
     slug = Column(String(200), unique=True, index=True)
     status = Column(String(20), server_default='published', nullable=False)
@@ -132,6 +170,10 @@ class Post(Base):
     media = relationship("MediaAsset")
     media_assets = relationship("MediaAsset", secondary="post_media", order_by="PostMedia.order_index")
     tourism_details = relationship("PostTourism", back_populates="post", uselist=False)
+    
+    # 新カテゴリーとのリレーション
+    category_rel = relationship("Category", back_populates="posts")
+    subcategory_rel = relationship("Subcategory", back_populates="posts")
 
 class Comment(Base):
     __tablename__ = "comments"
