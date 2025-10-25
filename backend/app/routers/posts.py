@@ -4,7 +4,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import html
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import desc, func
 from typing import List, Optional
 from datetime import datetime, timedelta
@@ -36,7 +36,7 @@ async def read_posts(
     tag: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
-    query = db.query(Post)
+    query = db.query(Post).options(joinedload(Post.user))
     
     if visibility:
         query = query.filter(Post.visibility == visibility)
