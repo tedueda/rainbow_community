@@ -10,6 +10,7 @@ import PostFeed from './components/PostFeed';
 import ProfilePage from './components/ProfilePage';
 import CreatePost from './components/CreatePost';
 import CategoryPage from './components/CategoryPage';
+import CategoryPageNew from './components/CategoryPageNew';
 import BlogListPage from './components/BlogListPage';
 import BlogDetailPage from './components/BlogDetailPage';
 import NewsPage from './components/NewsPage';
@@ -95,10 +96,10 @@ function AppContent() {
               <CategoryPage />
             </FeedRoute>
           } />
-          {/* 新カテゴリールート（slug ベース） */}
-          <Route path="/category/:categorySlug/:subcategorySlug" element={
+          {/* 新カテゴリールート（slug ベース） - Phase 1 */}
+          <Route path="/category/:categorySlug/:subcategorySlug?" element={
             <FeedRoute>
-              <CategoryPage />
+              <CategoryPageNew />
             </FeedRoute>
           } />
           {/* Member benefits routes disabled - under construction
