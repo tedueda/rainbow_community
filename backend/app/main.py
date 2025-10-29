@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from app.routers import auth, users, profiles, posts, comments, reactions, follows, notifications, media, billing, matching, categories
+from app.routers import auth, users, profiles, posts, comments, reactions, follows, notifications, media, billing, matching, categories, ops
 from app.database import Base, engine
 import os
 from pathlib import Path
@@ -59,6 +59,7 @@ app.include_router(media.router)
 app.include_router(billing.router)
 app.include_router(matching.router)
 app.include_router(categories.router)
+app.include_router(ops.router)
 
 @app.on_event("startup")
 def on_startup():
@@ -82,6 +83,23 @@ async def root():
 def health(db=Depends(get_db)):
     db.execute(text("SELECT 1"))
     return {"status": "ok", "db": "ok"}
+
+
+@app.get("/api/_routes")
+def list_routes():
+    try:
+        return {
+            "routes": [
+                {
+                    "path": getattr(r, "path", None),
+                    "name": getattr(r, "name", None),
+                    "methods": list(getattr(r, "methods", []) or []),
+                }
+                for r in app.routes
+            ]
+        }
+    except Exception as e:
+        return {"error": str(e)}
 
 
 @app.get("/api/categories/{name}/posts")

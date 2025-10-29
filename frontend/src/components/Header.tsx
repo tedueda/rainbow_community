@@ -45,7 +45,7 @@ const Header: React.FC = () => {
                 マッチング <span className="ml-1 text-[10px] sm:text-xs text-pink-600 font-semibold">Premium</span>
               </Button>
             </Link>
-            <Link to="/profile">
+            <Link to="/matching/profile">
               <Button variant="ghost" className="text-orange-700 hover:text-orange-900 hover:bg-orange-50 text-sm sm:text-base">
                 <User className="h-4 w-4 mr-1 sm:mr-2" />
                 プロフィール
