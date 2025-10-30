@@ -9,7 +9,6 @@ import PostDetailModal from './PostDetailModal';
 import NewPostForm from './NewPostForm';
 import { Post } from '../types/Post';
 import { Category, Subcategory } from '../types/category';
-import { getYouTubeThumbnail, extractYouTubeUrlFromText } from '../utils/youtube';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -183,32 +182,6 @@ const CategoryPageNew: React.FC = () => {
     setPosts(prev => prev.filter(p => p.id !== postId));
     setSelectedPost(null);
     setIsModalOpen(false);
-  };
-
-  const handleLikePost = async (postId: number) => {
-    if (!token) return;
-    
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/posts/${postId}/like`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        setPosts(prevPosts => 
-          prevPosts.map(post => 
-            post.id === postId 
-              ? { ...post, is_liked: result.liked, like_count: (post.like_count || 0) + (result.liked ? 1 : -1) }
-              : post
-          )
-        );
-      }
-    } catch (error) {
-      console.error('いいねエラー:', error);
-    }
   };
 
   if (categoryLoading) {
@@ -419,13 +392,14 @@ const CategoryPageNew: React.FC = () => {
       )}
 
       {/* 投稿詳細モーダル */}
-      {selectedPost && (
+      {selectedPost && user && (
         <PostDetailModal
           post={selectedPost}
+          user={user}
           isOpen={isModalOpen}
           onClose={closePostModal}
-          onPostUpdated={handlePostUpdated}
-          onPostDeleted={handlePostDeleted}
+          onUpdated={handlePostUpdated}
+          onDeleted={handlePostDeleted}
         />
       )}
     </div>
