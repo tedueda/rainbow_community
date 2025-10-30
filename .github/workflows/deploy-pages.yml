@@ -37,6 +37,7 @@ jobs:
         working-directory: frontend
         env:
           GITHUB_PAGES: 'true'
+          VITE_USE_MOCK: 'true'
         run: npm run build
 
       - name: Add SPA fallback
