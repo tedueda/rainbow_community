@@ -17,19 +17,51 @@ depends_on = None
 
 
 def upgrade():
-    # matching_profiles に avatar_url と meeting_style を追加
-    op.add_column('matching_profiles', sa.Column('avatar_url', sa.String(500), nullable=True))
-    op.add_column('matching_profiles', sa.Column('meeting_style', sa.String(50), nullable=True))
+    conn = op.get_bind()
     
-    # identity に 'other' を追加可能にするため、既存の制約を削除して再作成
-    # （PostgreSQL の ENUM 型を使用していない場合は不要。現在は String なので制約なし）
+    table_exists = conn.execute(sa.text(
+        "SELECT to_regclass('public.matching_profiles')"
+    )).scalar()
+    
+    if not table_exists:
+        op.execute(sa.text("""
+            CREATE TABLE matching_profiles (
+                user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+                display_flag BOOLEAN NOT NULL DEFAULT true,
+                prefecture VARCHAR(100) NOT NULL DEFAULT '',
+                age_band VARCHAR(50),
+                occupation VARCHAR(100),
+                income_range VARCHAR(100),
+                meet_pref VARCHAR(50),
+                bio TEXT,
+                identity VARCHAR(50),
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+            )
+        """))
+    
+    avatar_exists = conn.execute(sa.text(
+        "SELECT column_name FROM information_schema.columns "
+        "WHERE table_name='matching_profiles' AND column_name='avatar_url'"
+    )).fetchone()
+    
+    if not avatar_exists:
+        op.add_column('matching_profiles', sa.Column('avatar_url', sa.String(500), nullable=True))
+    
+    meeting_style_exists = conn.execute(sa.text(
+        "SELECT column_name FROM information_schema.columns "
+        "WHERE table_name='matching_profiles' AND column_name='meeting_style'"
+    )).fetchone()
+    
+    if not meeting_style_exists:
+        op.add_column('matching_profiles', sa.Column('meeting_style', sa.String(50), nullable=True))
     
     # meet_pref の既存値を meeting_style にコピー（互換性のため）
-    op.execute("""
+    op.execute(sa.text("""
         UPDATE matching_profiles 
         SET meeting_style = meet_pref 
-        WHERE meet_pref IS NOT NULL
-    """)
+        WHERE meet_pref IS NOT NULL AND meeting_style IS NULL
+    """))
 
 
 def downgrade():

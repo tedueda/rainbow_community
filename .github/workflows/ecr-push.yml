@@ -35,12 +35,10 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Get ECR repository URL from Terraform
+      - name: Get ECR repository URL
         id: ecr-url
         run: |
-          cd infra
-          terraform init -backend=false
-          ECR_URL=$(terraform output -raw ecr_repository_url 2>/dev/null || echo "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}")
+          ECR_URL="${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}"
           echo "ecr_url=$ECR_URL" >> $GITHUB_OUTPUT
           echo "Using ECR URL: $ECR_URL"
 
@@ -59,13 +57,7 @@ jobs:
       - name: Get App Runner URL
         id: app-runner-url
         run: |
-          cd infra
-          APP_URL=$(terraform output -raw app_runner_service_url 2>/dev/null || echo "")
-          if [ -z "$APP_URL" ]; then
-            echo "⚠️ Unable to get App Runner URL from Terraform output"
-            echo "Please check manually: https://console.aws.amazon.com/apprunner"
-            exit 0
-          fi
+          APP_URL="https://7cjpf7nunm.ap-northeast-1.awsapprunner.com"
           echo "app_url=$APP_URL" >> $GITHUB_OUTPUT
           echo "App Runner URL: $APP_URL"
 

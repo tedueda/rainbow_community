@@ -10,7 +10,11 @@ except ImportError:
     print("実行: pip3 install psycopg2-binary")
     exit(1)
 
-DATABASE_URL = "postgresql://dbadmin:0034caretLgbtQ@rainbow-community-db-tokyo.cj8agmy8kjhv.ap-northeast-1.rds.amazonaws.com:5432/lgbtq_community?sslmode=require"
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    print("❌ DATABASE_URL環境変数が設定されていません")
+    print("実行: export DATABASE_URL='postgresql://...'")
+    exit(1)
 
 def run_migration():
     conn = None
