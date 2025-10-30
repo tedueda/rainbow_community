@@ -129,12 +129,12 @@ const CategoryPageNew: React.FC = () => {
         if (response.ok) {
           let postsData = await response.json();
           if (category?.id) {
-            postsData = postsData.filter((p: Post) => p.category_id === category.id);
+            postsData = postsData.filter((p: any) => p.category_id === category.id);
           }
           if (selectedSubcategorySlug) {
             const subcategory = subcategories.find(sub => sub.slug === selectedSubcategorySlug);
             if (subcategory) {
-              postsData = postsData.filter((p: Post) => p.subcategory_id === subcategory.id);
+              postsData = postsData.filter((p: any) => p.subcategory_id === subcategory.id);
             }
           }
           setPosts(postsData);
@@ -179,7 +179,7 @@ const CategoryPageNew: React.FC = () => {
         if (response.ok) {
           let postsData = await response.json();
           if (category?.id) {
-            postsData = postsData.filter((p: Post) => p.category_id === category.id);
+            postsData = postsData.filter((p: any) => p.category_id === category.id);
           }
           setPosts(postsData);
         }
