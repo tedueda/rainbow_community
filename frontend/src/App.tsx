@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Header from './components/Header';
+import CategoryNavigation from './components/CategoryNavigation';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import HomePage from './components/HomePage';
@@ -9,6 +10,7 @@ import PostFeed from './components/PostFeed';
 import ProfilePage from './components/ProfilePage';
 import CreatePost from './components/CreatePost';
 import CategoryPage from './components/CategoryPage';
+import CategoryPageNew from './components/CategoryPageNew';
 import BlogListPage from './components/BlogListPage';
 import BlogDetailPage from './components/BlogDetailPage';
 import NewsPage from './components/NewsPage';
@@ -43,9 +45,10 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 function AppContent() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-rose-50 via-white to-indigo-50">
+    <div className="min-h-screen bg-white">
       <Header />
-      <main>
+      <CategoryNavigation />
+      <main className="pride-gradient">
         <Routes>
           <Route path="/login" element={
             <PublicRoute>
@@ -82,6 +85,7 @@ function AppContent() {
               <CreatePost />
             </FeedRoute>
           } />
+          {/* 旧カテゴリールート（後方互換性） */}
           <Route path="/category/:categoryKey" element={
             <FeedRoute>
               <CategoryPage />
@@ -90,6 +94,12 @@ function AppContent() {
           <Route path="/category/:categoryKey/new" element={
             <FeedRoute>
               <CategoryPage />
+            </FeedRoute>
+          } />
+          {/* 新カテゴリールート（slug ベース） - Phase 1 */}
+          <Route path="/category/:categorySlug/:subcategorySlug?" element={
+            <FeedRoute>
+              <CategoryPageNew />
             </FeedRoute>
           } />
           {/* Member benefits routes disabled - under construction
@@ -148,7 +158,7 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router basename={import.meta.env.BASE_URL}>
         <AppContent />
       </Router>
     </AuthProvider>
