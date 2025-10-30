@@ -71,17 +71,45 @@ const CategoryPageNew: React.FC = () => {
       
       try {
         setCategoryLoading(true);
-        const response = await fetch(`${API_BASE_URL}/api/categories/${categorySlug}`);
+        const useMock = import.meta.env.VITE_USE_MOCK === 'true' || 
+                        window.location.hostname.includes('github.io');
         
-        if (response.ok) {
-          const data = await response.json();
-          setCategory(data);
-          setSubcategories(data.subcategories || []);
+        if (useMock) {
+          const response = await fetch(`${import.meta.env.BASE_URL}categories.json`);
+          if (response.ok) {
+            const categories = await response.json();
+            const foundCategory = categories.find((cat: Category) => cat.slug === categorySlug);
+            if (foundCategory) {
+              setCategory(foundCategory);
+              setSubcategories(foundCategory.subcategories || []);
+            }
+          }
         } else {
-          console.error('カテゴリーの取得に失敗しました');
+          const response = await fetch(`${API_BASE_URL}/api/categories/${categorySlug}`);
+          
+          if (response.ok) {
+            const data = await response.json();
+            setCategory(data);
+            setSubcategories(data.subcategories || []);
+          } else {
+            console.error('カテゴリーの取得に失敗しました');
+          }
         }
       } catch (error) {
         console.error('カテゴリー取得エラー:', error);
+        try {
+          const response = await fetch(`${import.meta.env.BASE_URL}categories.json`);
+          if (response.ok) {
+            const categories = await response.json();
+            const foundCategory = categories.find((cat: Category) => cat.slug === categorySlug);
+            if (foundCategory) {
+              setCategory(foundCategory);
+              setSubcategories(foundCategory.subcategories || []);
+            }
+          }
+        } catch (fallbackError) {
+          console.error('モックデータ取得エラー:', fallbackError);
+        }
       } finally {
         setCategoryLoading(false);
       }
@@ -93,39 +121,71 @@ const CategoryPageNew: React.FC = () => {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
-        sort: sortBy,
-        range: timeRange,
-        limit: '20'
-      });
+      const useMock = import.meta.env.VITE_USE_MOCK === 'true' || 
+                      window.location.hostname.includes('github.io');
       
-      if (category?.id) {
-        params.set('category_id', category.id.toString());
-      }
-      
-      if (selectedSubcategorySlug) {
-        const subcategory = subcategories.find(sub => sub.slug === selectedSubcategorySlug);
-        if (subcategory) {
-          params.set('subcategory_id', subcategory.id.toString());
+      if (useMock) {
+        const response = await fetch(`${import.meta.env.BASE_URL}mock-posts.json`);
+        if (response.ok) {
+          let postsData = await response.json();
+          if (category?.id) {
+            postsData = postsData.filter((p: Post) => p.category_id === category.id);
+          }
+          if (selectedSubcategorySlug) {
+            const subcategory = subcategories.find(sub => sub.slug === selectedSubcategorySlug);
+            if (subcategory) {
+              postsData = postsData.filter((p: Post) => p.subcategory_id === subcategory.id);
+            }
+          }
+          setPosts(postsData);
         }
-      }
-      
-      if (selectedTag) {
-        params.set('tag', selectedTag);
-      }
-      
-      const response = await fetch(`${API_BASE_URL}/api/posts/?${params}`, {
-        headers: token ? {
-          'Authorization': `Bearer ${token}`,
-        } : {},
-      });
-      
-      if (response.ok) {
-        const postsData = await response.json();
-        setPosts(postsData);
+      } else {
+        const params = new URLSearchParams({
+          sort: sortBy,
+          range: timeRange,
+          limit: '20'
+        });
+        
+        if (category?.id) {
+          params.set('category_id', category.id.toString());
+        }
+        
+        if (selectedSubcategorySlug) {
+          const subcategory = subcategories.find(sub => sub.slug === selectedSubcategorySlug);
+          if (subcategory) {
+            params.set('subcategory_id', subcategory.id.toString());
+          }
+        }
+        
+        if (selectedTag) {
+          params.set('tag', selectedTag);
+        }
+        
+        const response = await fetch(`${API_BASE_URL}/api/posts/?${params}`, {
+          headers: token ? {
+            'Authorization': `Bearer ${token}`,
+          } : {},
+        });
+        
+        if (response.ok) {
+          const postsData = await response.json();
+          setPosts(postsData);
+        }
       }
     } catch (error) {
       console.error('投稿取得エラー:', error);
+      try {
+        const response = await fetch(`${import.meta.env.BASE_URL}mock-posts.json`);
+        if (response.ok) {
+          let postsData = await response.json();
+          if (category?.id) {
+            postsData = postsData.filter((p: Post) => p.category_id === category.id);
+          }
+          setPosts(postsData);
+        }
+      } catch (fallbackError) {
+        console.error('モックデータ取得エラー:', fallbackError);
+      }
     } finally {
       setLoading(false);
     }
