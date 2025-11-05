@@ -217,6 +217,19 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     email: Optional[str] = None
 
+class PhoneVerificationRequest(BaseModel):
+    phone_number: str
+
+class PhoneVerificationConfirm(BaseModel):
+    phone_number: str
+    verification_code: str
+
+class UserRegistrationStep1(BaseModel):
+    phone_number: str
+    email: EmailStr
+    password: str
+    display_name: str
+
 class TagBase(BaseModel):
     name: str
 
