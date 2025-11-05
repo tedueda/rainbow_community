@@ -127,8 +127,6 @@ class Subcategory(Base):
     )
     
     category = relationship("Category", back_populates="subcategories")
-    # Match Post.subcategory_rel attribute
-    posts = relationship("Post", back_populates="subcategory_rel")
 
 class Post(Base):
     __tablename__ = "posts"
