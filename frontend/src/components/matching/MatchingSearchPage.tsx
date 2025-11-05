@@ -69,10 +69,10 @@ const MatchingSearchPage: React.FC = () => {
       }
       
       const params = new URLSearchParams({ page: "1", size: "20" });
-      // セグメントに応じてidentityパラメータを追加
-      if (segment === "gay") params.append("identity", "gay");
-      else if (segment === "lesbian") params.append("identity", "lesbian");
-      else if (segment === "other") params.append("identity", "other"); // その他（全て）を選択した人のみ
+      // セグメントに応じてidentityパラメータを追加（日本語の値を使用）
+      // if (segment === "gay") params.append("identity", "ゲイ");
+      // else if (segment === "lesbian") params.append("identity", "レズ");
+      // else if (segment === "other") params.append("identity", "other");
       
       const url = `${API_URL}/api/matching/search?${params.toString()}&_t=${Date.now()}`;
       const res = await fetch(url, {
