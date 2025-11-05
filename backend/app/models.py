@@ -377,9 +377,11 @@ class MatchingProfile(Base):
     age_band = Column(String(50))
     occupation = Column(String(100))
     income_range = Column(String(100))
-    meet_pref = Column(String(50))
+    meet_pref = Column(String(50))  # 旧フィールド（互換性のため残す）
+    meeting_style = Column(String(50))  # 新フィールド: 'msg_first', 'voice_after', etc.
     bio = Column(Text)
-    identity = Column(String(50))
+    identity = Column(String(50))  # e.g., 'gay','lesbian','transgender','bisexual','questioning','other'
+    avatar_url = Column(String(500))
     romance_targets = Column(JSON, default=list)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
@@ -400,6 +402,21 @@ class MatchingProfileHobby(Base):
 
     profile_id = Column(Integer, ForeignKey("matching_profiles.user_id"), primary_key=True)
     hobby_id = Column(Integer, ForeignKey("hobbies.id"), primary_key=True)
+
+
+class MatchingProfileImage(Base):
+    __tablename__ = "matching_profile_images"
+
+    id = Column(Integer, primary_key=True, index=True)
+    profile_id = Column(Integer, ForeignKey("matching_profiles.user_id"), nullable=False)
+    image_url = Column(String(500), nullable=False)
+    display_order = Column(Integer, nullable=False, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint("profile_id", "display_order", name="unique_profile_order"),
+        CheckConstraint("display_order >= 0 AND display_order < 5", name="check_order_range"),
+    )
 
 
 class Like(Base):

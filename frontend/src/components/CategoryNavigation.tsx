@@ -36,13 +36,33 @@ export default function CategoryNavigation() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/categories`);
-      if (response.ok) {
-        const data = await response.json();
-        setCategories(data);
+      const useMock = import.meta.env.VITE_USE_MOCK === 'true' || 
+                      window.location.hostname.includes('github.io');
+      
+      if (useMock) {
+        const response = await fetch(`${import.meta.env.BASE_URL}categories.json`);
+        if (response.ok) {
+          const data = await response.json();
+          setCategories(data);
+        }
+      } else {
+        const response = await fetch(`${API_BASE_URL}/api/categories`);
+        if (response.ok) {
+          const data = await response.json();
+          setCategories(data);
+        }
       }
     } catch (error) {
       console.error('カテゴリー取得エラー:', error);
+      try {
+        const response = await fetch(`${import.meta.env.BASE_URL}categories.json`);
+        if (response.ok) {
+          const data = await response.json();
+          setCategories(data);
+        }
+      } catch (fallbackError) {
+        console.error('モックデータ取得エラー:', fallbackError);
+      }
     } finally {
       setLoading(false);
     }
