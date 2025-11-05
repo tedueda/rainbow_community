@@ -24,7 +24,7 @@ const PostFeed: React.FC = () => {
   const [users, setUsers] = useState<{ [key: number]: User }>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const { token, user, isAnonymous, setAnonymousMode } = useAuth();
+  const { token, user, isAnonymous } = useAuth();
 
   const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
 
@@ -105,11 +105,8 @@ const PostFeed: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!user && !isAnonymous) {
-      setAnonymousMode();
-    }
     fetchPosts();
-  }, [user, isAnonymous, setAnonymousMode]);
+  }, [user, isAnonymous]);
 
   if (loading) {
     return (

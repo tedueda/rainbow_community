@@ -8,6 +8,7 @@ import {
   MEET_PREFS,
   IDENTITIES,
   HOBBIES,
+  type Option,
 } from '@/constants/matchingOptions';
 
 type ProfileImage = {
@@ -303,7 +304,7 @@ const MatchingProfilePage: React.FC = () => {
                   className="w-full border rounded px-3 py-2 text-sm"
                 >
                   <option value="">選択してください</option>
-                  {PREFECTURES.map((p) => (
+                  {PREFECTURES.map((p: string) => (
                     <option key={p} value={p}>{p}</option>
                   ))}
                 </select>
@@ -317,7 +318,7 @@ const MatchingProfilePage: React.FC = () => {
                   className="w-full border rounded px-3 py-2 text-sm"
                 >
                   <option value="">選択してください</option>
-                  {AGE_BANDS.map((a) => (
+                  {AGE_BANDS.map((a: Option) => (
                     <option key={a.value} value={a.value}>{a.label}</option>
                   ))}
                 </select>
@@ -331,7 +332,7 @@ const MatchingProfilePage: React.FC = () => {
                   className="w-full border rounded px-3 py-2 text-sm"
                 >
                   <option value="">選択してください</option>
-                  {OCCUPATIONS.map((o) => (
+                  {OCCUPATIONS.map((o: string) => (
                     <option key={o} value={o}>{o}</option>
                   ))}
                 </select>
@@ -345,7 +346,7 @@ const MatchingProfilePage: React.FC = () => {
                   className="w-full border rounded px-3 py-2 text-sm"
                 >
                   <option value="">選択してください</option>
-                  {INCOME_RANGES.map((i) => (
+                  {INCOME_RANGES.map((i: string) => (
                     <option key={i} value={i}>{i}</option>
                   ))}
                 </select>
@@ -359,7 +360,7 @@ const MatchingProfilePage: React.FC = () => {
                   className="w-full border rounded px-3 py-2 text-sm"
                 >
                   <option value="">選択してください</option>
-                  {MEET_PREFS.map((m) => (
+                  {MEET_PREFS.map((m: Option) => (
                     <option key={m.value} value={m.value}>{m.label}</option>
                   ))}
                 </select>
@@ -373,7 +374,7 @@ const MatchingProfilePage: React.FC = () => {
                   className="w-full border rounded px-3 py-2 text-sm"
                 >
                   <option value="">選択してください</option>
-                  {IDENTITIES.map((i) => (
+                  {IDENTITIES.map((i: Option) => (
                     <option key={i.value} value={i.value}>{i.label}</option>
                   ))}
                 </select>
@@ -405,7 +406,7 @@ const MatchingProfilePage: React.FC = () => {
                 className="w-full border rounded px-3 py-2 text-sm mt-2"
               >
                 <option value="">趣味を追加...</option>
-                {HOBBIES.filter((h) => !(profile.hobbies || []).includes(h)).map((h) => (
+                {HOBBIES.filter((h: string) => !(profile.hobbies || []).includes(h)).map((h: string) => (
                   <option key={h} value={h}>{h}</option>
                 ))}
               </select>
