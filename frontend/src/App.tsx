@@ -21,6 +21,8 @@ import MatchingMatchesPage from './components/matching/MatchingMatchesPage';
 import MatchingChatsPage from './components/matching/MatchingChatsPage';
 import MatchingProfilePage from './components/matching/MatchingProfilePage';
 import MatchingChatDetailPage from './components/matching/MatchingChatDetailPage';
+import FoodPage from './pages/members/FoodPage';
+import BeautyPage from './pages/members/BeautyPage';
 
 
 const FeedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -133,6 +135,16 @@ function AppContent() {
             <Route path="chats/:id" element={<MatchingChatDetailPage />} />
             <Route path="profile" element={<MatchingProfilePage />} />
           </Route>
+          <Route path="/members/food" element={
+            <FeedRoute>
+              <FoodPage />
+            </FeedRoute>
+          } />
+          <Route path="/members/beauty" element={
+            <FeedRoute>
+              <BeautyPage />
+            </FeedRoute>
+          } />
           <Route path="/news" element={
             <FeedRoute>
               <NewsPage />
