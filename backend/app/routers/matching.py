@@ -41,7 +41,6 @@ def get_my_profile(current_user: User = Depends(require_premium), db: Session = 
         "meet_pref": prof.meet_pref,
         "bio": prof.bio,
         "identity": prof.identity,
-        "avatar_url": prof.avatar_url,
         "hobbies": [h[0] for h in hobbies],
     }
 
@@ -59,7 +58,7 @@ def update_my_profile(payload: dict, current_user: User = Depends(require_premiu
         banned_patterns = ["@", "line:", "LINE:", "+81", "tel:", "電話", "gmail.com", "icloud.com"]
         if any(pat in bio for pat in banned_patterns):
             raise HTTPException(status_code=400, detail="bio contains prohibited contact info")
-    for field in ["prefecture", "age_band", "occupation", "income_range", "meet_pref", "bio", "identity", "avatar_url"]:
+    for field in ["prefecture", "age_band", "occupation", "income_range", "meet_pref", "bio", "identity"]:
         if field in payload:
             setattr(prof, field, payload.get(field))
     # hobbies

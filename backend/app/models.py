@@ -63,7 +63,6 @@ class Profile(Base):
     user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     handle = Column(String, unique=True, nullable=False)
     bio = Column(Text)
-    avatar_url = Column(String(500))
     orientation_id = Column(Integer, ForeignKey("orientations.id"), default=1)
     gender_id = Column(Integer, ForeignKey("genders.id"), default=1)
     pronoun_id = Column(Integer, ForeignKey("pronouns.id"), default=1)
@@ -458,3 +457,18 @@ class Message(Base):
     body = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     read_at = Column(DateTime(timezone=True))
+
+
+class MatchingProfileImage(Base):
+    __tablename__ = "matching_profile_images"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    profile_id = Column(Integer, ForeignKey("matching_profiles.user_id"), nullable=False)
+    image_url = Column(String(500), nullable=False)
+    display_order = Column(Integer, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    __table_args__ = (
+        UniqueConstraint("profile_id", "display_order", name="unique_profile_order"),
+        CheckConstraint("display_order >= 0 AND display_order < 5", name="check_order_range"),
+    )

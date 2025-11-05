@@ -15,6 +15,8 @@ import logging
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
 
+PHONE_AUTH_ENABLED = os.getenv("PHONE_AUTH_ENABLED", "false").lower() == "true"
+
 @router.get("/health")
 async def auth_health():
     """Health check endpoint for authentication service - no authentication required"""
@@ -23,6 +25,8 @@ async def auth_health():
 @router.post("/send-verification-code")
 async def send_verification_code(request: PhoneVerificationRequest, db: Session = Depends(get_db)):
     """携帯番号にSMS認証コードを送信"""
+    if not PHONE_AUTH_ENABLED:
+        raise HTTPException(status_code=501, detail="Phone authentication is not enabled")
     
     # 携帯番号の形式をバリデーション
     if not sms_service.validate_phone_number(request.phone_number):
@@ -78,6 +82,8 @@ async def send_verification_code(request: PhoneVerificationRequest, db: Session 
 @router.post("/verify-phone")
 async def verify_phone(request: PhoneVerificationConfirm, db: Session = Depends(get_db)):
     """携帯番号の認証コードを確認"""
+    if not PHONE_AUTH_ENABLED:
+        raise HTTPException(status_code=501, detail="Phone authentication is not enabled")
     
     formatted_phone = sms_service.format_phone_number(request.phone_number)
     
@@ -114,6 +120,8 @@ async def verify_phone(request: PhoneVerificationConfirm, db: Session = Depends(
 @router.post("/register-with-phone", response_model=UserSchema)
 async def register_with_phone(user_data: UserRegistrationStep1, db: Session = Depends(get_db)):
     """携帯番号認証後のユーザー登録"""
+    if not PHONE_AUTH_ENABLED:
+        raise HTTPException(status_code=501, detail="Phone authentication is not enabled")
     
     formatted_phone = sms_service.format_phone_number(user_data.phone_number)
     
@@ -183,21 +191,7 @@ async def register_with_phone(user_data: UserRegistrationStep1, db: Session = De
 
 @router.post("/register", response_model=UserSchema)
 async def register(user: UserCreate, db: Session = Depends(get_db)):
-    # 携帯番号のチェック
-    if not user.phone_number:
-        raise HTTPException(
-            status_code=400,
-            detail="Phone number is required"
-        )
-    
-    # 携帯番号の重複チェック
-    db_phone = db.query(User).filter(User.phone_number == user.phone_number).first()
-    if db_phone:
-        raise HTTPException(
-            status_code=400,
-            detail="Phone number already registered"
-        )
-    
+    """Email-based user registration"""
     # メールアドレスの重複チェック
     db_user = db.query(User).filter(User.email == user.email).first()
     if db_user:
@@ -209,12 +203,10 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
     hashed_password = get_password_hash(user.password)
     
     db_user = User(
-        phone_number=user.phone_number,
         email=user.email,
         password_hash=hashed_password,
         display_name=user.display_name,
-        membership_type="premium",
-        phone_verified=False
+        membership_type="premium"
     )
     db.add(db_user)
     db.commit()
@@ -226,17 +218,10 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
     )
     db.add(db_profile)
     
-    # MatchingProfileも自動作成
-    from app.models import MatchingProfile
     db_matching_profile = MatchingProfile(
         user_id=db_user.id,
-        nickname=user.display_name,  # 初期値として表示名を使用
         display_flag=False,
-        prefecture='非表示',
-        age_group='非表示',
-        occupation='非表示',
-        income='非表示',
-        how_to_meet='非表示'
+        prefecture='未設定'
     )
     db.add(db_matching_profile)
     
@@ -279,18 +264,11 @@ async def read_users_me(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    # マッチングプロフィールからnicknameを取得
-    from app.models import MatchingProfile
-    matching_profile = db.query(MatchingProfile).filter(
-        MatchingProfile.user_id == current_user.id
-    ).first()
-    
-    # ユーザーデータにnicknameを追加
     user_dict = {
         "id": current_user.id,
         "email": current_user.email,
         "display_name": current_user.display_name,
-        "nickname": matching_profile.nickname if matching_profile and matching_profile.nickname else None,
+        "nickname": current_user.display_name,  # Use display_name as fallback
         "membership_type": current_user.membership_type,
         "is_active": current_user.is_active,
         "created_at": current_user.created_at

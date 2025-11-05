@@ -62,8 +62,9 @@ app.include_router(categories.router)
 
 @app.on_event("startup")
 def on_startup():
-    # 開発/SQLite環境では自動的にテーブルを作成（既存ならスキップ）
-    Base.metadata.create_all(bind=engine)
+    db_url = os.getenv("DATABASE_URL", "")
+    if "sqlite" in db_url.lower() or not db_url:
+        Base.metadata.create_all(bind=engine)
 
 @app.get("/healthz")
 async def healthz():
@@ -95,6 +96,3 @@ def posts_by_category(name: str, limit: int = 20, offset: int = 0, db=Depends(ge
     """)
     rows = db.execute(sql, {"name": name, "limit": limit, "offset": offset}).mappings().all()
     return {"items": rows, "count": len(rows)}
-@app.get("/healthz")
-def healthz():
-    return {"status": "ok"}
