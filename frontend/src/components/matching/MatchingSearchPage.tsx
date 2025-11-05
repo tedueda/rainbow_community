@@ -1,52 +1,108 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSearchParams } from 'react-router-dom';
+import { TopTabs } from './TopTabs';
+import { MatchCard } from './MatchCard';
 
-type ProfileHit = {
+type MatchItem = {
   user_id: number;
-  display_name: string;
-  prefecture?: string;
-  age_band?: string;
-  identity?: string;
+  display_name?: string;
+  identity?: string | null;
+  prefecture?: string | null;
+  age_band?: string | null;
+  avatar_url?: string | null;
 };
+
+// クライアント側フィルタリングは不要（バックエンドでromance_targetsでフィルタリング済み）
 
 const MatchingSearchPage: React.FC = () => {
   const { token } = useAuth();
-  const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
+  const [searchParams] = useSearchParams();
+  const segment = searchParams.get("segment") || "gay";
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const USE_MOCK_API = false; // 実APIを使用
+  
   const [loading, setLoading] = useState(false);
-  const [items, setItems] = useState<ProfileHit[]>([]);
+  const [items, setItems] = useState<MatchItem[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [prefecture, setPrefecture] = useState('');
-  const [ageBand, setAgeBand] = useState('');
-  const [occupation, setOccupation] = useState('');
-  const [incomeRange, setIncomeRange] = useState('');
-  const [meetPref, setMeetPref] = useState('');
-  const [identity, setIdentity] = useState('');
-  const [hobbies, setHobbies] = useState('');
 
   const fetchSearch = async () => {
     if (!token) return;
     setLoading(true);
     setError(null);
+    
     try {
-      const params = new URLSearchParams();
-      if (prefecture) params.set('prefecture', prefecture);
-      if (ageBand) params.set('age_band', ageBand);
-      if (occupation) params.set('occupation', occupation);
-      if (incomeRange) params.set('income_range', incomeRange);
-      if (meetPref) params.set('meet_pref', meetPref);
-      if (identity) params.set('identity', identity);
-      if (hobbies) params.set('hobbies', hobbies);
-      const qs = params.toString();
-      const url = `${API_URL}/api/matching/search${qs ? `?${qs}` : ''}`;
+      if (USE_MOCK_API) {
+        // モックマッチングデータ
+        console.log('🎯 Using Mock Matching Data');
+        const mockMatches: MatchItem[] = [
+          {
+            user_id: 1,
+            display_name: 'ユーザー1',
+            identity: 'gay',
+            prefecture: '東京都',
+            age_band: '20代後半',
+            avatar_url: 'https://api.dicebear.com/7.x/fun-emoji/png?seed=1&size=256&scale=80'
+          },
+          {
+            user_id: 2,
+            display_name: 'ユーザー2',
+            identity: 'gay',
+            prefecture: '神奈川県',
+            age_band: '30代前半',
+            avatar_url: 'https://api.dicebear.com/7.x/fun-emoji/png?seed=2&size=256&scale=80'
+          },
+          {
+            user_id: 3,
+            display_name: 'ユーザー3',
+            identity: 'lesbian',
+            prefecture: '大阪府',
+            age_band: '20代前半',
+            avatar_url: 'https://api.dicebear.com/7.x/fun-emoji/png?seed=3&size=256&scale=80'
+          }
+        ];
+        
+        // モックデータをそのまま使用（フィルタリングはバックエンドで実施）
+        setItems(mockMatches);
+        setLoading(false);
+        return;
+      }
+      
+      const params = new URLSearchParams({ page: "1", size: "20" });
+      // セグメントに応じてidentityパラメータを追加
+      if (segment === "gay") params.append("identity", "gay");
+      else if (segment === "lesbian") params.append("identity", "lesbian");
+      else if (segment === "other") params.append("identity", "other"); // その他（全て）を選択した人のみ
+      
+      const url = `${API_URL}/api/matching/search?${params.toString()}&_t=${Date.now()}`;
       const res = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache'
+        },
       });
+      
       if (!res.ok) {
         const text = await res.text();
         throw new Error(text || `HTTP ${res.status}`);
       }
+      
       const data = await res.json();
-      setItems(data.items || []);
+      let fetchedItems: MatchItem[] = data.items || [];
+      // 画像URLを常に有効に整形（相対→API_URL付与、ダミー画像は削除）
+      fetchedItems = fetchedItems.map((it) => {
+        let avatar = it.avatar_url || '';
+        if (avatar && !avatar.startsWith('http')) {
+          avatar = `${API_URL}${avatar}`;
+        }
+        // ダミー画像は使用しない（空文字にする）
+        if (!avatar || avatar.includes('dicebear')) {
+          avatar = '';
+        }
+        return { ...it, avatar_url: avatar };
+      });
+      // バックエンドでromance_targetsによるフィルタリング済み
+      setItems(fetchedItems);
     } catch (e: any) {
       setError(e?.message || '検索に失敗しました');
     } finally {
@@ -54,61 +110,48 @@ const MatchingSearchPage: React.FC = () => {
     }
   };
 
-  const handleLike = async (toUserId: number) => {
-    if (!token) return;
-    try {
-      const res = await fetch(`${API_URL}/api/matching/likes/${toUserId}`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || `HTTP ${res.status}`);
-      }
-      // 簡易フィードバック
-      alert('いいねしました');
-    } catch (e: any) {
-      alert(`いいねに失敗しました: ${e?.message || ''}`);
-    }
-  };
-
   useEffect(() => {
     fetchSearch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [token, segment]);
 
   return (
-    <div>
-      <h2 className="text-lg font-semibold mb-3">検索</h2>
-      <div className="p-4 border rounded-lg bg-white">
-        <div className="mb-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <input value={prefecture} onChange={(e) => setPrefecture(e.target.value)} className="border rounded px-3 py-2 text-sm" placeholder="都道府県" />
-          <input value={ageBand} onChange={(e) => setAgeBand(e.target.value)} className="border rounded px-3 py-2 text-sm" placeholder="年代（例: 20s_early）" />
-          <input value={occupation} onChange={(e) => setOccupation(e.target.value)} className="border rounded px-3 py-2 text-sm" placeholder="職種" />
-          <input value={incomeRange} onChange={(e) => setIncomeRange(e.target.value)} className="border rounded px-3 py-2 text-sm" placeholder="年収" />
-          <input value={meetPref} onChange={(e) => setMeetPref(e.target.value)} className="border rounded px-3 py-2 text-sm" placeholder="出会い方（例: meet_first）" />
-          <input value={identity} onChange={(e) => setIdentity(e.target.value)} className="border rounded px-3 py-2 text-sm" placeholder="アイデンティティ" />
-          <input value={hobbies} onChange={(e) => setHobbies(e.target.value)} className="border rounded px-3 py-2 text-sm sm:col-span-3" placeholder="趣味（カンマ区切り）" />
-        </div>
-        <div className="mb-3 flex gap-2">
-          <button onClick={fetchSearch} className="px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200">検索</button>
-        </div>
-        {loading && <div>読み込み中...</div>}
-        {error && <div className="text-red-600 text-sm">{error}</div>}
-        <ul className="space-y-2">
-          {items.map((p) => (
-            <li key={p.user_id} className="border rounded p-3 flex items-center justify-between">
-              <div>
-                <div className="font-medium">{p.display_name}</div>
-                <div className="text-xs text-gray-600">{p.prefecture || '-'} / {p.age_band || '-'} / {p.identity || '-'}</div>
-              </div>
-              <button onClick={() => handleLike(p.user_id)} className="px-3 py-1 text-sm bg-pink-600 text-white rounded hover:bg-pink-700">いいね</button>
-            </li>
-          ))}
-          {!loading && !error && items.length === 0 && (
-            <li className="text-sm text-gray-500">該当するユーザーが見つかりませんでした。</li>
-          )}
-        </ul>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-pink-50/30">
+      <div className="mx-auto max-w-6xl px-4 py-6">
+        <h1 className="mb-6 text-2xl font-bold text-gray-900">
+          マッチング一覧
+        </h1>
+        
+        <TopTabs />
+        
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-gray-600">読み込み中...</div>
+          </div>
+        )}
+        
+        {error && (
+          <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-red-600">
+            {error}
+          </div>
+        )}
+        
+        {!loading && !error && items.length > 0 && (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
+            {items.map((item) => (
+              <MatchCard key={item.user_id} item={item} />
+            ))}
+          </div>
+        )}
+        
+        {!loading && !error && items.length === 0 && (
+          <div className="flex min-h-[400px] items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-white">
+            <div className="text-center">
+              <p className="text-lg font-medium text-gray-600">該当するユーザーがいません</p>
+              <p className="mt-2 text-sm text-gray-500">別のタブを試してみてください</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

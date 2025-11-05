@@ -112,7 +112,8 @@ class Category(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     subcategories = relationship("Subcategory", back_populates="category")
-    posts = relationship("Post", back_populates="category")
+    # Match Post.category_rel attribute
+    posts = relationship("Post", back_populates="category_rel")
 
 class Subcategory(Base):
     __tablename__ = "subcategories"
@@ -129,7 +130,8 @@ class Subcategory(Base):
     )
     
     category = relationship("Category", back_populates="subcategories")
-    posts = relationship("Post", back_populates="subcategory")
+    # Match Post.subcategory_rel attribute
+    posts = relationship("Post", back_populates="subcategory_rel")
 
 class Post(Base):
     __tablename__ = "posts"
@@ -141,12 +143,6 @@ class Post(Base):
     visibility = Column(String(20), default="public")
     youtube_url = Column(String(500))
     media_id = Column(Integer, ForeignKey("media_assets.id"))
-    
-    # 新カテゴリーシステム（外部キー）
-    category_id = Column(Integer, ForeignKey("categories.id"))
-    subcategory_id = Column(Integer, ForeignKey("subcategories.id"))
-    
-    # 旧カテゴリー（後方互換性のため残す、後で削除予定）
     category = Column(String(50))
     subcategory = Column(String(100))
     
@@ -160,7 +156,7 @@ class Post(Base):
     
     __table_args__ = (
         CheckConstraint("visibility IN ('public', 'members', 'followers', 'private')", name="check_post_visibility"),
-        CheckConstraint("post_type IN ('post', 'blog', 'tourism')", name="check_post_type"),
+        CheckConstraint("post_type IN ('post', 'blog', 'tourism', 'news')", name="check_post_type"),
         CheckConstraint("status IN ('draft', 'published')", name="check_post_status"),
     )
     
@@ -382,16 +378,18 @@ class UserAward(Base):
 
 class MatchingProfile(Base):
     __tablename__ = "matching_profiles"
+    __table_args__ = {'extend_existing': True}
 
     user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     display_flag = Column(Boolean, nullable=False, default=True)
     prefecture = Column(String(100), nullable=False, default="")
-    age_band = Column(String(50))  # e.g., '20s_early', '30s_late'
+    age_band = Column(String(50))
     occupation = Column(String(100))
     income_range = Column(String(100))
-    meet_pref = Column(String(50))  # e.g., 'meet_first'
+    meet_pref = Column(String(50))
     bio = Column(Text)
-    identity = Column(String(50))  # e.g., 'gay','lesbian','transgender','bisexual','questioning'
+    identity = Column(String(50))
+    romance_targets = Column(JSON, default=list)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
