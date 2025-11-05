@@ -111,8 +111,6 @@ class Category(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     subcategories = relationship("Subcategory", back_populates="category")
-    # Match Post.category_rel attribute
-    posts = relationship("Post", back_populates="category_rel")
 
 class Subcategory(Base):
     __tablename__ = "subcategories"
@@ -165,10 +163,6 @@ class Post(Base):
     media = relationship("MediaAsset")
     media_assets = relationship("MediaAsset", secondary="post_media", order_by="PostMedia.order_index")
     tourism_details = relationship("PostTourism", back_populates="post", uselist=False)
-    
-    # 新カテゴリーとのリレーション
-    category_rel = relationship("Category", back_populates="posts")
-    subcategory_rel = relationship("Subcategory", back_populates="posts")
 
 class Comment(Base):
     __tablename__ = "comments"
