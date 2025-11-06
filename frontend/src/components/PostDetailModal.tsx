@@ -298,21 +298,40 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
       setIsUploadingImage(true);
       const fd = new FormData();
       fd.append('file', newImageFile);
-      const res = await fetch(`${API_URL}/api/media/upload`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        body: fd,
-      });
-      if (!res.ok) {
-        const txt = await res.text().catch(() => '');
-        setUploadError(`画像アップロードに失敗しました (status ${res.status})`);
-        console.error('[PostDetailModal] upload image failed', res.status, txt);
+      
+      // Add timeout to prevent indefinite hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+      
+      try {
+        const res = await fetch(`${API_URL}/api/media/upload`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          body: fd,
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+        
+        if (!res.ok) {
+          const txt = await res.text().catch(() => '');
+          setUploadError(`画像アップロードに失敗しました (status ${res.status})`);
+          console.error('[PostDetailModal] upload image failed', res.status, txt);
+          return { mediaId: null };
+        }
+        const data = await res.json();
+        return { mediaId: data.id, mediaUrl: data.url as string };
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId);
+        if (fetchError.name === 'AbortError') {
+          setUploadError('アップロードがタイムアウトしました。画像サイズを小さくしてください。');
+          console.error('[PostDetailModal] upload timeout');
+        } else {
+          throw fetchError;
+        }
         return { mediaId: null };
       }
-      const data = await res.json();
-      return { mediaId: data.id, mediaUrl: data.url as string };
     } catch (e: any) {
       setUploadError(e?.message || '画像アップロードに失敗しました');
       console.error('[PostDetailModal] upload image error', e);
