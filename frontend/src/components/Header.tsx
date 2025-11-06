@@ -25,15 +25,15 @@ const Header: React.FC = () => {
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
-      <div className="container mx-auto px-6 py-3">
+      <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/feed" className="flex items-center space-x-2">
-            <img src="/images/logo02.png" alt="Carat Logo" className="h-10 w-auto" />
+            <img src="/images/logo02.png" alt="Carat Logo" className="h-16 w-auto" />
           </Link>
 
           {/* Navigation */}
-          <nav className="flex items-center space-x-6">
+          <nav className="flex items-center space-x-8">
             <Link to="/feed">
               <Button variant="ghost" className="text-gray-700 hover:text-black hover:bg-gray-50 text-sm font-normal">
                 <Home className="h-4 w-4 mr-1.5" />

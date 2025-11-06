@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Header from './components/Header';
-import CategoryNavigation from './components/CategoryNavigation';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import HomePage from './components/HomePage';
@@ -52,7 +51,6 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      <CategoryNavigation />
       <main className="pride-gradient">
         <Routes>
           <Route path="/login" element={
