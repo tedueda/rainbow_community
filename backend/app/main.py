@@ -64,8 +64,9 @@ app.include_router(ops.router)
 
 @app.on_event("startup")
 def on_startup():
-    # 開発/SQLite環境では自動的にテーブルを作成（既存ならスキップ）
-    Base.metadata.create_all(bind=engine)
+    db_url = os.getenv("DATABASE_URL", "")
+    if "sqlite" in db_url.lower() or not db_url:
+        Base.metadata.create_all(bind=engine)
 
 @app.get("/healthz")
 async def healthz():

@@ -75,6 +75,7 @@ def update_my_profile(payload: dict, current_user: User = Depends(require_premiu
         banned_patterns = ["@", "line:", "LINE:", "+81", "tel:", "電話", "gmail.com", "icloud.com"]
         if any(pat in bio for pat in banned_patterns):
             raise HTTPException(status_code=400, detail="bio contains prohibited contact info")
+    
     # バリデーション用の定数
     VALID_AGE_BANDS = ['10s_late', '20s_early', '20s_late', '30s_early', '30s_late', '40s_early', '40s_late', '50s_early', '50s_late', '60s_early', '60s_late', '70plus']
     VALID_IDENTITIES = ['gay', 'lesbian', 'bisexual', 'transgender', 'questioning', 'other']

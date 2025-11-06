@@ -21,6 +21,11 @@ import MatchingMatchesPage from './components/matching/MatchingMatchesPage';
 import MatchingChatsPage from './components/matching/MatchingChatsPage';
 import MatchingProfilePage from './components/matching/MatchingProfilePage';
 import MatchingChatDetailPage from './components/matching/MatchingChatDetailPage';
+import FoodPage from './pages/members/FoodPage';
+import BeautyPage from './pages/members/BeautyPage';
+import VirtualWeddingPage from './components/VirtualWeddingPage';
+import DonationPage from './components/DonationPage';
+import MarketplacePage from './pages/members/MarketplacePage';
 
 
 const FeedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -102,23 +107,6 @@ function AppContent() {
               <CategoryPageNew />
             </FeedRoute>
           } />
-          {/* Member benefits routes disabled - under construction
-          <Route path="/matching" element={
-            <FeedRoute>
-              <MatchingPage />
-            </FeedRoute>
-          } />
-          <Route path="/virtual-wedding" element={
-            <FeedRoute>
-              <VirtualWeddingPage />
-            </FeedRoute>
-          } />
-          <Route path="/donation" element={
-            <FeedRoute>
-              <DonationPage />
-            </FeedRoute>
-          } />
-          */}
           {/* Matching routes */}
           <Route path="/matching" element={
             <FeedRoute>
@@ -133,6 +121,31 @@ function AppContent() {
             <Route path="chats/:id" element={<MatchingChatDetailPage />} />
             <Route path="profile" element={<MatchingProfilePage />} />
           </Route>
+          <Route path="/members/food" element={
+            <FeedRoute>
+              <FoodPage />
+            </FeedRoute>
+          } />
+          <Route path="/members/beauty" element={
+            <FeedRoute>
+              <BeautyPage />
+            </FeedRoute>
+          } />
+          <Route path="/live-wedding" element={
+            <FeedRoute>
+              <VirtualWeddingPage />
+            </FeedRoute>
+          } />
+          <Route path="/funding" element={
+            <FeedRoute>
+              <DonationPage />
+            </FeedRoute>
+          } />
+          <Route path="/marketplace" element={
+            <FeedRoute>
+              <MarketplacePage />
+            </FeedRoute>
+          } />
           <Route path="/news" element={
             <FeedRoute>
               <NewsPage />

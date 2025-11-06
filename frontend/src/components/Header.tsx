@@ -1,54 +1,77 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Heart, User, PlusCircle, LogIn, LogOut, Lock } from 'lucide-react';
+import { Heart, LogIn, LogOut, ChevronDown } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAnonymous, logout } = useAuth();
+  const [showMemberMenu, setShowMemberMenu] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
+  const memberBenefits = [
+    { title: "マッチング", link: "/matching", icon: "💕" },
+    { title: "ライブ・ウエディング", link: "/live-wedding", icon: "💒" },
+    { title: "募金", link: "/funding", icon: "🤝" },
+    { title: "マーケット", link: "/marketplace", icon: "🛍️" },
+    { title: "食レポ", link: "/members/food", icon: "🍽" },
+    { title: "ビューティ", link: "/members/beauty", icon: "💄" },
+  ];
+
   return (
     <header className="bg-white shadow-sm border-b border-pink-100">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link to="/feed" className="flex items-center space-x-2">
-            <Heart className="h-8 w-8 text-pink-500" />
-            <span className="text-xl sm:text-2xl font-bold text-pink-800">Carat</span>
+            <img src="/images/logo02.png" alt="Carat Logo" className="h-12 w-auto" />
           </Link>
 
           <div className="flex items-center space-x-2 sm:space-x-4">
             <Link to="/feed">
-              <Button variant="ghost" className="text-pink-700 hover:text-pink-900 hover:bg-pink-50 text-sm sm:text-base">
-                フィード
-              </Button>
-            </Link>
-            <Link to="/create">
-              <Button variant="ghost" className="text-green-700 hover:text-green-900 hover:bg-green-50 text-sm sm:text-base">
-                <PlusCircle className="h-4 w-4 mr-1 sm:mr-2" />
-                投稿
-              </Button>
-            </Link>
-            <Link to="/blog">
-              <Button variant="ghost" className="text-purple-700 hover:text-purple-900 hover:bg-purple-50 text-sm sm:text-base">
-                ブログ
-              </Button>
-            </Link>
-            <Link to="/matching">
               <Button variant="ghost" className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 text-sm sm:text-base">
-                <Lock className="h-4 w-4 mr-1 sm:mr-2" />
-                マッチング <span className="ml-1 text-[10px] sm:text-xs text-pink-600 font-semibold">Premium</span>
+                <Heart className="h-4 w-4 mr-1 sm:mr-2" />
+                ホーム
               </Button>
             </Link>
-            <Link to="/matching/profile">
-              <Button variant="ghost" className="text-orange-700 hover:text-orange-900 hover:bg-orange-50 text-sm sm:text-base">
-                <User className="h-4 w-4 mr-1 sm:mr-2" />
-                プロフィール
+            
+            {/* Member Benefits Dropdown */}
+            <div className="relative">
+              <Button 
+                variant="ghost" 
+                className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 text-sm sm:text-base"
+                onClick={() => setShowMemberMenu(!showMemberMenu)}
+              >
+                会員特別メニュー
+                <ChevronDown className="h-4 w-4 ml-1" />
+              </Button>
+              
+              {showMemberMenu && (
+                <div className="absolute top-full right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                  <div className="p-2">
+                    {memberBenefits.map((benefit) => (
+                      <Link
+                        key={benefit.link}
+                        to={benefit.link}
+                        onClick={() => setShowMemberMenu(false)}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-pink-50 rounded-md transition-colors"
+                      >
+                        <span className="text-2xl">{benefit.icon}</span>
+                        <span className="text-sm text-gray-700">{benefit.title}</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <Link to="/blog">
+              <Button variant="ghost" className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 text-sm sm:text-base">
+                ブログ
               </Button>
             </Link>
 

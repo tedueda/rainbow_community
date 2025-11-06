@@ -1,42 +1,14 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
+import { ArrowRight, Calendar, ThumbsUp, Heart, MessageCircle, Gem as DiamondIcon } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
-import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
-import { Input } from './ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
-import { Heart, ThumbsUp, Search, MessageCircle, Calendar, ArrowRight } from 'lucide-react';
 import UnderConstructionModal from './UnderConstructionModal';
+import { Post, User } from '../types/Post';
 
-interface User {
-  id: number;
-  display_name: string;
-  email: string;
-}
-
-interface Post {
-  id: number;
-  title?: string;
-  body: string;
-  user_id: number;
-  visibility: string;
-  created_at: string;
-  category?: string;
-  media_urls?: string[];
-  youtube_url?: string;
-}
-
-const tabs = [
-  { key: "all", label: "すべて" },
-  { key: "board", label: "掲示板" },
-  { key: "art", label: "アート" },
-  { key: "music", label: "音楽" },
-  { key: "shops", label: "お店" },
-  { key: "tourism", label: "ツーリズム" },
-  { key: "comics", label: "コミック・映画" },
-];
 
 const memberBenefits = [
   {
@@ -44,68 +16,74 @@ const memberBenefits = [
     title: "マッチング",
     description: "理想のパートナーと出会える安心のマッチングサービス",
     icon: "💕",
-    link: "/matching",
+    link: "/matching", // React版統合
+    external: false,
   },
   {
-    id: "virtual-wedding",
-    title: "ウェディング動画・配信",
+    id: "live-wedding",
+    title: "ライブ・ウエディング",
     description: "オンラインで叶える特別な結婚式体験",
     icon: "💒",
-    link: "/virtual-wedding",
+    link: "/live-wedding",
+    external: false,
   },
   {
     id: "donation",
     title: "募金",
     description: "LGBTQ+コミュニティを支援する寄付プラットフォーム",
     icon: "🤝",
-    link: "/donation",
+    link: "/funding",
+    external: false,
+  },
+  {
+    id: "marketplace",
+    title: "マーケット",
+    description: "会員同士で安心・安全な売買取引",
+    icon: "🛍️",
+    link: "/marketplace",
+    external: false,
+  },
+  {
+    id: "food",
+    title: "食レポ",
+    description: "単品メニュー・市販品の\"秘密の推し\"を共有",
+    icon: "🍽",
+    link: "/members/food",
+    external: false,
+  },
+  {
+    id: "beauty",
+    title: "ビューティ",
+    description: "コスメ・メイク・ヨガのおすすめと講座",
+    icon: "💄",
+    link: "/members/beauty",
+    external: false,
   },
 ];
 
 const categories = [
-  { key: "board", title: "掲示板", desc: "悩み相談や雑談、生活の話題。", posts: 15230, emoji: "💬" },
+  { key: "comics", title: "サブカルチャー", desc: "映画・アニメ・ゲーム・小説などの作品レビューと感想。", posts: 2840, emoji: "🎭" },
   { key: "art", title: "アート", desc: "イラスト・写真・映像作品の発表。", posts: 8932, emoji: "🎨" },
   { key: "music", title: "音楽", desc: "お気に入りや自作・AI曲の共有。", posts: 6240, emoji: "🎵" },
+  { key: "board", title: "掲示板", desc: "悩み相談や雑談、生活の話題。", posts: 15230, emoji: "💬" },
   { key: "shops", title: "お店", desc: "LGBTQフレンドリーなお店紹介。", posts: 1450, emoji: "🏬" },
   { key: "tourism", title: "ツーリズム", desc: "会員ガイドの交流型ツアー。", posts: 312, emoji: "📍" },
-  { key: "comics", title: "コミック・映画", desc: "LGBTQ+テーマの作品レビューと感想。", posts: 2840, emoji: "🎬" },
 ];
 
 const getCategoryPlaceholder = (category: string | undefined): string => {
   const categoryMap: { [key: string]: string } = {
-    'board': '/assets/placeholders/board.svg',
-    'art': '/assets/placeholders/art.svg',
-    'music': '/assets/placeholders/music.svg',
-    'shops': '/assets/placeholders/shops.svg',
-    'tourism': '/assets/placeholders/tourism.svg',
-    'comics': '/assets/placeholders/comics.svg',
+    'board': '/images/hero-slide-4.jpg',
+    'community': '/images/hero-slide-4.jpg',
+    'art': '/images/sub_cuture02.jpg',
+    'music': '/images/music01.jpg',
+    'shops': '/images/shop01.jpg',
+    'tourism': '/images/img13.jpg',
+    'comics': '/images/sub_cuture01.jpg',
   };
-  return categoryMap[category || 'board'] || '/assets/placeholders/board.svg';
+  return categoryMap[category || 'board'] || '/images/hero-slide-4.jpg';
 };
 
-const newsArticles = [
-  {
-    id: "n1",
-    title: "同性パートナーシップ制度、全国で拡大中",
-    excerpt: "2024年度に新たに15自治体が制度を導入。現在の導入状況と今後の展望について解説します。",
-    tags: ["制度", "パートナーシップ", "自治体"],
-    date: "2024-09-15",
-  },
-  {
-    id: "n2", 
-    title: "職場でのLGBTQ+理解促進セミナー開催報告",
-    excerpt: "企業向けダイバーシティ研修の効果と参加者の声をまとめました。",
-    tags: ["職場", "研修", "ダイバーシティ"],
-    date: "2024-09-12",
-  },
-  {
-    id: "n3",
-    title: "Rainbow Festa 2024 開催決定！",
-    excerpt: "今年のテーマは「つながり」。10月開催予定のイベント詳細をお知らせします。",
-    tags: ["イベント", "フェスタ", "コミュニティ"],
-    date: "2024-09-10",
-  },
-];
+// ニュース記事はAPIから取得
 
 const dummyPosts: Post[] = [
   {
@@ -165,19 +143,22 @@ const dummyUsers: { [key: number]: User } = {
 };
 
 const HomePage: React.FC = () => {
-  const [posts, setPosts] = useState<Post[]>(dummyPosts);
-  const [users, setUsers] = useState<{ [key: number]: User }>(dummyUsers);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [newsArticles, setNewsArticles] = useState<any[]>([]);
+  const [, setUsers] = useState<{ [key: number]: User }>(dummyUsers);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  // const [activeTab, setActiveTab] = useState('all');
+  // const [searchQuery, setSearchQuery] = useState('');
   const [isCarouselHovered, setIsCarouselHovered] = useState(false);
   const [showConstructionModal, setShowConstructionModal] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [selectedNewsArticle, setSelectedNewsArticle] = useState<any>(null);
   const carouselApiRef = useRef<any>(null);
-  const { token, user, isAnonymous, setAnonymousMode } = useAuth();
+  const { token, user, isAnonymous } = useAuth();
   const navigate = useNavigate();
 
-  const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
   const extractYouTubeVideoId = (url: string): string | null => {
     if (!url) return null;
@@ -191,6 +172,24 @@ const HomePage: React.FC = () => {
       if (match) return match[1];
     }
     return null;
+  };
+
+  const fetchNews = async () => {
+    try {
+      const params = new URLSearchParams({
+        limit: '100',
+      });
+      const response = await fetch(`${API_URL}/api/posts/?${params}`);
+      if (response.ok) {
+        const data = await response.json();
+        // フロントエンドでnewsカテゴリのみフィルタリング
+        const newsData = data.filter((post: any) => post.category === 'news');
+        console.log('📰 [HomePage] News articles filtered:', newsData.length, newsData);
+        setNewsArticles(newsData.slice(0, 3));  // 最新3件のみ
+      }
+    } catch (error) {
+      console.error('Failed to fetch news:', error);
+    }
   };
 
   const fetchPosts = async () => {
@@ -289,11 +288,9 @@ const HomePage: React.FC = () => {
 
 
   useEffect(() => {
-    if (!user && !isAnonymous) {
-      setAnonymousMode();
-    }
     fetchPosts();
-  }, [user, isAnonymous, setAnonymousMode]);
+    fetchNews();
+  }, [user, isAnonymous]);
 
   useEffect(() => {
     if (!isCarouselHovered && posts.length > 0 && carouselApiRef.current) {
@@ -326,7 +323,7 @@ const HomePage: React.FC = () => {
 
   useEffect(() => {
     const slideInterval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % 5);
+      setCurrentSlide((prev) => (prev + 1) % 2);
     }, 5000);
 
     return () => clearInterval(slideInterval);
@@ -341,24 +338,52 @@ const HomePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-rose-50 via-white to-indigo-50 text-slate-800">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen relative overflow-x-hidden" style={{
+      background: `
+        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.8) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(240, 248, 255, 0.6) 0%, transparent 50%),
+        radial-gradient(circle at 40% 80%, rgba(248, 250, 252, 0.7) 0%, transparent 50%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 50%, rgba(241, 245, 249, 0.9) 100%)
+      `
+    }}>
+      <div className="w-full max-w-full space-y-8">
         
-        {/* ヒーロー */}
-        <section className="py-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold leading-tight text-pink-800">
-                自分を表現して、<br />新しい仲間と出会おう！
+        {/* ヒーローセクション */}
+        <section className="relative w-full overflow-hidden" style={{height: '860px'}}>
+          <div className="absolute inset-0">
+            <div 
+              className={`absolute inset-0 transition-opacity duration-1000 ${currentSlide === 0 ? 'opacity-100' : 'opacity-0'}`}
+            >
+              <img 
+                src="/images/img01.jpg" 
+                alt="LGBTQ+ Community 1"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div 
+              className={`absolute inset-0 transition-opacity duration-1000 ${currentSlide === 1 ? 'opacity-100' : 'opacity-0'}`}
+            >
+              <img 
+                src="/images/img03.jpg" 
+                alt="LGBTQ+ Community 2"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+          <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+          <div className="relative z-10 flex items-center justify-center h-full">
+            <div className="text-center text-white px-4 max-w-6xl">
+              <h2 className="text-5xl md:text-7xl font-serif font-bold leading-tight mb-6">
+                自分を表現して、<br />新しい仲間と出会おう
               </h2>
-              <p className="mt-3 text-slate-600">
+              <p className="text-xl md:text-2xl mb-8 opacity-90">
                 悩み相談、アート、音楽、地元ツアー。ここから、あなたの物語が始まります。
               </p>
-              <div className="mt-5 flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-4 justify-center">
                 {user && !isAnonymous ? (
                   <Button 
                     onClick={() => window.location.href = '/create'}
-                    className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white px-5 py-2 font-medium"
+                    className="gold-bg hover:opacity-90 text-slate-900 px-8 py-4 text-xl font-medium shadow-lg hover:shadow-xl transition-all"
                   >
                     投稿を作成
                   </Button>
@@ -366,115 +391,31 @@ const HomePage: React.FC = () => {
                   <>
                     <Button 
                       onClick={() => window.location.href = '/login'}
-                      className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white px-5 py-2 font-medium"
+                      className="gold-bg hover:opacity-90 text-slate-900 px-8 py-4 text-xl font-medium shadow-lg hover:shadow-xl transition-all"
                     >
                       プレミアム会員登録（月1,000円）
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      className="border-pink-300 text-pink-700 hover:bg-pink-50 px-5 py-2 font-medium"
-                    >
-                      無料で閲覧（限定コンテンツ）
                     </Button>
                   </>
                 )}
               </div>
               {(!user || isAnonymous) && (
-                <p className="mt-2 text-xs text-slate-500">
-                  * 無料会員は各カテゴリの最新投稿を閲覧できます。
+                <p className="mt-4 text-lg opacity-80">
+                  * 無料会員はサイト全体の内容を見ていただけます。投稿や有料会員限定サイトを閲覧するには会員登録が必要です。
                 </p>
               )}
             </div>
-            <div className="relative h-44 md:h-56 lg:h-64 rounded-3xl overflow-hidden shadow-inner">
-              <div 
-                className={`absolute inset-0 transition-opacity duration-1000 ${currentSlide === 0 ? 'opacity-100' : 'opacity-0'}`}
-              >
-                <img 
-                  src="/images/hero-slide-1.jpg" 
-                  alt="LGBTQ+ Community Illustration 1"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div 
-                className={`absolute inset-0 transition-opacity duration-1000 ${currentSlide === 1 ? 'opacity-100' : 'opacity-0'}`}
-              >
-                <img 
-                  src="/images/hero-slide-2.jpg" 
-                  alt="LGBTQ+ Community Illustration 2"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div 
-                className={`absolute inset-0 transition-opacity duration-1000 ${currentSlide === 2 ? 'opacity-100' : 'opacity-0'}`}
-              >
-                <img 
-                  src="/images/hero-slide-3.jpg" 
-                  alt="LGBTQ+ Community Illustration 3"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div 
-                className={`absolute inset-0 transition-opacity duration-1000 ${currentSlide === 3 ? 'opacity-100' : 'opacity-0'}`}
-              >
-                <img 
-                  src="/images/hero-slide-4.jpg" 
-                  alt="LGBTQ+ Community Illustration 4"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div 
-                className={`absolute inset-0 transition-opacity duration-1000 ${currentSlide === 4 ? 'opacity-100' : 'opacity-0'}`}
-              >
-                <img 
-                  src="/images/hero-slide-5.jpg" 
-                  alt="LGBTQ+ Community Illustration 5"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
           </div>
         </section>
 
-        {/* タブ＋検索 */}
-        <section className="py-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <TabsList className="bg-white border border-pink-200">
-                  {tabs.map((t) => (
-                    <TabsTrigger 
-                      key={t.key} 
-                      value={t.key}
-                      className="data-[state=active]:bg-pink-100 data-[state=active]:text-pink-800"
-                    >
-                      {t.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <Input
-                    type="text"
-                    placeholder="キーワードで探す（例：悩み相談 / カフェ / 中崎町）"
-                    value={searchQuery}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                    className="w-full sm:w-80 border-pink-200 focus:border-pink-400"
-                  />
-                  <Button className="bg-pink-600 hover:bg-pink-700 text-white">
-                    <Search className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </Tabs>
-          </div>
-        </section>
 
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* 最新投稿カルーセル */}
-        <section className="py-8">
+        <section className="py-12">
           <div className="flex items-baseline justify-between mb-3">
-            <h3 className="text-lg font-semibold text-pink-800">最新投稿</h3>
+            <h3 className="text-4xl md:text-5xl font-serif font-semibold text-slate-900">最新投稿</h3>
             <Button 
               variant="ghost" 
-              className="text-pink-700 hover:text-pink-900 hover:bg-pink-50"
+              className="text-gray-700 hover:text-black hover:bg-gray-100 font-medium text-xl md:text-2xl"
               onClick={() => navigate('/posts')}
             >
               すべての投稿を見る
@@ -505,21 +446,30 @@ const HomePage: React.FC = () => {
                 <CarouselItem key={post.id} className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3">
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Card className="border-pink-200 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer group">
-                        {post.media_urls && post.media_urls.length > 0 ? (
-                          <div className="h-40 overflow-hidden rounded-t-lg">
+                      <Card key={post.id} className="group backdrop-blur-md bg-gray-50/80 border border-gray-200 hover:bg-white hover:border-gray-300 transition-all duration-300 cursor-pointer hover:scale-[1.02] shadow-lg hover:shadow-2xl">
+                        {(post.media_url || (post.media_urls && post.media_urls.length > 0)) ? (
+                          <div className="h-40 overflow-hidden rounded-t-lg bg-gray-100 flex items-center justify-center">
                             <img 
-                              src={`${post.media_urls[0].startsWith('http') ? '' : (post.media_urls[0].startsWith('/assets/') || post.media_urls[0].startsWith('/images/') ? '' : API_URL)}${post.media_urls[0]}`}
+                              src={`${(() => {
+                                const imageUrl = post.media_url || (post.media_urls && post.media_urls[0]);
+                                if (!imageUrl) return getCategoryPlaceholder(post.category);
+                                return imageUrl.startsWith('http') ? imageUrl : 
+                                       (imageUrl.startsWith('/assets/') || imageUrl.startsWith('/images/')) ? imageUrl : 
+                                       `${API_URL}${imageUrl}`;
+                              })()}`}
                               alt={post.title || '投稿画像'}
-                              className="w-full h-full object-cover"
+                              className="max-w-full max-h-full object-contain"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = getCategoryPlaceholder(post.category);
+                              }}
                             />
                           </div>
                         ) : post.youtube_url ? (
-                          <div className="h-40 overflow-hidden rounded-t-lg bg-black">
+                          <div className="h-40 overflow-hidden rounded-t-lg bg-black flex items-center justify-center">
                             <img 
                               src={`https://img.youtube.com/vi/${extractYouTubeVideoId(post.youtube_url)}/maxresdefault.jpg`}
                               alt={post.title || 'YouTube動画'}
-                              className="w-full h-full object-cover"
+                              className="max-w-full max-h-full object-contain"
                               onError={(e) => {
                                 if (post.youtube_url) {
                                   (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${extractYouTubeVideoId(post.youtube_url)}/hqdefault.jpg`;
@@ -528,17 +478,17 @@ const HomePage: React.FC = () => {
                             />
                           </div>
                         ) : (
-                          <div className="h-40 overflow-hidden rounded-t-lg">
+                          <div className="h-40 overflow-hidden rounded-t-lg bg-gray-100 flex items-center justify-center">
                             <img 
                               src={getCategoryPlaceholder(post.category)}
                               alt={categories.find(c => c.key === post.category)?.title || '掲示板'}
-                              className="w-full h-full object-cover"
+                              className="max-w-full max-h-full object-contain"
                             />
                           </div>
                         )}
-                        <CardContent className="p-4">
+                        <CardContent className="p-4 h-[180px] flex flex-col">
                           <div className="flex items-center gap-2 text-xs mb-2">
-                            <span className="rounded-full bg-pink-100 text-pink-700 px-2 py-0.5">
+                            <span className="rounded-full bg-gray-100 text-gray-800 px-2.5 py-1 border border-gray-300 font-medium">
                               {categories.find(c => c.key === post.category)?.title || '掲示板'}
                             </span>
                             <span className="text-slate-500">
@@ -546,15 +496,15 @@ const HomePage: React.FC = () => {
                             </span>
                           </div>
                           {post.title && (
-                            <h4 className="font-semibold leading-snug text-pink-800 mb-1 group-hover:text-pink-900 line-clamp-2">
+                            <h4 className="font-serif font-semibold leading-snug text-slate-900 mb-2 group-hover:gold-accent line-clamp-2">
                               {post.title}
                             </h4>
                           )}
-                          <p className="text-sm text-slate-600 line-clamp-2 mb-3">{post.body}</p>
-                          <div className="flex items-center justify-between text-sm">
+                          <p className="text-sm text-slate-600 line-clamp-3 mb-2 flex-1">{post.body}</p>
+                          <div className="flex items-center justify-between text-sm mt-auto">
                             <div className="flex items-center gap-3 text-slate-500">
                               <span className="flex items-center gap-1">
-                                <Heart className="h-3 w-3" />
+                                <DiamondIcon className="h-3 w-3 text-blue-500" />
                                 {Math.floor(Math.random() * 20) + 1}
                               </span>
                               <span className="flex items-center gap-1">
@@ -563,7 +513,7 @@ const HomePage: React.FC = () => {
                               </span>
                             </div>
                             <span className="text-xs text-slate-400">
-                              {users[post.user_id]?.display_name || '不明なユーザー'}
+                              {post.user_display_name || 'テッドさん'}
                             </span>
                           </div>
                         </CardContent>
@@ -571,26 +521,32 @@ const HomePage: React.FC = () => {
                     </DialogTrigger>
                     <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                       <DialogHeader>
-                        <DialogTitle className="text-pink-800">
+                        <DialogTitle className="text-slate-900 font-serif text-2xl">
                           {post.title || '投稿詳細'}
                         </DialogTitle>
                       </DialogHeader>
                       <div className="space-y-4">
-                        {post.media_urls && post.media_urls.length > 0 ? (
+                        {(post.media_url || (post.media_urls && post.media_urls.length > 0)) ? (
                           <div className="space-y-3">
-                            <div className="h-64 overflow-hidden rounded-lg">
+                            <div className="h-64 overflow-hidden rounded-lg bg-gray-100 flex items-center justify-center">
                               <img 
-                                src={`${post.media_urls[0].startsWith('http') ? '' : (post.media_urls[0].startsWith('/assets/') || post.media_urls[0].startsWith('/images/') ? '' : API_URL)}${post.media_urls[0]}`} 
+                                src={`${(() => {
+                                  const imageUrl = post.media_url || (post.media_urls && post.media_urls[0]);
+                                  if (!imageUrl) return getCategoryPlaceholder(post.category);
+                                  return imageUrl.startsWith('http') ? imageUrl : 
+                                         (imageUrl.startsWith('/assets/') || imageUrl.startsWith('/images/')) ? imageUrl : 
+                                         `${API_URL}${imageUrl}`;
+                                })()}`}
                                 alt={post.title || '投稿画像'}
-                                className="w-full h-full object-cover"
+                                className="max-w-full max-h-full object-contain"
                               />
                             </div>
-                            {post.media_urls.length > 1 && (
+                            {post.media_urls && post.media_urls.length > 1 && (
                               <div className="grid grid-cols-4 gap-2">
                                 {post.media_urls.slice(1, 5).map((url, idx) => (
                                   <img 
                                     key={idx}
-                                    src={`${url.startsWith('http') ? '' : (url.startsWith('/assets/') || url.startsWith('/images/') ? '' : API_URL)}${url}`} 
+                                    src={`${url.startsWith('http') ? url : (url.startsWith('/assets/') || url.startsWith('/images/') ? url : `${API_URL}${url}`)}`} 
                                     alt={`追加画像 ${idx + 1}`}
                                     className="w-full h-20 object-cover rounded"
                                   />
@@ -610,16 +566,16 @@ const HomePage: React.FC = () => {
                             ></iframe>
                           </div>
                         ) : (
-                          <div className="h-64 overflow-hidden rounded-lg">
+                          <div className="h-64 overflow-hidden rounded-lg bg-gray-100 flex items-center justify-center">
                             <img 
                               src={getCategoryPlaceholder(post.category)}
                               alt={categories.find(c => c.key === post.category)?.title || '掲示板'}
-                              className="w-full h-full object-cover"
+                              className="max-w-full max-h-full object-contain"
                             />
                           </div>
                         )}
                         <div className="flex items-center gap-2 text-sm">
-                          <span className="rounded-full bg-pink-100 text-pink-700 px-2 py-1">
+                          <span className="rounded-full bg-gray-100 text-gray-800 px-3 py-1 border border-gray-300 font-medium">
                             {categories.find(c => c.key === post.category)?.title || '掲示板'}
                           </span>
                           <span className="text-slate-500">
@@ -634,7 +590,7 @@ const HomePage: React.FC = () => {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleReaction(post.id, 'like')}
-                                className="text-gray-600 hover:text-pink-600 hover:bg-pink-50"
+                                className="text-gray-600 hover:gold-accent hover:bg-yellow-50"
                               >
                                 <ThumbsUp className="h-4 w-4 mr-1" />
                                 いいね
@@ -643,7 +599,7 @@ const HomePage: React.FC = () => {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleReaction(post.id, 'love')}
-                                className="text-gray-600 hover:text-pink-600 hover:bg-pink-50"
+                                className="text-gray-600 hover:gold-accent hover:bg-yellow-50"
                               >
                                 <Heart className="h-4 w-4 mr-1" />
                                 愛
@@ -653,7 +609,7 @@ const HomePage: React.FC = () => {
                             <Button 
                               onClick={() => navigate('/login')}
                               size="sm"
-                              className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white"
+                              className="gold-bg hover:opacity-90 text-slate-900 font-medium shadow-sm"
                             >
                               プレミアム登録してリアクション
                             </Button>
@@ -665,25 +621,114 @@ const HomePage: React.FC = () => {
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="border-pink-300 text-pink-700 hover:bg-pink-50" />
-            <CarouselNext className="border-pink-300 text-pink-700 hover:bg-pink-50" />
+            <CarouselPrevious className="border-gray-300 text-gray-700 hover:bg-gray-100" />
+            <CarouselNext className="border-gray-300 text-gray-700 hover:bg-gray-100" />
           </Carousel>
           </div>
         </section>
 
+        {/* 会員特典メニュー */}
+        <section className="py-12">
+          <div className="flex items-baseline justify-between mb-3">
+            <h3 className="text-4xl md:text-5xl font-serif font-semibold text-slate-900">会員特典メニュー</h3>
+            <span className="text-xl md:text-2xl text-slate-500">プレミアム会員限定</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+            {memberBenefits.map((benefit) => (
+              <Card 
+                key={benefit.id} 
+                className="group backdrop-blur-md bg-gray-50/90 border border-gray-200 hover:bg-white hover:border-gray-300 transition-all duration-300 cursor-pointer hover:scale-[1.02] shadow-lg hover:shadow-2xl"
+                onClick={() => {
+                  console.log('Card clicked:', benefit.title, 'external:', benefit.external, 'link:', benefit.link);
+                  console.log('Current location:', window.location.pathname);
+                  if (benefit.external === false && benefit.link) {
+                    console.log('Attempting to navigate to:', benefit.link);
+                    try {
+                      navigate(benefit.link);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                      console.log('Navigation called successfully');
+                    } catch (error) {
+                      console.error('Navigation error:', error);
+                    }
+                  } else {
+                    console.log('Showing construction modal');
+                    setShowConstructionModal(true);
+                  }
+                }}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="text-4xl group-hover:scale-110 transition-transform">
+                        {benefit.icon}
+                      </div>
+                      <div className="text-left">
+                        <h4 className="font-serif font-semibold text-slate-900 mb-1 group-hover:gold-accent">
+                          {benefit.title}
+                        </h4>
+                        <p className="text-sm text-slate-600 line-clamp-2">
+                          {benefit.description}
+                        </p>
+                      </div>
+                    </div>
+                    <Button 
+                      className="gold-bg hover:opacity-90 text-slate-900 group-hover:shadow-md transition-all font-medium"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // 未ログイン時はログインポップアップを表示
+                        if (!user) {
+                          setShowLoginPrompt(true);
+                          return;
+                        }
+                        console.log('Button clicked:', benefit.title, 'external:', benefit.external, 'link:', benefit.link);
+                        console.log('Current location:', window.location.pathname);
+                        if (benefit.external === false && benefit.link) {
+                          console.log('Attempting to navigate to:', benefit.link);
+                          try {
+                            navigate(benefit.link);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                            console.log('Navigation called successfully');
+                          } catch (error) {
+                            console.error('Navigation error:', error);
+                          }
+                        } else {
+                          console.log('Showing construction modal');
+                          setShowConstructionModal(true);
+                        }
+                      }}
+                    >
+                      利用する
+                      <ArrowRight className="h-3 w-3 ml-1" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+
         {/* イベント特集バナー */}
-        <section className="py-6">
-          <Card className="bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 text-white border-0 shadow-xl">
-            <CardContent className="p-6 md:p-8 text-center">
+        <section className="py-12">
+          <Card className="text-white border border-white/20 shadow-2xl relative overflow-hidden backdrop-blur-sm">
+            <div className="absolute inset-0">
+              <img 
+                src="/images/lgbtq-7-1536x1024.jpg" 
+                alt="LGBTQ Pride Background"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+            </div>
+            <CardContent className="p-6 md:p-8 text-center relative z-10">
               <div className="flex items-center justify-center gap-2 mb-3">
                 <Calendar className="h-6 w-6" />
                 <span className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full">特別イベント</span>
               </div>
-              <h3 className="text-2xl md:text-3xl font-bold mb-2">Rainbow Festa 2024</h3>
-              <p className="text-lg mb-4 opacity-90">つながりをテーマに、10月開催決定！</p>
+              <h3 className="text-4xl md:text-5xl font-serif font-bold mb-4">Rainbow Festa 2024</h3>
+              <p className="text-xl md:text-2xl mb-6 opacity-90">つながりをテーマに、10月開催決定！</p>
               <Button 
                 onClick={() => navigate('/news')}
-                className="bg-white text-pink-600 hover:bg-gray-100 font-semibold px-6 py-2"
+                className="gold-bg text-slate-900 hover:opacity-90 font-semibold px-6 py-2.5 shadow-lg"
               >
                 詳細を見る
                 <ArrowRight className="h-4 w-4 ml-2" />
@@ -693,31 +738,74 @@ const HomePage: React.FC = () => {
         </section>
 
         {/* カテゴリーセクション */}
-        <section className="py-6">
+        <section className="py-12">
           <div className="flex items-baseline justify-between mb-3">
-            <h3 className="text-lg font-semibold text-pink-800">カテゴリーから探す</h3>
+            <h3 className="text-4xl md:text-5xl font-serif font-semibold text-slate-900">掲示板</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {categories.map((cat) => (
               <Card 
                 key={cat.key} 
-                className="group border-pink-100 hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.02]" 
-                onClick={() => navigate(`/category/${cat.key}`)}
+                className="group backdrop-blur-md bg-gray-50/80 border border-gray-200 hover:bg-white hover:border-gray-300 transition-all duration-300 cursor-pointer hover:scale-[1.02] shadow-lg hover:shadow-2xl" 
+                onClick={() => {
+                  if (!user) {
+                    setShowLoginPrompt(true);
+                    return;
+                  }
+                  navigate(`/category/${cat.key}`);
+                }}
               >
-                <div className="h-32 sm:h-40 bg-gradient-to-br from-pink-200 via-green-200 to-orange-200 flex items-center justify-center rounded-t-lg">
-                  <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-white/90 border border-pink-200 shadow-lg flex items-center justify-center text-3xl sm:text-4xl group-hover:scale-110 transition-transform">
-                    <span>{cat.emoji}</span>
-                  </div>
+                <div className="h-32 sm:h-40 rounded-t-lg overflow-hidden relative">
+                  {cat.key === 'comics' ? (
+                    <img 
+                      src="/images/sub_cuture01.jpg" 
+                      alt="サブカルチャー"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : cat.key === 'art' ? (
+                    <img 
+                      src="/images/sub_cuture02.jpg" 
+                      alt="アート"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : cat.key === 'music' ? (
+                    <img 
+                      src="/images/music01.jpg" 
+                      alt="音楽"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : cat.key === 'board' ? (
+                    <img 
+                      src="/images/hero-slide-4.jpg" 
+                      alt="掲示板"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : cat.key === 'shops' ? (
+                    <img 
+                      src="/images/shop01.jpg" 
+                      alt="お店"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : cat.key === 'tourism' ? (
+                    <img 
+                      src="/images/img13.jpg" 
+                      alt="ツーリズム"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-full bg-gradient-to-br from-gray-50 via-yellow-50 to-gray-50">
+                    </div>
+                  )}
                 </div>
                 <CardContent className="p-4 sm:p-5">
                   <div className="text-xs text-slate-500">カテゴリー</div>
-                  <h4 className="mt-1 font-semibold leading-snug group-hover:text-pink-700 text-base sm:text-lg">{cat.title}</h4>
+                  <h4 className="mt-1 font-serif font-semibold leading-snug group-hover:gold-accent text-base sm:text-lg">{cat.title}</h4>
                   <p className="mt-2 text-sm text-slate-600 line-clamp-2">{cat.desc}</p>
                   <div className="mt-3 sm:mt-4 flex items-center justify-between text-sm text-slate-600">
                     <span className="flex items-center gap-1">
                       📄 {cat.posts.toLocaleString()}件
                     </span>
-                    <Button variant="outline" size="sm" className="border-pink-300 text-pink-700 hover:bg-pink-50 group-hover:border-pink-400">
+                    <Button variant="outline" size="sm" className="border-gray-300 text-gray-700 hover:bg-gray-100 group-hover:bg-gray-200 group-hover:text-black transition-all">
                       投稿を見る
                     </Button>
                   </div>
@@ -727,58 +815,13 @@ const HomePage: React.FC = () => {
           </div>
         </section>
 
-
-        {/* 会員特典メニュー */}
-        <section className="py-6">
-          <div className="flex items-baseline justify-between mb-3">
-            <h3 className="text-lg font-semibold text-pink-800">会員特典メニュー</h3>
-            <span className="text-sm text-slate-500">プレミアム会員限定</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {memberBenefits.map((benefit) => (
-              <Card 
-                key={benefit.id} 
-                className="group border-pink-100 hover:shadow-lg transition-all duration-200 cursor-pointer hover:scale-[1.03]"
-                onClick={() => setShowConstructionModal(true)}
-              >
-                <CardContent className="p-5 text-center">
-                  <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">
-                    {benefit.icon}
-                  </div>
-                  <h4 className="font-semibold text-pink-800 mb-2 group-hover:text-pink-900">
-                    {benefit.title}
-                  </h4>
-                  <p className="text-sm text-slate-600 mb-4 line-clamp-2">
-                    {benefit.description}
-                  </p>
-                  <Button 
-                    className="w-full bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white group-hover:shadow-md transition-all"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (benefit.id === 'matching' && benefit.link) {
-                        navigate(benefit.link);
-                      } else {
-                        setShowConstructionModal(true);
-                      }
-                    }}
-                  >
-                    利用する
-                    <ArrowRight className="h-3 w-3 ml-1" />
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
-
         {/* ニュースセクション */}
-        <section className="py-6">
+        <section className="py-12">
           <div className="flex items-baseline justify-between mb-3">
-            <h3 className="text-lg font-semibold text-pink-800">最新ニュース</h3>
+            <h3 className="text-4xl md:text-5xl font-serif font-semibold text-slate-900">最新ニュース</h3>
             <Button 
               variant="ghost" 
-              className="text-pink-700 hover:text-pink-900 hover:bg-pink-50"
+              className="text-gray-700 hover:text-black hover:bg-gray-100 font-medium text-xl md:text-2xl"
               onClick={() => navigate('/news')}
             >
               すべてのニュースを見る
@@ -787,26 +830,41 @@ const HomePage: React.FC = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {newsArticles.map((article) => (
-              <Card key={article.id} className="border-pink-100 hover:shadow-md transition-shadow cursor-pointer">
+              <Card key={article.id} className="border-gray-200 hover:shadow-lg hover:gold-border transition-all cursor-pointer overflow-hidden" onClick={() => setSelectedNewsArticle(article)}>
+                {article.media_url && (
+                  <div className="h-[160px] overflow-hidden bg-gray-100">
+                    <img
+                      src={`${article.media_url.startsWith('/images/')
+                        ? ''
+                        : (article.media_url.startsWith('http') ? '' : API_URL)
+                      }${article.media_url}`}
+                      alt={article.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                {!article.media_url && (
+                  <div className="h-[160px] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                    <span className="text-5xl">📰</span>
+                  </div>
+                )}
                 <CardContent className="p-4">
                   <div className="flex flex-wrap gap-1 mb-2">
-                    {article.tags.map((tag) => (
-                      <span key={tag} className="text-xs bg-pink-100 text-pink-700 px-2 py-0.5 rounded-full">
-                        {tag}
-                      </span>
-                    ))}
+                    <span className="text-xs bg-gray-100 text-gray-800 px-2.5 py-1 rounded-full border border-gray-300 font-medium">
+                      {article.category || 'ニュース'}
+                    </span>
                   </div>
-                  <h4 className="font-semibold text-pink-800 mb-2 line-clamp-2">
+                  <h4 className="font-serif font-semibold text-slate-900 mb-2 line-clamp-2">
                     {article.title}
                   </h4>
                   <p className="text-sm text-slate-600 mb-3 line-clamp-3">
-                    {article.excerpt}
+                    {article.body}
                   </p>
                   <div className="flex items-center justify-between text-xs text-slate-500">
-                    <span>{new Date(article.date).toLocaleDateString('ja-JP')}</span>
-                    <Button variant="ghost" size="sm" className="text-pink-700 hover:text-pink-900 hover:bg-pink-50 p-0">
-                      続きを読む
-                    </Button>
+                    <span>{new Date(article.created_at).toLocaleDateString('ja-JP')}</span>
+                    <span className="text-gray-700 hover:text-black font-medium">
+                      続きを読む →
+                    </span>
                   </div>
                 </CardContent>
               </Card>
@@ -815,37 +873,115 @@ const HomePage: React.FC = () => {
         </section>
 
         {/* 参加CTA */}
-        <section className="py-10">
-          <Card className="bg-white/80 border-pink-200 p-6 md:p-8 text-center">
+        <section className="py-16">
+          <Card className="backdrop-blur-md bg-gray-50/90 border border-gray-200 p-6 md:p-8 text-center shadow-2xl">
             <CardContent>
-              <h3 className="text-xl font-semibold text-pink-800">無料で雰囲気を体験してみませんか？</h3>
-              <p className="mt-2 text-slate-600">
-                無料会員は各カテゴリの最新投稿を閲覧できます。投稿やコメントは有料会員でご利用いただけます。
+              <h3 className="text-3xl md:text-4xl font-serif font-semibold text-slate-900">無料で雰囲気を体験してみませんか？</h3>
+              <p className="mt-4 text-xl md:text-2xl text-slate-600">
+                無料会員はサイト全体の内容を見ていただけます。投稿や有料会員限定サイトを閲覧するには会員登録が必要です。
               </p>
-              <div className="mt-4 flex flex-wrap gap-3 justify-center">
+              <div className="mt-4 flex justify-center">
                 <Button 
                   onClick={() => window.location.href = '/login'}
-                  className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white px-5 py-2 font-medium"
+                  className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 px-10 py-5 text-2xl md:text-3xl font-medium shadow-md hover:shadow-lg transition-all"
                 >
                   プレミアム会員になる（月1,000円）
-                </Button>
-                <Button 
-                  variant="outline"
-                  className="border-pink-300 text-pink-700 hover:bg-pink-50 px-5 py-2 font-medium"
-                >
-                  無料で試す（限定閲覧）
                 </Button>
               </div>
             </CardContent>
           </Card>
         </section>
-
+        </div>
       </div>
       
       <UnderConstructionModal 
         isOpen={showConstructionModal}
         onClose={() => setShowConstructionModal(false)}
       />
+
+      {/* ニュース詳細モーダル */}
+      {selectedNewsArticle && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedNewsArticle(null)}>
+          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">{selectedNewsArticle.title}</h2>
+              <button
+                onClick={() => setSelectedNewsArticle(null)}
+                className="text-gray-500 hover:text-gray-700"
+                aria-label="閉じる"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              {selectedNewsArticle.media_url && (
+                <div className="rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center max-h-96">
+                  <img
+                    src={`${selectedNewsArticle.media_url.startsWith('/images/')
+                      ? ''
+                      : (selectedNewsArticle.media_url.startsWith('http') ? '' : API_URL)
+                    }${selectedNewsArticle.media_url}`}
+                    alt={selectedNewsArticle.title}
+                    className="max-w-full max-h-full object-contain"
+                  />
+                </div>
+              )}
+              
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium px-3 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-300">
+                  {selectedNewsArticle.category || 'ニュース'}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {new Date(selectedNewsArticle.created_at).toLocaleDateString('ja-JP')}
+                </span>
+              </div>
+              
+              <div className="prose max-w-none">
+                <p className="text-gray-700 whitespace-pre-wrap">{selectedNewsArticle.body}</p>
+              </div>
+              
+              <div className="pt-4 border-t border-gray-200">
+                <p className="text-sm text-gray-500">
+                  投稿者: {selectedNewsArticle.user_display_name || '不明なユーザー'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ログインポップアップ */}
+      {showLoginPrompt && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowLoginPrompt(false)}>
+          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-2xl font-serif font-semibold text-slate-900 mb-4">ログインが必要です</h3>
+            <p className="text-slate-600 mb-6">
+              この機能を利用するには、プレミアム会員としてログインする必要があります。
+            </p>
+            <div className="flex gap-3">
+              <Button 
+                onClick={() => {
+                  setShowLoginPrompt(false);
+                  navigate('/login');
+                }}
+                className="flex-1 bg-black text-white hover:bg-gray-800"
+              >
+                ログイン
+              </Button>
+              <Button 
+                onClick={() => setShowLoginPrompt(false)}
+                variant="outline"
+                className="flex-1"
+              >
+                キャンセル
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
