@@ -152,7 +152,7 @@ const RegisterForm: React.FC = () => {
             )}
             <Button 
               type="submit" 
-              className="w-full bg-carat-black text-carat-white hover:bg-carat-gray6 transition-colors"
+              className="w-full bg-black text-white hover:bg-gray-800 transition-colors text-lg font-bold py-6 shadow-lg hover:shadow-xl"
               disabled={isLoading}
             >
               {isLoading ? '登録中...' : 'アカウントを作成'}
