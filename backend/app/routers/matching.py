@@ -302,6 +302,35 @@ def list_matches(
     return {"items": items}
 
 
+@router.post("/ensure_chat/{to_user_id}")
+def ensure_chat(
+    to_user_id: int,
+    current_user: User = Depends(require_premium),
+    db: Session = Depends(get_db),
+):
+    if to_user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot chat with yourself")
+    
+    a, b = sorted([current_user.id, to_user_id])
+    match = (
+        db.query(Match)
+        .filter(Match.user_a_id == a, Match.user_b_id == b)
+        .first()
+    )
+    
+    if not match:
+        raise HTTPException(status_code=404, detail="No match found. You must match with this user first.")
+    
+    chat = db.query(Chat).filter(Chat.match_id == match.id).first()
+    if not chat:
+        chat = Chat(match_id=match.id)
+        db.add(chat)
+        db.commit()
+        db.refresh(chat)
+    
+    return {"chat_id": chat.id}
+
+
 @router.get("/chats")
 def list_chats(
     current_user: User = Depends(require_premium),
