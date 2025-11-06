@@ -282,7 +282,7 @@ const MarketplacePage: React.FC = () => {
               <span>会員限定</span>
             </div>
             <div className="flex items-center">
-              <MessageCircle className="w-5 h-5 mr-2 text-purple-500" />
+              <MessageCircle className="w-5 h-5 mr-2 text-carat-black" />
               <span>チャットで安心取引</span>
             </div>
             <div className="flex items-center">
