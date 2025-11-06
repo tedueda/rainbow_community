@@ -130,57 +130,6 @@ def update_visibility(display_flag: bool, current_user: User = Depends(require_p
     return {"status": "ok", "display_flag": prof.display_flag}
 
 
-@router.get("/profiles/{user_id}")
-def get_profile_by_id(
-    user_id: int,
-    current_user: User = Depends(require_premium),
-    db: Session = Depends(get_db),
-):
-    prof = db.query(MatchingProfile).filter(MatchingProfile.user_id == user_id).first()
-    if not prof or not prof.display_flag:
-        raise HTTPException(status_code=404, detail="Profile not found")
-    
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    hobbies = (
-        db.query(Hobby.name)
-        .join(MatchingProfileHobby, MatchingProfileHobby.hobby_id == Hobby.id)
-        .filter(MatchingProfileHobby.profile_id == user_id)
-        .all()
-    )
-    
-    images = []
-    try:
-        images = (
-            db.query(MatchingProfileImage)
-            .filter(MatchingProfileImage.profile_id == user_id)
-            .order_by(MatchingProfileImage.display_order)
-            .all()
-        )
-    except Exception:
-        pass
-    
-    return {
-        "user_id": prof.user_id,
-        "display_name": user.display_name,
-        "display_flag": prof.display_flag,
-        "prefecture": prof.prefecture or "",
-        "age_band": prof.age_band or "",
-        "occupation": prof.occupation or "",
-        "income_range": prof.income_range or "",
-        "meet_pref": prof.meet_pref or "",
-        "meeting_style": getattr(prof, 'meeting_style', None) or prof.meet_pref or "",
-        "bio": prof.bio or "",
-        "identity": prof.identity or "",
-        "avatar_url": getattr(prof, 'avatar_url', None) or "",
-        "romance_targets": prof.romance_targets or [],
-        "hobbies": [h[0] for h in hobbies],
-        "images": [{"id": img.id, "url": img.image_url, "order": img.display_order} for img in images],
-    }
-
-
 @router.get("/search")
 def search_profiles(
     prefecture: Optional[str] = Query(None),
@@ -226,7 +175,6 @@ def search_profiles(
             "prefecture": prof.prefecture,
             "age_band": prof.age_band,
             "identity": prof.identity,
-            "avatar_url": getattr(prof, 'avatar_url', None) or "",
         }
         for prof, disp in rows
     ]

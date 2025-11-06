@@ -68,7 +68,11 @@ const MatchingSearchPage: React.FC = () => {
         return;
       }
       
-      const params = new URLSearchParams({ page: "1", size: "50" });
+      const params = new URLSearchParams({ page: "1", size: "20" });
+      // セグメントに応じてidentityパラメータを追加（日本語の値を使用）
+      // if (segment === "gay") params.append("identity", "ゲイ");
+      // else if (segment === "lesbian") params.append("identity", "レズ");
+      // else if (segment === "other") params.append("identity", "other");
       
       const url = `${API_URL}/api/matching/search?${params.toString()}&_t=${Date.now()}`;
       const res = await fetch(url, {
@@ -84,8 +88,7 @@ const MatchingSearchPage: React.FC = () => {
       }
       
       const data = await res.json();
-      let fetchedItems: MatchItem[] = Array.isArray(data) ? data : (data.items || []);
-      
+      let fetchedItems: MatchItem[] = data.items || [];
       // 画像URLを常に有効に整形（相対→API_URL付与、ダミー画像は削除）
       fetchedItems = fetchedItems.map((it) => {
         let avatar = it.avatar_url || '';
@@ -98,18 +101,7 @@ const MatchingSearchPage: React.FC = () => {
         }
         return { ...it, avatar_url: avatar };
       });
-      
-      // クライアント側で性志向カテゴリーによるフィルタリング
-      if (segment === 'gay') {
-        fetchedItems = fetchedItems.filter(it => it.identity === 'ゲイ');
-      } else if (segment === 'lesbian') {
-        fetchedItems = fetchedItems.filter(it => it.identity === 'レズ');
-      } else if (segment === 'other') {
-        fetchedItems = fetchedItems.filter(it => 
-          it.identity !== 'ゲイ' && it.identity !== 'レズ'
-        );
-      }
-      
+      // バックエンドでromance_targetsによるフィルタリング済み
       setItems(fetchedItems);
     } catch (e: any) {
       setError(e?.message || '検索に失敗しました');
