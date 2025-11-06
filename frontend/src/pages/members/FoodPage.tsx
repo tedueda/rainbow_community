@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus, Edit, Trash2, X, Upload } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { ArrowLeft, Plus, X, Upload } from 'lucide-react';
 
 interface Post {
   id: number;
@@ -18,15 +17,13 @@ interface Post {
 
 const FoodPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [newPost, setNewPost] = useState({ title: '', body: '', image: null as File | null });
-  const [editPost, setEditPost] = useState({ title: '', body: '', image: null as File | null });
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchFoodPosts = async () => {
@@ -52,30 +49,16 @@ const FoodPage: React.FC = () => {
     setShowDetailModal(true);
   };
 
-  const handleEdit = (post: Post) => {
-    setSelectedPost(post);
-    setEditPost({ title: post.title, body: post.body, image: null });
-    setShowEditModal(true);
-  };
-
-  const handleDelete = async (postId: number) => {
-    if (!confirm('この投稿を削除しますか？')) return;
-    
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-      const response = await fetch(`${apiUrl}/api/posts/${postId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-      
-      if (response.ok) {
-        setPosts(posts.filter(p => p.id !== postId));
-        setShowDetailModal(false);
-        alert('投稿を削除しました');
-      }
-    } catch (error) {
-      console.error('Failed to delete post:', error);
-      alert('削除に失敗しました');
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setNewPost({ ...newPost, image: file });
+      // 画像プレビューを生成
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -85,16 +68,7 @@ const FoodPage: React.FC = () => {
     alert('投稿を作成しました（画像アップロード機能は準備中です）');
     setShowCreateModal(false);
     setNewPost({ title: '', body: '', image: null });
-  };
-
-  const handleEditSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedPost) return;
-    
-    // TODO: API実装後に編集処理を追加
-    alert('投稿を更新しました（画像アップロード機能は準備中です）');
-    setShowEditModal(false);
-    setEditPost({ title: '', body: '', image: null });
+    setImagePreview(null);
   };
 
   return (
@@ -180,23 +154,9 @@ const FoodPage: React.FC = () => {
             <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
                 <h2 className="text-2xl font-bold">{selectedPost.title}</h2>
-                <div className="flex items-center gap-2">
-                  {user && (
-                    <>
-                      <Button variant="outline" size="sm" onClick={() => handleEdit(selectedPost)}>
-                        <Edit className="h-4 w-4 mr-1" />
-                        編集
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleDelete(selectedPost.id)} className="text-red-600 hover:text-red-700">
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        削除
-                      </Button>
-                    </>
-                  )}
-                  <button onClick={() => setShowDetailModal(false)} className="p-2 hover:bg-gray-100 rounded-full">
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
+                <button onClick={() => setShowDetailModal(false)} className="p-2 hover:bg-gray-100 rounded-full">
+                  <X className="h-5 w-5" />
+                </button>
               </div>
               {selectedPost.media_url && (
                 <img
@@ -251,18 +211,36 @@ const FoodPage: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium mb-2">画像</label>
                   <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                    <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setNewPost({ ...newPost, image: e.target.files?.[0] || null })}
-                      className="hidden"
-                      id="create-image"
-                    />
-                    <label htmlFor="create-image" className="cursor-pointer text-blue-600 hover:text-blue-700">
-                      画像を選択
-                    </label>
-                    {newPost.image && <p className="mt-2 text-sm text-gray-600">{newPost.image.name}</p>}
+                    {imagePreview ? (
+                      <div className="space-y-2">
+                        <img src={imagePreview} alt="Preview" className="max-h-48 mx-auto rounded" />
+                        <p className="text-sm text-gray-600">{newPost.image?.name}</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewPost({ ...newPost, image: null });
+                            setImagePreview(null);
+                          }}
+                          className="text-red-600 hover:text-red-700 text-sm"
+                        >
+                          画像を削除
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                          className="hidden"
+                          id="create-image"
+                        />
+                        <label htmlFor="create-image" className="cursor-pointer text-blue-600 hover:text-blue-700">
+                          画像を選択
+                        </label>
+                      </>
+                    )}
                   </div>
                 </div>
                 <div className="flex gap-2 pt-4">
@@ -278,65 +256,6 @@ const FoodPage: React.FC = () => {
           </div>
         )}
 
-        {/* 編集モーダル */}
-        {showEditModal && selectedPost && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowEditModal(false)}>
-            <div className="bg-white rounded-lg max-w-2xl w-full" onClick={(e) => e.stopPropagation()}>
-              <div className="border-b px-6 py-4 flex items-center justify-between">
-                <h2 className="text-2xl font-bold">投稿を編集</h2>
-                <button onClick={() => setShowEditModal(false)} className="p-2 hover:bg-gray-100 rounded-full">
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-              <form onSubmit={handleEditSubmit} className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">タイトル *</label>
-                  <input
-                    type="text"
-                    required
-                    value={editPost.title}
-                    onChange={(e) => setEditPost({ ...editPost, title: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">内容 *</label>
-                  <textarea
-                    required
-                    value={editPost.body}
-                    onChange={(e) => setEditPost({ ...editPost, body: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-black h-32"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">画像を変更</label>
-                  <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                    <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setEditPost({ ...editPost, image: e.target.files?.[0] || null })}
-                      className="hidden"
-                      id="edit-image"
-                    />
-                    <label htmlFor="edit-image" className="cursor-pointer text-blue-600 hover:text-blue-700">
-                      新しい画像を選択
-                    </label>
-                    {editPost.image && <p className="mt-2 text-sm text-gray-600">{editPost.image.name}</p>}
-                  </div>
-                </div>
-                <div className="flex gap-2 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setShowEditModal(false)} className="flex-1">
-                    キャンセル
-                  </Button>
-                  <Button type="submit" className="flex-1 bg-black hover:bg-gray-800 text-white">
-                    更新する
-                  </Button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
       </main>
     </div>
   );
