@@ -10,7 +10,7 @@ import NewPostForm from './NewPostForm';
 import { Post } from '../types/Post';
 import { Category, Subcategory } from '../types/category';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 const sortOptions = [
   { value: "newest", label: "新着順" },
