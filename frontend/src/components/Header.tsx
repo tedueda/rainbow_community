@@ -30,7 +30,7 @@ const Header: React.FC = () => {
           {/* Left Column - Logo */}
           <div className="flex justify-start items-start">
             <Link to="/feed">
-              <img src="/images/logo02.png" alt="Carat Logo" className="h-24 w-auto" />
+              <img src="/images/logo02.png" alt="Carat Logo" className="h-28 w-auto" />
             </Link>
           </div>
 
