@@ -37,7 +37,7 @@ jobs:
         working-directory: frontend
         env:
           GITHUB_PAGES: 'true'
-          VITE_USE_MOCK: 'true'
+          VITE_API_URL: 'https://ddxdewgmen.ap-northeast-1.awsapprunner.com'
         run: npm run build
 
       - name: Add SPA fallback
