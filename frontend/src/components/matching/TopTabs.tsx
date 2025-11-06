@@ -13,7 +13,7 @@ export function TopTabs() {
     <Tabs value={segment} onValueChange={handleTabChange} className="mb-6">
       <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="gay">ゲイ</TabsTrigger>
-        <TabsTrigger value="lesbian">レズビアン</TabsTrigger>
+        <TabsTrigger value="lesbian">レズ</TabsTrigger>
         <TabsTrigger value="other">その他</TabsTrigger>
       </TabsList>
     </Tabs>
