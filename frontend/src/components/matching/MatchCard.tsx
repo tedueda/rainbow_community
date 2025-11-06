@@ -37,6 +37,7 @@ export function MatchCard({ item }: { item: Item }) {
         await new Promise(resolve => setTimeout(resolve, 500));
         setLiked(true);
         setLoading(false);
+        navigate('/matching/matches');
         return;
       }
       
@@ -50,6 +51,7 @@ export function MatchCard({ item }: { item: Item }) {
       
       if (!res.ok) throw new Error('Like failed');
       setLiked(true);
+      navigate('/matching/matches');
     } catch (err) {
       console.error("Like failed:", err);
       alert('いいねに失敗しました');
