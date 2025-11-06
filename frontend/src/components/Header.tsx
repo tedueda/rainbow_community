@@ -24,16 +24,18 @@ const Header: React.FC = () => {
   ];
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
-      <div className="container mx-auto px-6 py-5">
-        <div className="flex items-start justify-between">
+    <header className="bg-transparent backdrop-blur-md shadow-2xl border-b border-gray-300/50">
+      <div className="container mx-auto px-6 sm:px-8 md:py-5">
+        <div className="grid grid-cols-2 gap-4 items-center">
           {/* Left Column - Logo */}
-          <Link to="/feed" className="flex items-center pt-2">
-            <img src="/images/logo02.png" alt="Carat Logo" className="h-24 w-auto" />
-          </Link>
+          <div className="flex justify-start items-start">
+            <Link to="/feed">
+              <img src="/images/logo02.png" alt="Carat Logo" className="h-24 w-auto" />
+            </Link>
+          </div>
 
           {/* Right Column - Navigation (2 rows) */}
-          <div className="flex flex-col items-end gap-3">
+          <div className="flex flex-col justify-start items-end space-y-2">
             {/* Top Row - Main Navigation */}
             <nav className="flex items-center gap-8">
               <Link to="/feed">
