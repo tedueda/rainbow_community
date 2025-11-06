@@ -23,13 +23,6 @@ MEDIA_DIR = Path(media_base)
 MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/media", StaticFiles(directory=str(MEDIA_DIR)), name="media")
 
-matching_media_base = os.getenv("MATCHING_MEDIA_DIR")
-if not matching_media_base:
-    matching_media_base = "/data/matching_media" if os.path.exists("/data") else "matching_media"
-MATCHING_MEDIA_DIR = Path(matching_media_base)
-MATCHING_MEDIA_DIR.mkdir(parents=True, exist_ok=True)
-app.mount("/matching-media", StaticFiles(directory=str(MATCHING_MEDIA_DIR)), name="matching_media")
-
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
