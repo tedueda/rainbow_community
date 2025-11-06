@@ -7,7 +7,7 @@ from app.auth import get_password_hash
 
 def create_ted_user():
     # 本番データベースURL
-    DATABASE_URL = "postgresql+psycopg2://dbadmin:0034caretLgbtQ@rainbow-community-db-tokyo.cj8agmy8kjhv.ap-northeast-1.rds.amazonaws.com:5432/lgbtq_community?sslmode=require"
+    DATABASE_URL = "postgresql+psycopg2://dbadmin:NewPassword123!@rainbow-community-db-tokyo.cj8agmy8kjhv.ap-northeast-1.rds.amazonaws.com:5432/lgbtq_community?sslmode=require"
     
     engine = create_engine(DATABASE_URL)
     
