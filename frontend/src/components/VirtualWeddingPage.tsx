@@ -1,186 +1,546 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from './ui/button';
+import { Check, ChevronDown, ChevronUp, Home } from 'lucide-react';
 import { Card, CardContent, CardHeader } from './ui/card';
-import { ArrowLeft, Camera, Music, Users, Gift, Calendar, Video } from 'lucide-react';
+import { Button } from './ui/button';
+
+interface InquiryForm {
+  name1: string;
+  name2: string;
+  phone: string;
+  email: string;
+  date1: string;
+  date2: string;
+  date3: string;
+  contact: string;
+  message: string;
+}
 
 const VirtualWeddingPage: React.FC = () => {
   const navigate = useNavigate();
+  const [formData, setFormData] = useState<InquiryForm>({
+    name1: '',
+    name2: '',
+    phone: '',
+    email: '',
+    date1: '',
+    date2: '',
+    date3: '',
+    contact: '',
+    message: ''
+  });
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      alert('お問い合わせを受け付けました。担当者よりご連絡いたします。');
+      setFormData({
+        name1: '',
+        name2: '',
+        phone: '',
+        email: '',
+        date1: '',
+        date2: '',
+        date3: '',
+        contact: '',
+        message: ''
+      });
+    } catch (error) {
+      alert('エラーが発生しました。もう一度お試しください。');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // const features = [
+  //   {
+  //     icon: <Globe className="w-8 h-8" />,
+  //     title: "世界中に配信",
+  //     description: "距離を超えて、大切な人たちと特別な瞬間を共有"
+  //   },
+  //   {
+  //     icon: <Camera className="w-8 h-8" />,
+  //     title: "プロの撮影",
+  //     description: "経験豊富なカメラマンが美しい映像を提供"
+  //   },
+  //   {
+  //     icon: <Users className="w-8 h-8" />,
+  //     title: "専任サポート",
+  //     description: "当日まで専任スタッフが丁寧にサポート"
+  //   },
+  //   {
+  //     icon: <Heart className="w-8 h-8" />,
+  //     title: "思い出を永遠に",
+  //     description: "録画データをお渡しし、いつでも振り返れます"
+  //   }
+  // ];
+
+  const includedFeatures = [
+    "カメラ4台によるマルチアングル収録",
+    "配信用音響設備（マイク・ミキサー）",
+    "高画質映像収録",
+    "バーチャル背景作成（教会／披露宴／海外風景 等）",
+    "配信サポート（Zoom等）",
+    "オンラインメッセージ・お祝儀受け取り機能",
+    "スタッフ1〜2名による運営サポート"
+  ];
+
+  const notIncludedFeatures = [
+    { item: "ヘアメイク・衣装", note: "お好みに合わせてご自身でご手配ください" },
+    { item: "司会・牧師・パートナー", note: "ご希望の場合は手配可能（別途お見積り）" },
+    { item: "コーディネーター・プランナー", note: "式全体の進行をサポートする専門家（任意）" },
+    { item: "花束・装飾", note: "ご自身のテーマに合わせたフラワーや小物" },
+    { item: "飲食", note: "パーティ用ケータリングなどご希望に応じて" }
+  ];
+
+  const faqs = [
+    {
+      question: "どのような機材が必要ですか？",
+      answer: "基本的な機材は全て弊社でご用意いたします。会場にインターネット環境があれば配信可能です。"
+    },
+    {
+      question: "配信の品質はどの程度ですか？",
+      answer: "プランに応じてHD〜4K画質での配信が可能です。安定したインターネット環境で高品質な配信を実現します。"
+    },
+    {
+      question: "当日のサポート体制は？",
+      answer: "専任スタッフが当日の進行をサポートいたします。技術的なトラブルにも迅速に対応いたします。"
+    },
+    {
+      question: "録画データはいつ受け取れますか？",
+      answer: "配信終了後、編集作業を経て約1週間以内にデータをお渡しいたします。"
+    }
+  ];
 
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
-      {/* ヘッダー */}
-      <div className="flex items-center gap-4">
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate('/feed')}
-          className="text-pink-700 hover:text-pink-900 hover:bg-pink-50"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          ホームに戻る
-        </Button>
-        <div className="flex items-center gap-3">
-          <div className="text-3xl">💒</div>
-          <div>
-            <h1 className="text-2xl font-bold text-pink-800">ウェディング動画・配信</h1>
-            <p className="text-slate-600">オンラインで叶える特別な結婚式体験</p>
-          </div>
-        </div>
-      </div>
-
-      {/* メインビジュアル */}
-      <Card className="border-pink-200 overflow-hidden">
-        <div className="h-64 bg-gradient-to-r from-pink-300 via-purple-300 to-orange-300 flex items-center justify-center">
-          <div className="text-center text-white">
-            <div className="text-6xl mb-4">💒✨</div>
-            <h2 className="text-2xl font-bold mb-2">あなただけの特別な結婚式</h2>
-            <p className="text-lg opacity-90">距離を超えて、愛する人と大切な瞬間を</p>
-          </div>
-        </div>
-      </Card>
-
-      {/* サービス内容 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card className="border-pink-200">
-          <CardContent className="p-6 text-center">
-            <Video className="h-12 w-12 text-pink-600 mx-auto mb-4" />
-            <h3 className="font-semibold text-pink-800 mb-2">ライブ配信</h3>
-            <p className="text-sm text-slate-600">
-              高品質な映像で、リアルタイムに結婚式を配信。遠方の家族や友人も参加できます。
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-pink-200">
-          <CardContent className="p-6 text-center">
-            <Music className="h-12 w-12 text-pink-600 mx-auto mb-4" />
-            <h3 className="font-semibold text-pink-800 mb-2">音楽演出</h3>
-            <p className="text-sm text-slate-600">
-              お二人の思い出の曲や、プロの演奏家による生演奏で特別な雰囲気を演出。
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-pink-200">
-          <CardContent className="p-6 text-center">
-            <Camera className="h-12 w-12 text-pink-600 mx-auto mb-4" />
-            <h3 className="font-semibold text-pink-800 mb-2">記録・撮影</h3>
-            <p className="text-sm text-slate-600">
-              プロのカメラマンが式の様子を撮影。後日、編集された動画をお渡しします。
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-pink-200">
-          <CardContent className="p-6 text-center">
-            <Users className="h-12 w-12 text-pink-600 mx-auto mb-4" />
-            <h3 className="font-semibold text-pink-800 mb-2">ゲスト参加</h3>
-            <p className="text-sm text-slate-600">
-              最大100名まで同時接続可能。チャット機能でお祝いメッセージも受け取れます。
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-pink-200">
-          <CardContent className="p-6 text-center">
-            <Gift className="h-12 w-12 text-pink-600 mx-auto mb-4" />
-            <h3 className="font-semibold text-pink-800 mb-2">ギフト機能</h3>
-            <p className="text-sm text-slate-600">
-              オンラインでご祝儀やプレゼントを受け取れる機能付き。感謝の気持ちを伝えやすく。
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-pink-200">
-          <CardContent className="p-6 text-center">
-            <Calendar className="h-12 w-12 text-pink-600 mx-auto mb-4" />
-            <h3 className="font-semibold text-pink-800 mb-2">事前準備</h3>
-            <p className="text-sm text-slate-600">
-              専任プランナーがリハーサルから当日まで完全サポート。安心してお任せください。
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* 料金プラン */}
-      <Card className="border-pink-200">
-        <CardHeader>
-          <h2 className="text-xl font-semibold text-pink-800">料金プラン</h2>
-          <p className="text-slate-600">お二人の希望に合わせて選べる3つのプラン</p>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 border border-pink-200 rounded-lg">
-              <h3 className="font-semibold text-pink-800 mb-2">シンプルプラン</h3>
-              <p className="text-3xl font-bold text-pink-600 mb-4">¥98,000</p>
-              <ul className="text-sm text-slate-600 space-y-2">
-                <li>• 基本的な配信機能</li>
-                <li>• 最大30名参加</li>
-                <li>• 録画データ提供</li>
-                <li>• 1時間の式進行</li>
-              </ul>
+    <div className="min-h-screen bg-carat-gray1">
+      {/* Hero Section with Background Video - Full Width */}
+      <div className="relative w-full h-[850px] flex items-center justify-center overflow-hidden">
+          {/* Background Video */}
+          <video 
+            className="absolute inset-0 w-full h-full object-cover"
+            autoPlay 
+            muted 
+            loop 
+            playsInline
+          >
+            <source src="https://test.studioq.co.jp/wp-content/uploads/2025/11/VW3.mp4" type="video/mp4" />
+          </video>
+          
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-black/40"></div>
+          
+          {/* Content */}
+          <div className="relative z-10 text-white px-4 w-full h-full flex flex-col">
+            {/* ホームに戻るボタン */}
+            <div className="pt-6 pl-4">
+              <button
+                onClick={() => {
+                  navigate('/');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="flex items-center gap-2 text-white/80 hover:text-white transition-colors bg-black/30 px-4 py-2 rounded-full"
+              >
+                <Home className="h-5 w-5" />
+                ホームに戻る
+              </button>
             </div>
 
-            <div className="p-6 border-2 border-pink-400 rounded-lg bg-pink-50 relative">
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <span className="bg-pink-600 text-white px-3 py-1 rounded-full text-xs font-semibold">人気</span>
+            {/* Top Section - キャッチ */}
+            <div className="flex-1 flex flex-col justify-start pt-8">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 text-center">
+                ライブ・ウェディング
+              </h1>
+              <p className="text-xl sm:text-2xl max-w-4xl mx-auto leading-relaxed text-center">
+                オンライン上で"二人の誓い"を公開し、世界中の大切な人と感動を共有。
+              </p>
+            </div>
+            
+            {/* Bottom Section - ボタン */}
+            <div className="pb-16 text-center">
+              <a href="#contact-form">
+                <Button className="bg-black text-white hover:bg-gray-800 px-8 py-4 text-xl font-semibold transition-colors">
+                  相談予約
+                </Button>
+              </a>
+            </div>
+          </div>
+        </div>
+
+      {/* Content Container */}
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Concept Section */}
+        <div className="mb-16 pt-16">
+          <div className="max-w-4xl mx-auto bg-carat-white rounded-2xl border border-carat-gray2 shadow-lg hover:shadow-xl transition-shadow duration-300 p-8">
+            <h2 className="text-3xl font-bold text-center text-carat-black mb-8">コンセプト</h2>
+            <div className="mb-8">
+              <p className="text-xl text-carat-gray6 leading-relaxed">
+                オンライン上で親しい人に『二人の誓い』を公開し、祝福を受ける新しいスタイルのウェディング
+              </p>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-carat-black mb-4">【ライブ・ウェディングをおすすめの理由】</h3>
+              <ul className="space-y-3 text-carat-gray6 text-lg">
+                <li>• 公で挙式が難しい方に、堂々と愛を誓える場を提供</li>
+                <li>• バーチャル背景で理想のウェディングシーンを演出</li>
+                <li>• 遠方の友人・家族とオンラインで祝福を共有</li>
+                <li>• スタジオQの設備を活かした唯一無二の体験</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Features Section */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-center text-carat-black mb-12">特徴</h2>
+          <div className="max-w-4xl mx-auto bg-carat-white rounded-2xl border border-carat-gray2 shadow-card p-8">
+            <p className="text-carat-gray6 leading-relaxed text-xl">
+              西日本随一の設備を誇り、業界のプロからも高い評価を得ているバーチャルスタジオ「Studio Q」を利用し、世界にたった一つのオンラインウェディングを提供します。AIによる背景合成技術により、夢に描いたあらゆるシーンを演出可能。教会や海外リゾート、花畑、夜景など、どんな世界観も自由に再現できます。遠方に住む両親、親戚、友人、知人をオンラインで招待し、リアルタイムで「誓い」と「祝福」を共有。さらに、お祝儀やメッセージをオンラインで受け取れる機能も搭載。二人の愛を形にし、永遠に残す"唯一無二"のウェディングを実現します。
+            </p>
+          </div>
+        </div>
+
+        {/* Single Plan Section */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-center text-carat-black mb-12">料金プラン</h2>
+          <div className="max-w-4xl mx-auto">
+            <Card className="bg-carat-white border-carat-gray2 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <CardHeader className="text-center">
+                <h3 className="text-3xl font-bold text-carat-black mb-2">ライブ・ウエディングプラン</h3>
+                <p className="text-4xl font-bold text-carat-black">¥300,000</p>
+                <p className="text-carat-gray5 mt-2">税込価格</p>
+                <div className="mt-4 px-4 py-2 bg-carat-black text-carat-white rounded-full inline-block">
+                  <span className="text-sm font-semibold">Carat プレミアム会員価格</span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* 含まれる内容 */}
+                  <div>
+                    <h4 className="text-xl font-semibold text-carat-black mb-4 flex items-center gap-2">
+                      <Check className="w-5 h-5 text-green-500" />
+                      含まれる内容
+                    </h4>
+                    <ul className="space-y-2">
+                      {includedFeatures.map((feature, index) => (
+                        <li key={index} className="flex items-center gap-2">
+                          <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                          <span className="text-carat-gray6 text-base">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  {/* 含まれない内容 */}
+                  <div>
+                    <h4 className="text-xl font-semibold text-carat-black mb-4 flex items-center gap-2">
+                      <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      含まれない内容
+                    </h4>
+                    <ul className="space-y-3">
+                      {notIncludedFeatures.map((feature, index) => (
+                        <li key={index} className="border-l-2 border-red-200 pl-3">
+                          <div className="flex items-start gap-2">
+                            <svg className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            <div>
+                              <span className="text-carat-black text-base font-medium">{feature.item}</span>
+                              <p className="text-carat-gray5 text-sm mt-1">{feature.note}</p>
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                
+                <div className="mt-8 text-center">
+                  <Button className="bg-black text-white hover:bg-gray-800 px-8 py-4 text-lg font-semibold">
+                    このプランでお申し込み
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+        
+        {/* Background Composite Video Section */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-center text-carat-black mb-12">背景合成イメージ動画</h2>
+          <div className="max-w-4xl mx-auto bg-carat-white rounded-2xl border border-carat-gray2 shadow-lg hover:shadow-xl transition-shadow duration-300 p-8">
+            <div 
+              className="aspect-video rounded-xl overflow-hidden mb-6 cursor-pointer relative group"
+              onClick={() => setIsVideoModalOpen(true)}
+            >
+              <video 
+                className="w-full h-full object-cover"
+                muted
+                poster=""
+              >
+                <source src="https://test.studioq.co.jp/wp-content/uploads/2025/11/バーチャルウェディング（DEMO.mp4" type="video/mp4" />
+              </video>
+              {/* 拡大アイコンオーバーレイ */}
+              <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="bg-carat-white rounded-full p-4">
+                  <svg className="w-8 h-8 text-carat-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                  </svg>
+                </div>
               </div>
-              <h3 className="font-semibold text-pink-800 mb-2">スタンダードプラン</h3>
-              <p className="text-3xl font-bold text-pink-600 mb-4">¥198,000</p>
-              <ul className="text-sm text-slate-600 space-y-2">
-                <li>• 高品質配信機能</li>
-                <li>• 最大70名参加</li>
-                <li>• プロ撮影・編集</li>
-                <li>• 2時間の式進行</li>
-                <li>• 音楽演出付き</li>
-                <li>• ギフト機能</li>
-              </ul>
             </div>
+            <h3 className="text-2xl font-bold text-carat-black mb-4">美しい背景で特別な演出</h3>
+            <p className="text-carat-gray6 leading-relaxed text-lg">
+              AIによる背景合成技術により、夢に描いたあらゆるシーンを演出可能。教会や海外リゾート、花畑、夜景など、
+              どんな世界観も自由に再現できます。Studio Qの最新技術で、理想のウェディングシーンを実現いたします。
+            </p>
+          </div>
+        </div>
 
-            <div className="p-6 border border-pink-200 rounded-lg">
-              <h3 className="font-semibold text-pink-800 mb-2">プレミアムプラン</h3>
-              <p className="text-3xl font-bold text-pink-600 mb-4">¥398,000</p>
-              <ul className="text-sm text-slate-600 space-y-2">
-                <li>• 最高品質配信</li>
-                <li>• 最大100名参加</li>
-                <li>• 専属プランナー</li>
-                <li>• 3時間の式進行</li>
-                <li>• 生演奏・司会者</li>
-                <li>• 全機能利用可能</li>
-              </ul>
+        {/* Studio Q Link Banner */}
+        <div className="mb-16">
+          <div className="max-w-4xl mx-auto">
+            <a 
+              href="https://studioq.co.jp/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="block bg-carat-white rounded-2xl border border-carat-gray2 shadow-lg hover:shadow-xl transition-all duration-300 group"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-16 h-16 bg-carat-black rounded-full flex items-center justify-center">
+                      <span className="text-carat-white font-bold text-xl">Q</span>
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-carat-black group-hover:text-carat-gray6 transition-colors">
+                        Studio Q
+                      </h3>
+                      <p className="text-carat-gray5">バーチャルスタジオ</p>
+                    </div>
+                  </div>
+                  <p className="text-carat-gray6 leading-relaxed mb-4 text-lg">
+                    西日本随一の設備を誇るバーチャルスタジオ。業界のプロからも高い評価を得ている最新技術で、
+                    あなたの理想のウェディングシーンを実現します。
+                  </p>
+                  <div className="flex items-center gap-2 text-carat-gray5">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span>大阪市浪速区</span>
+                  </div>
+                </div>
+                <div className="ml-6">
+                  <div className="w-12 h-12 bg-carat-gray1 rounded-full flex items-center justify-center group-hover:bg-carat-black transition-colors">
+                    <svg className="w-6 h-6 text-carat-gray6 group-hover:text-carat-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        {/* Contact Form */}
+        <div id="contact-form" className="mb-16">
+          <h2 className="text-3xl font-bold text-center text-carat-black mb-12">お問い合わせ</h2>
+          <div className="max-w-2xl mx-auto">
+            <Card className="bg-carat-white border-carat-gray2 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <CardContent className="p-8">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="name1" className="block text-sm font-medium text-carat-black mb-2">
+                        お名前1 *
+                      </label>
+                      <input
+                        type="text"
+                        id="name1"
+                        name="name1"
+                        required
+                        value={formData.name1}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-carat-gray3 rounded-lg focus:outline-none focus:ring-2 focus:ring-carat-black/20"
+                        placeholder="代表者名"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="name2" className="block text-sm font-medium text-carat-black mb-2">
+                        お名前2 *
+                      </label>
+                      <input
+                        type="text"
+                        id="name2"
+                        name="name2"
+                        required
+                        value={formData.name2}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-carat-gray3 rounded-lg focus:outline-none focus:ring-2 focus:ring-carat-black/20"
+                        placeholder="パートナー名"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-carat-black mb-2">
+                      メールアドレス *
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      required
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-carat-gray3 rounded-lg focus:outline-none focus:ring-2 focus:ring-carat-black/20"
+                      placeholder="example@email.com"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-medium text-carat-black mb-2">
+                      電話番号 *
+                    </label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      required
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-carat-gray3 rounded-lg focus:outline-none focus:ring-2 focus:ring-carat-black/20"
+                      placeholder="090-1234-5678"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-carat-black mb-2">
+                      希望日程（第3希望まで）
+                    </label>
+                    <div className="space-y-2">
+                      <input
+                        type="date"
+                        name="date1"
+                        value={formData.date1}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-carat-gray3 rounded-lg focus:outline-none focus:ring-2 focus:ring-carat-black/20"
+                      />
+                      <input
+                        type="date"
+                        name="date2"
+                        value={formData.date2}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-carat-gray3 rounded-lg focus:outline-none focus:ring-2 focus:ring-carat-black/20"
+                      />
+                      <input
+                        type="date"
+                        name="date3"
+                        value={formData.date3}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-carat-gray3 rounded-lg focus:outline-none focus:ring-2 focus:ring-carat-black/20"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="message" className="block text-sm font-medium text-carat-black mb-2">
+                      ご要望・ご質問
+                    </label>
+                    <textarea
+                      id="message"
+                      name="message"
+                      rows={4}
+                      value={formData.message}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-carat-gray3 rounded-lg focus:outline-none focus:ring-2 focus:ring-carat-black/20"
+                      placeholder="ご要望やご質問がございましたらお聞かせください"
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full bg-black text-white hover:bg-gray-800 disabled:opacity-50 py-4 text-lg font-semibold"
+                  >
+                    {isSubmitting ? '送信中...' : 'お問い合わせを送信'}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* FAQ Section */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-center text-carat-black mb-12">よくある質問</h2>
+          <div className="max-w-4xl mx-auto space-y-4">
+            {faqs.map((faq, index) => (
+              <Card key={index} className="bg-carat-white border-carat-gray2 shadow-card">
+                <button
+                  onClick={() => setExpandedFaq(expandedFaq === index ? null : index)}
+                  className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-carat-gray1 transition-colors"
+                >
+                  <span className="font-semibold text-carat-black">{faq.question}</span>
+                  {expandedFaq === index ? (
+                    <ChevronUp className="w-5 h-5 text-carat-gray5" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-carat-gray5" />
+                  )}
+                </button>
+                {expandedFaq === index && (
+                  <div className="px-6 pb-6">
+                    <p className="text-carat-gray6 leading-relaxed">{faq.answer}</p>
+                  </div>
+                )}
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Video Modal */}
+      {isVideoModalOpen && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="relative max-w-6xl w-full">
+            {/* 閉じるボタン */}
+            <button
+              onClick={() => setIsVideoModalOpen(false)}
+              className="absolute -top-12 right-0 text-white hover:text-carat-gray2 transition-colors"
+              aria-label="動画を閉じる"
+            >
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            {/* 動画 */}
+            <div className="aspect-video bg-black rounded-xl overflow-hidden">
+              <video 
+                className="w-full h-full object-cover"
+                controls
+                autoPlay
+              >
+                <source src="https://test.studioq.co.jp/wp-content/uploads/2025/11/バーチャルウェディング（DEMO.mp4" type="video/mp4" />
+              </video>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* CTA */}
-      <Card className="border-pink-200 bg-gradient-to-r from-pink-50 to-orange-50">
-        <CardContent className="p-8 text-center">
-          <h2 className="text-2xl font-bold text-pink-800 mb-4">特別な日を、特別な形で</h2>
-          <p className="text-slate-600 mb-6">
-            まずは無料相談で、お二人の理想の結婚式について聞かせてください。<br />
-            専任プランナーが丁寧にサポートいたします。
-          </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Button 
-              className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white px-8 py-3"
-              disabled
-            >
-              無料相談を予約（準備中）
-            </Button>
-            <Button 
-              variant="outline"
-              className="border-pink-300 text-pink-700 hover:bg-pink-50 px-8 py-3"
-              disabled
-            >
-              資料請求（準備中）
-            </Button>
-          </div>
-          <p className="text-sm text-slate-500 mt-4">
-            ※ サービスは現在準備中です。近日中に開始予定です。
-          </p>
-        </CardContent>
-      </Card>
+        </div>
+      )}
     </div>
   );
 };
