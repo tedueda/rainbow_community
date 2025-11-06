@@ -68,7 +68,7 @@ const MatchingSearchPage: React.FC = () => {
         return;
       }
       
-      const params = new URLSearchParams({ page: "1", size: "100" });
+      const params = new URLSearchParams({ page: "1", size: "50" });
       
       const url = `${API_URL}/api/matching/search?${params.toString()}&_t=${Date.now()}`;
       const res = await fetch(url, {
