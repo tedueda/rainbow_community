@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Heart, LogIn, LogOut, ChevronDown } from 'lucide-react';
+import { Home, ChevronDown, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const Header: React.FC = () => {
@@ -24,17 +24,19 @@ const Header: React.FC = () => {
   ];
 
   return (
-    <header className="bg-white shadow-sm border-b border-pink-100">
-      <div className="container mx-auto px-4 py-4">
+    <header className="bg-white shadow-sm border-b border-gray-200">
+      <div className="container mx-auto px-6 py-3">
         <div className="flex items-center justify-between">
+          {/* Logo */}
           <Link to="/feed" className="flex items-center space-x-2">
-            <img src="/images/logo02.png" alt="Carat Logo" className="h-12 w-auto" />
+            <img src="/images/logo02.png" alt="Carat Logo" className="h-10 w-auto" />
           </Link>
 
-          <div className="flex items-center space-x-2 sm:space-x-4">
+          {/* Navigation */}
+          <nav className="flex items-center space-x-6">
             <Link to="/feed">
-              <Button variant="ghost" className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 text-sm sm:text-base">
-                <Heart className="h-4 w-4 mr-1 sm:mr-2" />
+              <Button variant="ghost" className="text-gray-700 hover:text-black hover:bg-gray-50 text-sm font-normal">
+                <Home className="h-4 w-4 mr-1.5" />
                 ホーム
               </Button>
             </Link>
@@ -43,7 +45,7 @@ const Header: React.FC = () => {
             <div className="relative">
               <Button 
                 variant="ghost" 
-                className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 text-sm sm:text-base"
+                className="text-gray-700 hover:text-black hover:bg-gray-50 text-sm font-normal"
                 onClick={() => setShowMemberMenu(!showMemberMenu)}
               >
                 会員特別メニュー
@@ -58,7 +60,7 @@ const Header: React.FC = () => {
                         key={benefit.link}
                         to={benefit.link}
                         onClick={() => setShowMemberMenu(false)}
-                        className="flex items-center gap-3 px-4 py-3 hover:bg-pink-50 rounded-md transition-colors"
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 rounded-md transition-colors"
                       >
                         <span className="text-2xl">{benefit.icon}</span>
                         <span className="text-sm text-gray-700">{benefit.title}</span>
@@ -70,7 +72,7 @@ const Header: React.FC = () => {
             </div>
 
             <Link to="/blog">
-              <Button variant="ghost" className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 text-sm sm:text-base">
+              <Button variant="ghost" className="text-gray-700 hover:text-black hover:bg-gray-50 text-sm font-normal">
                 ブログ
               </Button>
             </Link>
@@ -78,21 +80,20 @@ const Header: React.FC = () => {
             {/* Auth controls */}
             {isAnonymous || !user ? (
               <Link to="/login">
-                <Button className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white text-sm sm:text-base">
-                  <LogIn className="h-4 w-4 mr-1 sm:mr-2" />
+                <Button className="bg-black hover:bg-gray-800 text-white text-sm px-6">
                   ログイン
                 </Button>
               </Link>
             ) : (
-              <div className="flex items-center gap-2">
-                <span className="hidden sm:inline text-sm text-gray-600">{user.display_name}</span>
-                <Button variant="outline" onClick={handleLogout} className="border-pink-300 text-pink-700 hover:bg-pink-50 text-sm sm:text-base">
-                  <LogOut className="h-4 w-4 mr-1 sm:mr-2" />
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-600">{user.display_name}</span>
+                <Button variant="outline" onClick={handleLogout} className="border-gray-300 text-gray-700 hover:bg-gray-50 text-sm">
+                  <LogOut className="h-4 w-4 mr-1.5" />
                   ログアウト
                 </Button>
               </div>
             )}
-          </div>
+          </nav>
         </div>
       </div>
     </header>
