@@ -54,7 +54,7 @@ const MarketplacePage: React.FC = () => {
       location: '東京都渋谷区',
       seller_name: 'Rainbow太郎',
       seller_id: 101,
-      images: ['/images/hero-slide-1.jpg'],
+      images: ['/images/market01.jpg'],
       created_at: '2024-11-01',
       status: 'active',
       is_favorited: false
@@ -69,7 +69,7 @@ const MarketplacePage: React.FC = () => {
       location: '大阪府大阪市',
       seller_name: 'BookLover',
       seller_id: 102,
-      images: ['/images/hero-slide-2.jpg'],
+      images: ['/images/shop02.jpg'],
       created_at: '2024-10-30',
       status: 'active',
       is_favorited: true
@@ -84,7 +84,7 @@ const MarketplacePage: React.FC = () => {
       location: '神奈川県横浜市',
       seller_name: 'PrideCollector',
       seller_id: 103,
-      images: ['/images/hero-slide-3.jpg'],
+      images: ['/images/art01.jpg'],
       created_at: '2024-10-28',
       status: 'active',
       is_favorited: false

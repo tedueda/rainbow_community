@@ -51,7 +51,7 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      <main className="pride-gradient">
+      <main className="bg-white">
         <Routes>
           <Route path="/login" element={
             <PublicRoute>
