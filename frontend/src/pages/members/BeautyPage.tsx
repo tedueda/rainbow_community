@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../../components/Header';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
@@ -9,9 +8,9 @@ interface Post {
   title: string;
   body: string;
   category: string;
-  image_url?: string;
+  media_url?: string;
   created_at: string;
-  author: {
+  user: {
     display_name: string;
   };
 }
@@ -28,7 +27,7 @@ const BeautyPage: React.FC = () => {
         const response = await fetch(`${apiUrl}/api/posts?category=beauty&limit=50`);
         if (response.ok) {
           const data = await response.json();
-          setPosts(data.items || []);
+          setPosts(Array.isArray(data) ? data : []);
         }
       } catch (error) {
         console.error('Failed to fetch beauty posts:', error);
@@ -42,8 +41,6 @@ const BeautyPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
-      <Header />
-      
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">
           <Button
@@ -86,9 +83,9 @@ const BeautyPage: React.FC = () => {
                 className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
                 onClick={() => navigate(`/posts/${post.id}`)}
               >
-                {post.image_url && (
+                {post.media_url && (
                   <img
-                    src={post.image_url}
+                    src={post.media_url.startsWith('http') ? post.media_url : `${import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}${post.media_url}`}
                     alt={post.title}
                     className="w-full h-48 object-cover"
                   />
@@ -101,7 +98,7 @@ const BeautyPage: React.FC = () => {
                     {post.body.replace(/#\w+/g, '').trim()}
                   </p>
                   <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>{post.author.display_name}</span>
+                    <span>{post.user?.display_name || 'Unknown'}</span>
                     <span>{new Date(post.created_at).toLocaleDateString('ja-JP')}</span>
                   </div>
                 </div>
