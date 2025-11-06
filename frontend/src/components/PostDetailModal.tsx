@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Heart, MessageCircle, Share2, Flag, Send } from 'lucide-react';
+import { X, Heart, MessageCircle, Share2, Flag, Send, Camera } from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { useAuth } from '../contexts/AuthContext';
 import { Post, User, Comment } from '../types/Post';
+import { compressImage } from '../utils/imageCompression';
 
 interface PostDetailModalProps {
   post: Post;
@@ -261,7 +262,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
   const postAuthorId = post?.user_id != null ? Number(post.user_id) : null;
   const canEdit = !isLoading && !!currentUser && !isAnonymous && currentUserId != null && postAuthorId != null && currentUserId === postAuthorId;
 
-  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     setUploadError(null);
     if (file) {
@@ -273,9 +274,31 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
         setUploadError('画像は10MB以下にしてください');
         return;
       }
-      setNewImageFile(file);
-      setNewImagePreview(URL.createObjectURL(file));
-      setRemoveCurrentImage(false);
+      
+      try {
+        // 画像を自動圧縮
+        setIsUploadingImage(true);
+        const compressedFile = await compressImage(file, {
+          maxWidth: 1920,
+          maxHeight: 1920,
+          quality: 0.85,
+          maxSizeMB: 2,
+        });
+        
+        setNewImageFile(compressedFile);
+        setNewImagePreview(URL.createObjectURL(compressedFile));
+        setRemoveCurrentImage(false);
+        
+        // 圧縮結果を表示
+        const originalSizeKB = (file.size / 1024).toFixed(0);
+        const compressedSizeKB = (compressedFile.size / 1024).toFixed(0);
+        console.log(`📸 画像を圧縮しました: ${originalSizeKB}KB → ${compressedSizeKB}KB`);
+      } catch (error) {
+        console.error('画像圧縮エラー:', error);
+        setUploadError('画像の処理に失敗しました');
+      } finally {
+        setIsUploadingImage(false);
+      }
     } else {
       setNewImageFile(null);
       setNewImagePreview(null);
@@ -626,10 +649,17 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
               <div className="mb-4 space-y-2">
                 <div className="text-sm font-medium text-gray-700">画像</div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <label htmlFor="edit-image" className="inline-flex items-center px-3 py-2 border border-pink-300 rounded-md text-sm text-pink-700 hover:bg-pink-50 cursor-pointer">
-                    画像を選択
+                  <label htmlFor="edit-image" className="inline-flex items-center gap-2 px-3 py-2 border border-pink-300 rounded-md text-sm text-pink-700 hover:bg-pink-50 cursor-pointer">
+                    📁 画像を選択
                   </label>
                   <input id="edit-image" type="file" accept="image/*" className="hidden" onChange={handleImageFileChange} />
+                  
+                  <label htmlFor="edit-camera" className="inline-flex items-center gap-2 px-3 py-2 border border-blue-300 rounded-md text-sm text-blue-700 hover:bg-blue-50 cursor-pointer">
+                    <Camera className="h-4 w-4" />
+                    カメラで撮影
+                  </label>
+                  <input id="edit-camera" type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageFileChange} />
+                  
                   <Button
                     type="button"
                     variant="outline"
@@ -640,13 +670,15 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
                     {removeCurrentImage ? '画像削除を取り消す' : '画像を削除する'}
                   </Button>
                   {isUploadingImage && (
-                    <span className="text-xs text-gray-500">画像アップロード中...</span>
+                    <span className="text-xs text-gray-500">画像処理中...</span>
                   )}
                   {uploadError && (
                     <span className="text-xs text-red-600">{uploadError}</span>
                   )}
                   {newImageFile && (
-                    <span className="text-xs text-gray-500">選択中: {newImageFile.name}</span>
+                    <span className="text-xs text-gray-500">
+                      選択中: {newImageFile.name} ({(newImageFile.size / 1024).toFixed(0)}KB)
+                    </span>
                   )}
                 </div>
               </div>
