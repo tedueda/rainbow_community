@@ -85,14 +85,11 @@ const Header: React.FC = () => {
             {/* Bottom Row - User Info & Auth */}
             <div className="flex items-center gap-4">
               {isAnonymous || !user ? (
-                <>
-                  <span className="text-sm text-gray-600">Test Ueda</span>
-                  <Link to="/login">
-                    <Button className="bg-black hover:bg-gray-800 text-white text-sm px-6 py-2">
-                      ログイン
-                    </Button>
-                  </Link>
-                </>
+                <Link to="/login">
+                  <Button className="bg-black hover:bg-gray-800 text-white text-sm px-6 py-2">
+                    ログイン
+                  </Button>
+                </Link>
               ) : (
                 <>
                   <span className="text-sm text-gray-600">{user.display_name}</span>
