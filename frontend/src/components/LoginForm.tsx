@@ -22,6 +22,15 @@ const LoginForm: React.FC = () => {
     setIsLoading(true);
     setError('');
 
+    console.log('🔐 LoginForm: Submitting login');
+    console.log('🔐 Environment check:', {
+      VITE_API_URL: import.meta.env.VITE_API_URL,
+      VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
+      MODE: import.meta.env.MODE,
+      DEV: import.meta.env.DEV,
+      PROD: import.meta.env.PROD,
+    });
+
     const success = await login(email, password, rememberMe);
     
     if (success) {
