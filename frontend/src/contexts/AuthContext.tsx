@@ -147,9 +147,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     // 実際のAPIログイン
     try {
+      console.log('🔑 Attempting login with API_URL:', API_URL);
+      console.log('🔑 Full login URL:', `${API_URL}/api/auth/token`);
+      
       const formData = new URLSearchParams();
       formData.append('username', email);
       formData.append('password', password);
+      
+      console.log('🔑 Request body:', formData.toString());
       
       const response = await fetch(`${API_URL}/api/auth/token`, {
         method: 'POST',
@@ -160,6 +165,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
       
       console.log('Login response status:', response.status);
+      console.log('Login response headers:', response.headers);
       
       if (response.ok) {
         const data = await response.json();
@@ -193,12 +199,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           return false;
         }
       } else {
-        console.error('Login failed:', response.status);
-        setError('ログインに失敗しました');
+        const errorText = await response.text();
+        console.error('Login failed:', response.status, errorText);
+        setError(`ログインに失敗しました (${response.status})`);
         return false;
       }
     } catch (error: any) {
       console.error('Login error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        API_URL,
+      });
       setError(`ログインエラー: ${error.message}`);
       return false;
     }
