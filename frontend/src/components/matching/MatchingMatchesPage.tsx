@@ -42,7 +42,7 @@ const MatchingMatchesPage: React.FC = () => {
 
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-3">マッチ一覧</h2>
+      <h2 className="text-lg font-semibold mb-3">タイプ一覧</h2>
       <div className="p-4 border rounded-lg bg-white">
         <div className="mb-3 flex gap-2">
           <button onClick={fetchMatches} className="px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200">再取得</button>
@@ -60,7 +60,7 @@ const MatchingMatchesPage: React.FC = () => {
             </li>
           ))}
           {!loading && !error && items.length === 0 && (
-            <li className="text-sm text-gray-500">マッチはまだありません。</li>
+            <li className="text-sm text-gray-500">タイプはまだありません。</li>
           )}
         </ul>
       </div>

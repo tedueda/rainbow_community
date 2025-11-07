@@ -47,16 +47,25 @@ def get_my_profile(current_user: User = Depends(require_premium), db: Session = 
     
     return {
         "user_id": prof.user_id,
+        "nickname": getattr(prof, 'nickname', None) or "",
+        "email": current_user.email or "",
+        "display_name": current_user.display_name or "",
+        "phone_number": getattr(current_user, 'phone_number', None) or "",
         "display_flag": prof.display_flag,
         "prefecture": prof.prefecture or "",
+        "residence_detail": getattr(prof, 'residence_detail', None) or "",
+        "hometown": getattr(prof, 'hometown', None) or "",
         "age_band": prof.age_band or "",
         "occupation": prof.occupation or "",
         "income_range": prof.income_range or "",
+        "blood_type": getattr(prof, 'blood_type', None) or "",
+        "zodiac": getattr(prof, 'zodiac', None) or "",
         "meet_pref": prof.meet_pref or "",
         "meeting_style": getattr(prof, 'meeting_style', None) or prof.meet_pref or "",
         "bio": prof.bio or "",
         "identity": prof.identity or "",
         "avatar_url": getattr(prof, 'avatar_url', None) or "",
+        "romance_targets": getattr(prof, 'romance_targets', None) or [],
         "hobbies": [h[0] for h in hobbies],
         "images": [{"id": img.id, "url": img.image_url, "order": img.display_order} for img in images],
     }
@@ -89,13 +98,22 @@ def update_my_profile(payload: dict, current_user: User = Depends(require_premiu
     if "meeting_style" in payload and payload["meeting_style"] and payload["meeting_style"] not in VALID_MEETING_STYLES:
         raise HTTPException(status_code=422, detail=f"Invalid meeting_style. Must be one of: {VALID_MEETING_STYLES}")
     
+    # Userテーブルのフィールド更新
+    if "email" in payload:
+        current_user.email = payload["email"]
+    if "display_name" in payload:
+        current_user.display_name = payload["display_name"]
+    if "password" in payload and payload["password"]:
+        from app.auth import get_password_hash
+        current_user.hashed_password = get_password_hash(payload["password"])
+    
     # フィールド更新（カラムが存在しない場合はスキップ）
-    for field in ["prefecture", "age_band", "occupation", "income_range", "meet_pref", "bio", "identity"]:
-        if field in payload:
+    for field in ["nickname", "prefecture", "residence_detail", "hometown", "age_band", "occupation", "income_range", "blood_type", "zodiac", "meet_pref", "bio", "identity"]:
+        if field in payload and hasattr(prof, field):
             setattr(prof, field, payload.get(field))
     
     # 新しいカラム（マイグレーション後のみ）
-    for field in ["meeting_style", "avatar_url"]:
+    for field in ["meeting_style", "avatar_url", "romance_targets"]:
         if field in payload and hasattr(prof, field):
             setattr(prof, field, payload.get(field))
     # hobbies
@@ -284,6 +302,33 @@ def like_user(
     return {"status": "liked", "matched": matched, "match_id": match_id}
 
 
+@router.get("/likes")
+def list_likes(
+    current_user: User = Depends(require_premium),
+    db: Session = Depends(get_db),
+):
+    """自分が送ったいいね一覧を取得"""
+    likes = (
+        db.query(Like)
+        .filter(Like.from_user_id == current_user.id, Like.status == "active")
+        .all()
+    )
+    items = []
+    for like in likes:
+        other = db.query(User).filter(User.id == like.to_user_id).first()
+        prof = db.query(MatchingProfile).filter(MatchingProfile.user_id == like.to_user_id).first()
+        items.append({
+            "like_id": like.id,
+            "user_id": like.to_user_id,
+            "display_name": other.display_name if other else f"User {like.to_user_id}",
+            "identity": prof.identity if prof else None,
+            "prefecture": prof.prefecture if prof else None,
+            "age_band": prof.age_band if prof else None,
+            "avatar_url": getattr(prof, 'avatar_url', None) if prof else None,
+        })
+    return {"items": items}
+
+
 @router.get("/matches")
 def list_matches(
     current_user: User = Depends(require_premium),
@@ -300,6 +345,35 @@ def list_matches(
         other = db.query(User).filter(User.id == other_id).first()
         items.append({"match_id": m.id, "user_id": other_id, "display_name": other.display_name if other else f"User {other_id}"})
     return {"items": items}
+
+
+@router.post("/ensure_chat/{to_user_id}")
+def ensure_chat(
+    to_user_id: int,
+    current_user: User = Depends(require_premium),
+    db: Session = Depends(get_db),
+):
+    if to_user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot chat with yourself")
+    
+    a, b = sorted([current_user.id, to_user_id])
+    match = (
+        db.query(Match)
+        .filter(Match.user_a_id == a, Match.user_b_id == b)
+        .first()
+    )
+    
+    if not match:
+        raise HTTPException(status_code=404, detail="No match found. You must match with this user first.")
+    
+    chat = db.query(Chat).filter(Chat.match_id == match.id).first()
+    if not chat:
+        chat = Chat(match_id=match.id)
+        db.add(chat)
+        db.commit()
+        db.refresh(chat)
+    
+    return {"chat_id": chat.id}
 
 
 @router.get("/chats")

@@ -7,6 +7,7 @@ const isGitHubPages = process.env.GITHUB_PAGES === 'true'
 export default defineConfig({
   base: isGitHubPages ? '/rainbow_community/' : '/',
   plugins: [react()],
+  publicDir: 'public-lite',
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
