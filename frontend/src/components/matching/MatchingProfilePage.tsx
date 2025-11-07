@@ -207,11 +207,12 @@ const MatchingProfilePage: React.FC = () => {
         {error && <div className="text-red-600 text-sm mb-2">{error}</div>}
         {profile && (
           <div className="space-y-4">
-            {/* プロフィール画像スライド（最大5枚） */}
+            {/* プロフィール画像選択（最大5枚） */}
             <div className="border rounded-lg p-4 bg-gray-50">
               <h3 className="text-sm font-semibold mb-2">プロフィール画像（最大5枚）</h3>
               {(profile.images || []).length > 0 ? (
-                <div className="relative">
+                <div className="space-y-3">
+                  {/* メイン表示画像 */}
                   <div className="w-full h-64 bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -224,47 +225,86 @@ const MatchingProfilePage: React.FC = () => {
                       className="max-w-full max-h-full object-contain"
                     />
                   </div>
-                  {(profile.images || []).length > 1 && (
-                    <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 flex justify-between px-2">
-                      <button
-                        onClick={() => setCurrentImageIndex((prev) => (prev === 0 ? (profile.images || []).length - 1 : prev - 1))}
-                        className="w-8 h-8 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow"
-                      >
-                        &lt;
-                      </button>
-                      <button
-                        onClick={() => setCurrentImageIndex((prev) => (prev === (profile.images || []).length - 1 ? 0 : prev + 1))}
-                        className="w-8 h-8 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow"
-                      >
-                        &gt;
-                      </button>
+                  
+                  {/* サムネイル選択エリア */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-600">表示する画像を選択</span>
+                      <span className="text-xs text-gray-500">
+                        {currentImageIndex + 1} / {(profile.images || []).length}
+                      </span>
                     </div>
-                  )}
-                  <div className="flex justify-center gap-2 mt-2">
-                    {(profile.images || []).map((_, idx) => (
-                      <div
-                        key={idx}
-                        className={`w-2 h-2 rounded-full ${idx === currentImageIndex ? 'bg-pink-600' : 'bg-gray-300'}`}
-                      />
-                    ))}
+                    <div className="flex gap-2 flex-wrap">
+                      {(profile.images || []).map((image, idx) => (
+                        <div
+                          key={image.id}
+                          onClick={() => setCurrentImageIndex(idx)}
+                          className={`relative w-16 h-16 rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
+                            idx === currentImageIndex
+                              ? 'border-pink-500 ring-2 ring-pink-200'
+                              : 'border-gray-300 hover:border-gray-400'
+                          }`}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={image.url.startsWith('http') ? image.url : `${API_URL}${image.url}`}
+                            alt={`サムネイル ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          {idx === currentImageIndex && (
+                            <div className="absolute top-1 right-1 w-4 h-4 bg-pink-500 rounded-full flex items-center justify-center">
+                              <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      {/* 空のスロット */}
+                      {Array.from({ length: Math.max(0, 5 - (profile.images || []).length) }).map((_, idx) => (
+                        <div
+                          key={`empty-${idx}`}
+                          className="w-16 h-16 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400"
+                        >
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          </svg>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="flex gap-2 mt-2">
+                  
+                  {/* アクションボタン */}
+                  <div className="flex gap-2">
                     <button
                       onClick={() => deleteProfileImage((profile.images || [])[currentImageIndex]?.id)}
                       className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
                     >
                       この画像を削除
                     </button>
-                    <span className="text-xs text-gray-500 self-center">
-                      {currentImageIndex + 1} / {(profile.images || []).length}
-                    </span>
                   </div>
                 </div>
               ) : (
-                <div className="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">
-                  画像がありません
+                <div className="space-y-3">
+                  <div className="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">
+                    画像がありません
+                  </div>
+                  <div className="flex gap-2 flex-wrap">
+                    {Array.from({ length: 5 }).map((_, idx) => (
+                      <div
+                        key={`empty-${idx}`}
+                        className="w-16 h-16 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400"
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
+              
+              {/* 画像追加ボタン */}
               <div className="flex gap-2 mt-3">
                 <button
                   onClick={() => fileInputRef.current?.click()}
