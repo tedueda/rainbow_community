@@ -16,14 +16,18 @@ export const PREFECTURES: string[] = [
 ];
 
 export const AGE_BANDS: Option[] = [
-  { label: '10代', value: '10代' },
-  { label: '20代前半', value: '20代前半' },
-  { label: '20代後半', value: '20代後半' },
-  { label: '30代前半', value: '30代前半' },
-  { label: '30代後半', value: '30代後半' },
-  { label: '40代前半', value: '40代前半' },
-  { label: '40代後半', value: '40代後半' },
-  { label: '50代以上', value: '50代以上' }
+  { label: '10代後半', value: '10s_late' },
+  { label: '20代前半', value: '20s_early' },
+  { label: '20代後半', value: '20s_late' },
+  { label: '30代前半', value: '30s_early' },
+  { label: '30代後半', value: '30s_late' },
+  { label: '40代前半', value: '40s_early' },
+  { label: '40代後半', value: '40s_late' },
+  { label: '50代前半', value: '50s_early' },
+  { label: '50代後半', value: '50s_late' },
+  { label: '60代前半', value: '60s_early' },
+  { label: '60代後半', value: '60s_late' },
+  { label: '70代以上', value: '70plus' }
 ];
 
 export const OCCUPATIONS: string[] = [
@@ -37,23 +41,26 @@ export const INCOME_RANGES: string[] = [
   '800-1000万円', '1000-1500万円', '1500万円以上', '非表示'
 ];
 
-export const MEET_PREFS: Option[] = [
-  { label: '友達から', value: '友達から' },
-  { label: '恋人探し', value: '恋人探し' },
-  { label: '結婚前提', value: '結婚前提' },
-  { label: 'まずは会ってみたい', value: 'まずは会ってみたい' },
-  { label: '非表示', value: '非表示' }
+export const MEETING_STYLES: Option[] = [
+  { label: 'まずはメッセージから', value: 'msg_first' },
+  { label: '通話してから会いたい', value: 'voice_after' },
+  { label: 'ビデオ通話してから会いたい', value: 'video_after' },
+  { label: 'カフェやご飯で会いたい', value: 'cafe_meal' },
+  { label: '趣味を通じて会いたい', value: 'via_hobby' },
+  { label: '条件が合えば会いたい', value: 'meet_if_conditions' },
+  { label: 'まずは会ってみたい', value: 'meet_first' },
+  { label: 'オンラインのみ', value: 'online_only' }
 ];
+
+// 後方互換性のため残す（非推奨）
+export const MEET_PREFS = MEETING_STYLES;
 
 export const IDENTITIES: Option[] = [
   { label: 'ゲイ', value: 'gay' },
   { label: 'レズビアン', value: 'lesbian' },
   { label: 'バイセクシュアル', value: 'bisexual' },
   { label: 'トランスジェンダー', value: 'transgender' },
-  { label: 'クィア', value: 'queer' },
-  { label: 'ノンバイナリー', value: 'nonbinary' },
-  { label: 'パンセクシュアル', value: 'pansexual' },
-  { label: 'アセクシュアル', value: 'asexual' },
+  { label: 'クエスチョニング', value: 'questioning' },
   { label: 'その他', value: 'other' }
 ];
 

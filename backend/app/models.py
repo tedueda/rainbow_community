@@ -372,11 +372,16 @@ class MatchingProfile(Base):
     __table_args__ = {'extend_existing': True}
 
     user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    nickname = Column(String(100))
     display_flag = Column(Boolean, nullable=False, default=True)
     prefecture = Column(String(100), nullable=False, default="")
+    residence_detail = Column(String(100))  # 区・市町村
+    hometown = Column(String(100))  # 出身地
     age_band = Column(String(50))
     occupation = Column(String(100))
     income_range = Column(String(100))
+    blood_type = Column(String(20))  # A型、B型、O型、AB型
+    zodiac = Column(String(20))  # 星座
     meet_pref = Column(String(50))  # 旧フィールド（互換性のため残す）
     meeting_style = Column(String(50))  # 新フィールド: 'msg_first', 'voice_after', etc.
     bio = Column(Text)
