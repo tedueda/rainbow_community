@@ -7,11 +7,29 @@ from app.auth import get_current_active_user
 import os
 import uuid
 from pathlib import Path
-import os
 import json
+import boto3
+from botocore.exceptions import ClientError
 
 router = APIRouter(prefix="/api/media", tags=["media"])
 
+# S3設定
+S3_BUCKET = os.getenv("AWS_S3_BUCKET", "rainbow-community-media-prod")
+S3_REGION = os.getenv("AWS_REGION", "ap-northeast-1")
+USE_S3 = os.getenv("USE_S3", "true").lower() == "true"
+
+# S3クライアント初期化
+if USE_S3:
+    s3_client = boto3.client(
+        's3',
+        region_name=S3_REGION,
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
+    )
+else:
+    s3_client = None
+
+# ローカルストレージ（フォールバック）
 media_base = os.getenv("MEDIA_DIR")
 if not media_base:
     media_base = "/data/media" if os.path.exists("/data") else "media"
@@ -37,14 +55,32 @@ async def upload_image(
 
     file_extension = file.filename.split('.')[-1] if file.filename and '.' in file.filename else 'jpg'
     unique_filename = f"{uuid.uuid4()}.{file_extension}"
-    file_path = MEDIA_DIR / unique_filename
-
-    with open(file_path, "wb") as buffer:
-        buffer.write(content)
+    
+    if USE_S3 and s3_client:
+        # S3にアップロード
+        try:
+            s3_key = f"media/{unique_filename}"
+            s3_client.put_object(
+                Bucket=S3_BUCKET,
+                Key=s3_key,
+                Body=content,
+                ContentType=file.content_type or "application/octet-stream",
+                ACL='public-read'
+            )
+            # S3のURL
+            url = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{s3_key}"
+        except ClientError as e:
+            raise HTTPException(status_code=500, detail=f"S3 upload failed: {str(e)}")
+    else:
+        # ローカルファイルシステムにフォールバック
+        file_path = MEDIA_DIR / unique_filename
+        with open(file_path, "wb") as buffer:
+            buffer.write(content)
+        url = f"/media/{unique_filename}"
 
     media_asset = MediaAsset(
         user_id=current_user.id,
-        url=f"/media/{unique_filename}",
+        url=url,
         mime_type=file.content_type or "application/octet-stream",
         size_bytes=len(content)
     )
@@ -107,10 +143,19 @@ def delete_media(
     if asset.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Forbidden")
     
-    # Delete file from disk
-    file_path = MEDIA_DIR / asset.url.split('/')[-1]
-    if file_path.exists():
-        file_path.unlink()
+    # S3またはローカルから削除
+    if USE_S3 and s3_client and asset.url.startswith('https://'):
+        # S3から削除
+        try:
+            s3_key = asset.url.split(f"{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/")[1]
+            s3_client.delete_object(Bucket=S3_BUCKET, Key=s3_key)
+        except Exception as e:
+            print(f"S3 delete failed: {e}")
+    else:
+        # ローカルファイルから削除
+        file_path = MEDIA_DIR / asset.url.split('/')[-1]
+        if file_path.exists():
+            file_path.unlink()
     
     db.delete(asset)
     db.commit()
