@@ -1,5 +1,6 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 from sqlalchemy import text
 from .database import get_db
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,12 +17,21 @@ PORT = int(os.getenv("PORT", 8000))
 
 app = FastAPI(title="LGBTQ Community API", version="1.0.0")
 
+# S3設定
+S3_BUCKET = os.getenv("AWS_S3_BUCKET", "rainbow-community-media-prod")
+S3_REGION = os.getenv("AWS_REGION", "ap-northeast-1")
+USE_S3 = os.getenv("USE_S3", "true").lower() == "true"
+
+# ローカルメディアディレクトリ（フォールバック）
 media_base = os.getenv("MEDIA_DIR")
 if not media_base:
     media_base = "/data/media" if os.path.exists("/data") else "media"
 MEDIA_DIR = Path(media_base)
 MEDIA_DIR.mkdir(parents=True, exist_ok=True)
-app.mount("/media", StaticFiles(directory=str(MEDIA_DIR)), name="media")
+
+# S3使用時は/media/をS3にリダイレクト、それ以外はローカルファイル
+if not USE_S3:
+    app.mount("/media", StaticFiles(directory=str(MEDIA_DIR)), name="media")
 
 matching_media_base = os.getenv("MATCHING_MEDIA_DIR")
 if not matching_media_base:
@@ -92,6 +102,17 @@ async def root():
 def health(db=Depends(get_db)):
     db.execute(text("SELECT 1"))
     return {"status": "ok", "db": "ok"}
+
+
+@app.get("/media/{filename:path}")
+async def serve_media(filename: str):
+    """S3から画像を取得するためのリダイレクト"""
+    if USE_S3:
+        s3_url = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/media/{filename}"
+        return RedirectResponse(url=s3_url, status_code=307)
+    else:
+        # ローカルファイルシステムにフォールバック（StaticFilesでマウント済み）
+        raise HTTPException(status_code=404, detail="Media not found")
 
 
 @app.get("/api/_routes")
