@@ -372,20 +372,24 @@ class MatchingProfile(Base):
     __table_args__ = {'extend_existing': True}
 
     user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    nickname = Column(String(100))
     display_flag = Column(Boolean, nullable=False, default=True)
     prefecture = Column(String(100), nullable=False, default="")
+    residence_detail = Column(String(100))
+    hometown = Column(String(100))
     age_band = Column(String(50))
     occupation = Column(String(100))
     income_range = Column(String(100))
+    blood_type = Column(String(20))
+    zodiac = Column(String(20))
     meet_pref = Column(String(50))
+    meeting_style = Column(String(50))
     bio = Column(Text)
     identity = Column(String(50))
+    avatar_url = Column(String(500))
+    romance_targets = Column(JSON, default=list)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-    romance_targets = Column(JSON, default=list)
-    nickname = Column(String(100))
-    meeting_style = Column(String(50))
-    avatar_url = Column(String(500))
 
     user = relationship("User")
 
