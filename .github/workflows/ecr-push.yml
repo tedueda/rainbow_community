@@ -6,7 +6,13 @@ on:
       tag:
         description: 'Docker image tag'
         required: false
-        default: 'latest'
+        default: 'prod-v13'
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/ecr-push.yml'
 
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
@@ -47,7 +53,7 @@ jobs:
         with:
           context: ./backend
           push: true
-          tags: ${{ steps.ecr-url.outputs.ecr_url }}:${{ inputs.tag }}
+          tags: ${{ steps.ecr-url.outputs.ecr_url }}:${{ inputs.tag || 'prod-v13' }}
 
       - name: Wait for deployment
         run: |
