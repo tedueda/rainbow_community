@@ -104,6 +104,19 @@ def health(db=Depends(get_db)):
     return {"status": "ok", "db": "ok"}
 
 
+@app.get("/api/debug/env")
+def debug_env():
+    """環境変数の確認用（デバッグ）"""
+    return {
+        "USE_S3": USE_S3,
+        "S3_BUCKET": S3_BUCKET,
+        "S3_REGION": S3_REGION,
+        "USE_S3_env": os.getenv("USE_S3"),
+        "AWS_S3_BUCKET_env": os.getenv("AWS_S3_BUCKET"),
+        "AWS_REGION_env": os.getenv("AWS_REGION")
+    }
+
+
 @app.get("/media/{filename:path}")
 async def serve_media(filename: str):
     """S3から画像を取得するためのリダイレクト"""
