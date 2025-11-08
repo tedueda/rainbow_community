@@ -47,25 +47,20 @@ def get_my_profile(current_user: User = Depends(require_premium), db: Session = 
     
     return {
         "user_id": prof.user_id,
-        "nickname": getattr(prof, 'nickname', None) or "",
+        "nickname": prof.nickname or "",
         "email": current_user.email or "",
         "display_name": current_user.display_name or "",
-        "phone_number": getattr(current_user, 'phone_number', None) or "",
         "display_flag": prof.display_flag,
         "prefecture": prof.prefecture or "",
-        "residence_detail": getattr(prof, 'residence_detail', None) or "",
-        "hometown": getattr(prof, 'hometown', None) or "",
         "age_band": prof.age_band or "",
         "occupation": prof.occupation or "",
         "income_range": prof.income_range or "",
-        "blood_type": getattr(prof, 'blood_type', None) or "",
-        "zodiac": getattr(prof, 'zodiac', None) or "",
         "meet_pref": prof.meet_pref or "",
-        "meeting_style": getattr(prof, 'meeting_style', None) or prof.meet_pref or "",
+        "meeting_style": prof.meeting_style or prof.meet_pref or "",
         "bio": prof.bio or "",
         "identity": prof.identity or "",
-        "avatar_url": getattr(prof, 'avatar_url', None) or "",
-        "romance_targets": getattr(prof, 'romance_targets', None) or [],
+        "avatar_url": prof.avatar_url or "",
+        "romance_targets": prof.romance_targets or [],
         "hobbies": [h[0] for h in hobbies],
         "images": [{"id": img.id, "url": img.image_url, "order": img.display_order} for img in images],
     }
@@ -107,14 +102,8 @@ def update_my_profile(payload: dict, current_user: User = Depends(require_premiu
         from app.auth import get_password_hash
         current_user.hashed_password = get_password_hash(payload["password"])
     
-    # フィールド更新（カラムが存在しない場合はスキップ）
-    for field in ["nickname", "prefecture", "residence_detail", "hometown", "age_band", "occupation", "income_range", "blood_type", "zodiac", "meet_pref", "bio", "identity"]:
-        if field in payload and hasattr(prof, field):
-            setattr(prof, field, payload.get(field))
-    
-    # 新しいカラム（マイグレーション後のみ）
-    for field in ["meeting_style", "avatar_url", "romance_targets"]:
-        if field in payload and hasattr(prof, field):
+    for field in ["nickname", "prefecture", "age_band", "occupation", "income_range", "meet_pref", "bio", "identity", "meeting_style", "avatar_url", "romance_targets"]:
+        if field in payload:
             setattr(prof, field, payload.get(field))
     # hobbies
     if "hobbies" in payload and isinstance(payload["hobbies"], list):
@@ -189,10 +178,10 @@ def get_profile_by_id(
         "occupation": prof.occupation or "",
         "income_range": prof.income_range or "",
         "meet_pref": prof.meet_pref or "",
-        "meeting_style": getattr(prof, 'meeting_style', None) or prof.meet_pref or "",
+        "meeting_style": prof.meeting_style or prof.meet_pref or "",
         "bio": prof.bio or "",
         "identity": prof.identity or "",
-        "avatar_url": getattr(prof, 'avatar_url', None) or "",
+        "avatar_url": prof.avatar_url or "",
         "romance_targets": prof.romance_targets or [],
         "hobbies": [h[0] for h in hobbies],
         "images": [{"id": img.id, "url": img.image_url, "order": img.display_order} for img in images],
@@ -244,7 +233,7 @@ def search_profiles(
             "prefecture": prof.prefecture,
             "age_band": prof.age_band,
             "identity": prof.identity,
-            "avatar_url": getattr(prof, 'avatar_url', None) or "",
+            "avatar_url": prof.avatar_url or "",
         }
         for prof, disp in rows
     ]
@@ -324,7 +313,7 @@ def list_likes(
             "identity": prof.identity if prof else None,
             "prefecture": prof.prefecture if prof else None,
             "age_band": prof.age_band if prof else None,
-            "avatar_url": getattr(prof, 'avatar_url', None) if prof else None,
+            "avatar_url": prof.avatar_url if prof else None,
         })
     return {"items": items}
 
