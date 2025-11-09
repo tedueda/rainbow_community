@@ -3,10 +3,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSock
 from sqlalchemy import and_, or_, func, select
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models import User, MatchingProfile, Hobby, MatchingProfileHobby, MatchingProfileImage, Like, Match, Chat, Message
+from app.models import User, MatchingProfile, Hobby, MatchingProfileHobby, MatchingProfileImage, Like, Match, Chat, Message, ChatRequest
 from app.auth import get_current_active_user
 from jose import jwt, JWTError
 import os
+from datetime import datetime
 
 router = APIRouter(prefix="/api/matching", tags=["matching"])
 
@@ -308,35 +309,8 @@ def like_user(
         db.flush()
     else:
         like.status = "active"
-    # 相互判定
-    reciprocal = (
-        db.query(Like)
-        .filter(Like.from_user_id == to_user_id, Like.to_user_id == current_user.id, Like.status == "active")
-        .first()
-    )
-    matched = False
-    match_id = None
-    if reciprocal:
-        a, b = sorted([current_user.id, to_user_id])
-        existing_match = (
-            db.query(Match)
-            .filter(Match.user_a_id == a, Match.user_b_id == b)
-            .first()
-        )
-        if not existing_match:
-            m = Match(user_a_id=a, user_b_id=b, active_flag=True)
-            db.add(m)
-            db.flush()
-            # チャット作成
-            ch = Chat(match_id=m.id)
-            db.add(ch)
-            db.flush()
-            match_id = m.id
-        else:
-            match_id = existing_match.id
-        matched = True
     db.commit()
-    return {"status": "liked", "matched": matched, "match_id": match_id}
+    return {"status": "liked", "like_id": like.id}
 
 
 @router.get("/likes")
@@ -390,8 +364,25 @@ def ensure_chat(
     current_user: User = Depends(require_premium),
     db: Session = Depends(get_db),
 ):
+    """チャットを開始（承諾済みのリクエストが必要）"""
     if to_user_id == current_user.id:
         raise HTTPException(status_code=400, detail="Cannot chat with yourself")
+    
+    # 承諾済みのチャットリクエストをチェック
+    accepted_request = (
+        db.query(ChatRequest)
+        .filter(
+            or_(
+                (ChatRequest.from_user_id == current_user.id) & (ChatRequest.to_user_id == to_user_id),
+                (ChatRequest.from_user_id == to_user_id) & (ChatRequest.to_user_id == current_user.id)
+            ),
+            ChatRequest.status == "accepted"
+        )
+        .first()
+    )
+    
+    if not accepted_request:
+        raise HTTPException(status_code=404, detail="No accepted chat request found. Please send a chat request first.")
     
     a, b = sorted([current_user.id, to_user_id])
     match = (
@@ -401,7 +392,7 @@ def ensure_chat(
     )
     
     if not match:
-        raise HTTPException(status_code=404, detail="No match found. You must match with this user first.")
+        raise HTTPException(status_code=404, detail="No match found")
     
     chat = db.query(Chat).filter(Chat.match_id == match.id).first()
     if not chat:
@@ -649,3 +640,196 @@ def reorder_profile_images(payload: dict, current_user: User = Depends(require_p
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Image table not ready. Please run migration first: {str(e)}")
+
+
+# ===== チャットリクエスト機能 =====
+
+@router.post("/chat_requests/{to_user_id}", status_code=201)
+def send_chat_request(
+    to_user_id: int,
+    payload: dict,
+    current_user: User = Depends(require_premium),
+    db: Session = Depends(get_db),
+):
+    """チャットリクエストを送信"""
+    if to_user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot send chat request to yourself")
+    
+    # 既存のpendingリクエストをチェック
+    existing = (
+        db.query(ChatRequest)
+        .filter(
+            ChatRequest.from_user_id == current_user.id,
+            ChatRequest.to_user_id == to_user_id,
+            ChatRequest.status == "pending"
+        )
+        .first()
+    )
+    
+    if existing:
+        return {"request_id": existing.id, "status": "pending", "message": "Request already sent"}
+    
+    # 新しいリクエストを作成
+    initial_message = payload.get("initial_message", "")
+    request = ChatRequest(
+        from_user_id=current_user.id,
+        to_user_id=to_user_id,
+        status="pending",
+        initial_message=initial_message if initial_message else None
+    )
+    db.add(request)
+    db.commit()
+    db.refresh(request)
+    
+    return {"request_id": request.id, "status": "pending", "message": "Chat request sent"}
+
+
+@router.get("/chat_requests/incoming")
+def list_incoming_chat_requests(
+    current_user: User = Depends(require_premium),
+    db: Session = Depends(get_db),
+):
+    """受信したチャットリクエスト一覧"""
+    requests = (
+        db.query(ChatRequest)
+        .filter(ChatRequest.to_user_id == current_user.id, ChatRequest.status == "pending")
+        .all()
+    )
+    
+    items = []
+    for req in requests:
+        from_user = db.query(User).filter(User.id == req.from_user_id).first()
+        profile = db.query(MatchingProfile).filter(MatchingProfile.user_id == req.from_user_id).first()
+        
+        # プロフィール画像を取得
+        images = (
+            db.query(MatchingProfileImage)
+            .filter(MatchingProfileImage.profile_id == req.from_user_id)
+            .order_by(MatchingProfileImage.display_order)
+            .all()
+        )
+        avatar_url = images[0].image_url if images else (profile.avatar_url if profile else None)
+        
+        items.append({
+            "request_id": req.id,
+            "from_user_id": req.from_user_id,
+            "from_display_name": from_user.display_name if from_user else f"User {req.from_user_id}",
+            "from_avatar_url": avatar_url,
+            "identity": profile.identity if profile else None,
+            "prefecture": profile.prefecture if profile else None,
+            "age_band": profile.age_band if profile else None,
+            "initial_message": req.initial_message,
+            "created_at": req.created_at.isoformat() if req.created_at else None,
+        })
+    
+    return {"items": items}
+
+
+@router.get("/chat_requests/outgoing")
+def list_outgoing_chat_requests(
+    current_user: User = Depends(require_premium),
+    db: Session = Depends(get_db),
+):
+    """送信したチャットリクエスト一覧"""
+    requests = (
+        db.query(ChatRequest)
+        .filter(ChatRequest.from_user_id == current_user.id)
+        .order_by(ChatRequest.created_at.desc())
+        .all()
+    )
+    
+    items = []
+    for req in requests:
+        to_user = db.query(User).filter(User.id == req.to_user_id).first()
+        profile = db.query(MatchingProfile).filter(MatchingProfile.user_id == req.to_user_id).first()
+        
+        items.append({
+            "request_id": req.id,
+            "to_user_id": req.to_user_id,
+            "to_display_name": to_user.display_name if to_user else f"User {req.to_user_id}",
+            "identity": profile.identity if profile else None,
+            "prefecture": profile.prefecture if profile else None,
+            "age_band": profile.age_band if profile else None,
+            "status": req.status,
+            "created_at": req.created_at.isoformat() if req.created_at else None,
+            "responded_at": req.responded_at.isoformat() if req.responded_at else None,
+        })
+    
+    return {"items": items}
+
+
+@router.post("/chat_requests/{request_id}/accept")
+def accept_chat_request(
+    request_id: int,
+    current_user: User = Depends(require_premium),
+    db: Session = Depends(get_db),
+):
+    """チャットリクエストを承諾"""
+    request = db.query(ChatRequest).filter(ChatRequest.id == request_id).first()
+    if not request:
+        raise HTTPException(status_code=404, detail="Chat request not found")
+    
+    if request.to_user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not your request to accept")
+    
+    if request.status != "pending":
+        raise HTTPException(status_code=400, detail=f"Request already {request.status}")
+    
+    # リクエストを承諾
+    request.status = "accepted"
+    request.responded_at = datetime.utcnow()
+    
+    # Matchを作成（まだ存在しない場合）
+    a, b = sorted([request.from_user_id, request.to_user_id])
+    existing_match = (
+        db.query(Match)
+        .filter(Match.user_a_id == a, Match.user_b_id == b)
+        .first()
+    )
+    
+    if not existing_match:
+        match = Match(user_a_id=a, user_b_id=b, active_flag=True)
+        db.add(match)
+        db.flush()
+        match_id = match.id
+    else:
+        match_id = existing_match.id
+    
+    # Chatを作成（まだ存在しない場合）
+    existing_chat = db.query(Chat).filter(Chat.match_id == match_id).first()
+    if not existing_chat:
+        chat = Chat(match_id=match_id)
+        db.add(chat)
+        db.flush()
+        chat_id = chat.id
+    else:
+        chat_id = existing_chat.id
+    
+    db.commit()
+    
+    return {"status": "accepted", "chat_id": chat_id, "match_id": match_id}
+
+
+@router.post("/chat_requests/{request_id}/decline")
+def decline_chat_request(
+    request_id: int,
+    current_user: User = Depends(require_premium),
+    db: Session = Depends(get_db),
+):
+    """チャットリクエストを辞退"""
+    request = db.query(ChatRequest).filter(ChatRequest.id == request_id).first()
+    if not request:
+        raise HTTPException(status_code=404, detail="Chat request not found")
+    
+    if request.to_user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not your request to decline")
+    
+    if request.status != "pending":
+        raise HTTPException(status_code=400, detail=f"Request already {request.status}")
+    
+    # リクエストを辞退
+    request.status = "declined"
+    request.responded_at = datetime.utcnow()
+    db.commit()
+    
+    return {"status": "declined"}

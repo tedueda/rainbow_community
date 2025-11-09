@@ -61,27 +61,26 @@ export function MatchCard({ item }: { item: Item }) {
     const token = localStorage.getItem('token');
     
     try {
-      const res = await fetch(`${API_URL}/api/matching/ensure_chat/${item.user_id}`, {
+      const res = await fetch(`${API_URL}/api/matching/chat_requests/${item.user_id}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ initial_message: '' }),
       });
+      
       if (!res.ok) {
         const errorText = await res.text();
-        if (res.status === 404) {
-          alert('❌ このユーザーとはまだマッチしていません。\n\n先に「♡ タイプ」を送って、相手からもタイプをもらうとメッセージを送れるようになります。');
-        } else {
-          throw new Error(errorText);
-        }
-        return;
+        throw new Error(errorText);
       }
+      
       const data = await res.json();
-      navigate(`/matching/chats/${data.chat_id}`);
+      alert('✉️ メールリクエストを送信しました！\n\n相手が承諾するとチャットが開始されます。');
+      navigate('/matching/chats');
     } catch (err) {
-      console.error('ensure_chat failed', err);
-      alert('チャットを開始できませんでした');
+      console.error('send chat request failed', err);
+      alert('メールリクエストの送信に失敗しました');
     } finally {
       setLoading(false);
     }

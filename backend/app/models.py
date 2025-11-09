@@ -471,3 +471,21 @@ class Message(Base):
     body = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     read_at = Column(DateTime(timezone=True))
+
+
+class ChatRequest(Base):
+    __tablename__ = "chat_requests"
+
+    id = Column(Integer, primary_key=True, index=True)
+    from_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    to_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    status = Column(String(20), nullable=False, default="pending")
+    initial_message = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    responded_at = Column(DateTime(timezone=True))
+
+    __table_args__ = (
+        UniqueConstraint("from_user_id", "to_user_id", "status", name="uniq_chat_request_pending"),
+        CheckConstraint("status IN ('pending','accepted','declined')", name="check_chat_request_status"),
+        CheckConstraint("from_user_id != to_user_id", name="check_chat_request_distinct_users"),
+    )
