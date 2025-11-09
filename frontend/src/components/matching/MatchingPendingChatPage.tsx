@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { API_URL } from '@/config';
+import MessageBubble from './chat/MessageBubble';
 
 type PendingMessage = {
   id: number;
@@ -146,34 +147,28 @@ const MatchingPendingChatPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto border rounded-lg p-4 bg-gray-50 mb-3">
-        {error && <div className="text-red-600 text-sm mb-3">{error}</div>}
+      <div
+        className="flex-1 overflow-y-auto border rounded-lg px-4 bg-gray-50 mb-3"
+        data-chat-messages
+      >
+        {error && <div className="text-red-600 text-sm text-center py-4">{error}</div>}
         {messages.length === 0 ? (
           <div className="text-center text-gray-500 text-sm py-8">
             メッセージを送信してください
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="py-4">
             {messages.map((msg) => {
               const isMe = msg.from_user_id === user?.id;
               return (
-                <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                  <div
-                    className={`max-w-[70%] rounded-lg px-4 py-2 ${
-                      isMe
-                        ? 'bg-pink-600 text-white'
-                        : 'bg-white border border-gray-200'
-                    }`}
-                  >
-                    <div className="text-sm">{msg.content}</div>
-                    <div className={`text-xs mt-1 ${isMe ? 'text-pink-100' : 'text-gray-500'}`}>
-                      {new Date(msg.created_at).toLocaleTimeString('ja-JP', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </div>
-                  </div>
-                </div>
+                <MessageBubble
+                  key={msg.id}
+                  isMe={isMe}
+                  avatarUrl={!isMe ? requestInfo?.to_avatar_url : null}
+                  body={msg.content}
+                  imageUrl={null}
+                  createdAt={msg.created_at}
+                />
               );
             })}
             <div ref={messagesEndRef} />
