@@ -89,10 +89,12 @@ def upgrade():
             sa.Column("id", sa.Integer, primary_key=True),
             sa.Column("user_a_id", sa.Integer, sa.ForeignKey("users.id"), nullable=False),
             sa.Column("user_b_id", sa.Integer, sa.ForeignKey("users.id"), nullable=False),
-            sa.Column("status", sa.String(20), nullable=False, server_default="pending"),
+            sa.Column("active_flag", sa.Boolean, nullable=False, server_default=sa.text("true")),
             sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=True),
         )
         op.execute("CREATE INDEX IF NOT EXISTS ix_matches_id ON matches (id)")
+        op.execute("ALTER TABLE matches ADD CONSTRAINT uniq_match_pair UNIQUE (user_a_id, user_b_id)")
+        op.execute("ALTER TABLE matches ADD CONSTRAINT check_match_distinct_users CHECK (user_a_id != user_b_id)")
     
     if "chats" not in inspector.get_table_names():
         op.create_table(
