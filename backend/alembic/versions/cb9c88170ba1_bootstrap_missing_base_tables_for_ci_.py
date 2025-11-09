@@ -66,6 +66,55 @@ def upgrade():
         )
         op.execute("ALTER TABLE posts ADD CONSTRAINT check_post_visibility CHECK (visibility IN ('public', 'members', 'followers', 'private'))")
         op.execute("CREATE INDEX IF NOT EXISTS ix_posts_id ON posts (id)")
+    
+    if "matching_profiles" not in inspector.get_table_names():
+        op.create_table(
+            "matching_profiles",
+            sa.Column("id", sa.Integer, primary_key=True),
+            sa.Column("user_id", sa.Integer, sa.ForeignKey("users.id"), nullable=False, unique=True),
+            sa.Column("display_name", sa.String(100), nullable=False),
+            sa.Column("age", sa.Integer, nullable=True),
+            sa.Column("gender", sa.String(20), nullable=True),
+            sa.Column("residence", sa.String(100), nullable=True),
+            sa.Column("bio", sa.Text, nullable=True),
+            sa.Column("avatar_url", sa.String(500), nullable=True),
+            sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=True),
+            sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=True),
+        )
+        op.execute("CREATE INDEX IF NOT EXISTS ix_matching_profiles_id ON matching_profiles (id)")
+    
+    if "matches" not in inspector.get_table_names():
+        op.create_table(
+            "matches",
+            sa.Column("id", sa.Integer, primary_key=True),
+            sa.Column("user_a_id", sa.Integer, sa.ForeignKey("users.id"), nullable=False),
+            sa.Column("user_b_id", sa.Integer, sa.ForeignKey("users.id"), nullable=False),
+            sa.Column("status", sa.String(20), nullable=False, server_default="pending"),
+            sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=True),
+        )
+        op.execute("CREATE INDEX IF NOT EXISTS ix_matches_id ON matches (id)")
+    
+    if "chats" not in inspector.get_table_names():
+        op.create_table(
+            "chats",
+            sa.Column("id", sa.Integer, primary_key=True),
+            sa.Column("match_id", sa.Integer, sa.ForeignKey("matches.id"), nullable=False),
+            sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=True),
+        )
+        op.execute("CREATE INDEX IF NOT EXISTS ix_chats_id ON chats (id)")
+    
+    if "messages" not in inspector.get_table_names():
+        op.create_table(
+            "messages",
+            sa.Column("id", sa.Integer, primary_key=True),
+            sa.Column("chat_id", sa.Integer, sa.ForeignKey("chats.id"), nullable=False),
+            sa.Column("sender_id", sa.Integer, sa.ForeignKey("users.id"), nullable=False),
+            sa.Column("body", sa.Text, nullable=True),
+            sa.Column("image_url", sa.Text, nullable=True),
+            sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=True),
+            sa.Column("read_at", sa.DateTime(timezone=True), nullable=True),
+        )
+        op.execute("CREATE INDEX IF NOT EXISTS ix_messages_id ON messages (id)")
 
 
 def downgrade():
