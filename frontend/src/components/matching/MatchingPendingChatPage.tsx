@@ -25,6 +25,7 @@ const MatchingPendingChatPage: React.FC<MatchingPendingChatPageProps> = ({ embed
   const { token, user } = useAuth();
   const navigate = useNavigate();
   const [requestInfo, setRequestInfo] = useState<ChatRequestInfo | null>(null);
+  const [foundInList, setFoundInList] = useState<'outgoing' | 'incoming' | null>(null);
   const [loading, setLoading] = useState(false);
 
   const fetchRequestInfo = async () => {
@@ -48,12 +49,20 @@ const MatchingPendingChatPage: React.FC<MatchingPendingChatPageProps> = ({ embed
       const incomingList = Array.isArray(incomingData?.items) ? incomingData.items : [];
       
       let request = outgoingList.find((r: any) => r.request_id === parseInt(requestId));
-      if (!request) {
+      let foundIn: 'outgoing' | 'incoming' | null = null;
+      
+      if (request) {
+        foundIn = 'outgoing';
+      } else {
         request = incomingList.find((r: any) => r.request_id === parseInt(requestId));
+        if (request) {
+          foundIn = 'incoming';
+        }
       }
       
       if (request) {
         setRequestInfo(request);
+        setFoundInList(foundIn);
         
         if (request.status === 'accepted') {
           const targetUserId = request.to_user_id || request.from_user_id;
@@ -119,8 +128,12 @@ const MatchingPendingChatPage: React.FC<MatchingPendingChatPageProps> = ({ embed
     return <div className="p-4">読み込み中...</div>;
   }
 
-  const isSender = requestInfo.from_user_id === user?.id;
-  const isRecipient = requestInfo.to_user_id === user?.id;
+  const isSender = requestInfo.from_user_id 
+    ? requestInfo.from_user_id === user?.id 
+    : foundInList === 'outgoing';
+  const isRecipient = requestInfo.to_user_id 
+    ? requestInfo.to_user_id === user?.id 
+    : foundInList === 'incoming';
   const isAccepted = requestInfo.status === 'accepted';
 
   return (
