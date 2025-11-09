@@ -76,7 +76,7 @@ const MatchingLikesPage: React.FC = () => {
       
       const data = await res.json();
       alert('✉️ メールリクエストを送信しました！\n\n相手が承諾するとメールができます。');
-      navigate(`/matching/requests/${data.request_id}`);
+      navigate(`/matching/chats/requests/${data.request_id}`);
     } catch (e: any) {
       alert(`エラー: ${e?.message || 'メール送信に失敗しました'}`);
     }

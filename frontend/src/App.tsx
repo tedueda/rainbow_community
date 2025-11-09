@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Header from './components/Header';
 import LoginForm from './components/LoginForm';
@@ -49,6 +49,11 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }
   
   return user ? <Navigate to="/feed" /> : <>{children}</>;
+};
+
+const RequestsRedirect: React.FC = () => {
+  const { requestId } = useParams<{ requestId: string }>();
+  return <Navigate to={`/matching/chats/requests/${requestId}`} replace />;
 };
 
 function AppContent() {
@@ -125,6 +130,8 @@ function AppContent() {
               <Route path=":id" element={<MatchingChatDetailPage embedded />} />
               <Route path="requests/:requestId" element={<MatchingPendingChatPage embedded />} />
             </Route>
+            {/* Legacy redirect for old /matching/requests/:requestId paths */}
+            <Route path="requests/:requestId" element={<RequestsRedirect />} />
             <Route path="users/:userId" element={<MatchingUserProfilePage />} />
             <Route path="compose/:userId" element={<MatchingSendMessagePage />} />
             <Route path="profile" element={<MatchingProfilePage />} />
