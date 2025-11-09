@@ -106,7 +106,7 @@ const MatchingChatShell: React.FC = () => {
                 {incomingRequests.map((req) => (
                   <button
                     key={req.request_id}
-                    onClick={() => navigate(`/matching/requests/${req.request_id}`)}
+                    onClick={() => navigate(`requests/${req.request_id}`)}
                     className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 text-left border border-gray-100 transition-colors"
                   >
                     <div className="flex-shrink-0">
@@ -142,7 +142,7 @@ const MatchingChatShell: React.FC = () => {
                 {outgoingRequests.map((req) => (
                   <button
                     key={req.request_id}
-                    onClick={() => navigate(`/matching/requests/${req.request_id}`)}
+                    onClick={() => navigate(`requests/${req.request_id}`)}
                     className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 text-left border border-gray-100 transition-colors"
                   >
                     <div className="flex-shrink-0">

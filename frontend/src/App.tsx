@@ -121,8 +121,8 @@ function AppContent() {
             <Route path="chats" element={<MatchingChatShell />}>
               <Route index element={<div className="flex items-center justify-center h-full text-gray-500">左のリストからチャットを選択してください</div>} />
               <Route path=":id" element={<MatchingChatDetailPage />} />
+              <Route path="requests/:requestId" element={<MatchingPendingChatPage />} />
             </Route>
-            <Route path="requests/:requestId" element={<MatchingPendingChatPage />} />
             <Route path="profile" element={<MatchingProfilePage />} />
           </Route>
           <Route path="/members/food" element={
