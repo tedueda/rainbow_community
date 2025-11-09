@@ -6,12 +6,21 @@ import { API_URL } from '@/config';
 type UserProfile = {
   user_id: number;
   display_name: string;
+  nickname?: string;
   avatar_url?: string;
   age_band?: string;
   prefecture?: string;
+  residence_detail?: string;
+  hometown?: string;
+  occupation?: string;
+  blood_type?: string;
+  zodiac?: string;
+  meet_pref?: string;
+  bio?: string;
   identity?: string;
-  self_intro?: string;
-  interests?: string;
+  romance_targets?: string[];
+  hobbies?: string[];
+  images?: Array<{ id: number; image_url: string; order?: number }>;
 };
 
 const MatchingUserProfilePage: React.FC = () => {
@@ -21,6 +30,7 @@ const MatchingUserProfilePage: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -93,9 +103,44 @@ const MatchingUserProfilePage: React.FC = () => {
 
       {/* Profile Content */}
       <div className="max-w-2xl mx-auto">
-        {/* Avatar */}
-        <div className="w-full aspect-square bg-gray-100">
-          {profile.avatar_url ? (
+        {/* Image Gallery */}
+        <div className="relative w-full aspect-square bg-gray-100">
+          {profile.images && profile.images.length > 0 ? (
+            <>
+              <img
+                src={profile.images[currentImageIndex].image_url.startsWith('http') 
+                  ? profile.images[currentImageIndex].image_url 
+                  : `${API_URL}${profile.images[currentImageIndex].image_url}`}
+                alt={`${profile.display_name} - ${currentImageIndex + 1}`}
+                className="w-full h-full object-cover"
+              />
+              {profile.images.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setCurrentImageIndex((prev) => (prev - 1 + profile.images!.length) % profile.images!.length)}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70"
+                  >
+                    ←
+                  </button>
+                  <button
+                    onClick={() => setCurrentImageIndex((prev) => (prev + 1) % profile.images!.length)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70"
+                  >
+                    →
+                  </button>
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                    {profile.images.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentImageIndex(idx)}
+                        className={`w-2 h-2 rounded-full ${idx === currentImageIndex ? 'bg-white' : 'bg-white/50'}`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          ) : profile.avatar_url ? (
             <img
               src={profile.avatar_url.startsWith('http') ? profile.avatar_url : `${API_URL}${profile.avatar_url}`}
               alt={profile.display_name}
@@ -110,44 +155,74 @@ const MatchingUserProfilePage: React.FC = () => {
 
         {/* Profile Info */}
         <div className="p-6">
-          <div className="mb-4">
-            <div className="text-sm text-gray-500 mb-1">18いいかも！</div>
-            <h2 className="text-2xl font-bold text-black mb-2">{profile.display_name}</h2>
-            <div className="text-gray-600">
-              {profile.age_band || '年齢未設定'} {profile.prefecture || '地域未設定'}
-            </div>
-          </div>
-
-          {/* Tabs */}
-          <div className="flex border-b border-gray-200 mb-6">
-            <button className="flex-1 py-3 text-center border-b-2 border-pink-500 text-pink-500 font-medium">
-              プロフィール
-            </button>
-            <button className="flex-1 py-3 text-center text-gray-500">
-              クラス特典
-            </button>
-          </div>
-
-          {/* Self Introduction */}
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-black mb-3">自己紹介</h3>
-            <div className="text-gray-700 whitespace-pre-wrap">
-              {profile.self_intro || '自己紹介が設定されていません'}
+            <h2 className="text-2xl font-bold text-black mb-2">{profile.display_name}</h2>
+            {profile.nickname && profile.nickname !== profile.display_name && (
+              <div className="text-gray-600 mb-2">ニックネーム: {profile.nickname}</div>
+            )}
+            <div className="text-gray-600 space-y-1">
+              {profile.age_band && <div>年齢: {profile.age_band}</div>}
+              {profile.prefecture && (
+                <div>
+                  居住地: {profile.prefecture}
+                  {profile.residence_detail && ` ${profile.residence_detail}`}
+                </div>
+              )}
+              {profile.hometown && <div>出身地: {profile.hometown}</div>}
+              {profile.occupation && <div>職業: {profile.occupation}</div>}
+              {profile.blood_type && <div>血液型: {profile.blood_type}</div>}
+              {profile.zodiac && <div>星座: {profile.zodiac}</div>}
             </div>
           </div>
 
-          {/* Additional Info */}
-          {profile.interests && (
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-black mb-3">趣味・興味</h3>
-              <div className="text-gray-700">{profile.interests}</div>
-            </div>
-          )}
-
+          {/* Identity & Romance Targets */}
           {profile.identity && (
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-black mb-3">アイデンティティ</h3>
               <div className="text-gray-700">{profile.identity}</div>
+            </div>
+          )}
+
+          {profile.romance_targets && profile.romance_targets.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-black mb-3">恋愛対象</h3>
+              <div className="flex flex-wrap gap-2">
+                {profile.romance_targets.map((target, idx) => (
+                  <span key={idx} className="px-3 py-1 bg-pink-100 text-pink-700 rounded-full text-sm">
+                    {target}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Meet Preference */}
+          {profile.meet_pref && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-black mb-3">出会いの目的</h3>
+              <div className="text-gray-700">{profile.meet_pref}</div>
+            </div>
+          )}
+
+          {/* Self Introduction */}
+          {profile.bio && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-black mb-3">自己紹介</h3>
+              <div className="text-gray-700 whitespace-pre-wrap">{profile.bio}</div>
+            </div>
+          )}
+
+          {/* Hobbies */}
+          {profile.hobbies && profile.hobbies.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-black mb-3">趣味</h3>
+              <div className="flex flex-wrap gap-2">
+                {profile.hobbies.map((hobby, idx) => (
+                  <span key={idx} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+                    {hobby}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
         </div>

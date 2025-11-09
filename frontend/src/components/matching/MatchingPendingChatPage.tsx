@@ -1,23 +1,16 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { API_URL } from '@/config';
-import MessageBubble from './chat/MessageBubble';
-
-type PendingMessage = {
-  id: number;
-  from_user_id: number;
-  content: string;
-  created_at: string;
-  migrated: boolean;
-};
 
 type ChatRequestInfo = {
   request_id: number;
   from_user_id: number;
   to_user_id: number;
   status: string;
+  from_display_name?: string;
   to_display_name?: string;
+  from_avatar_url?: string;
   to_avatar_url?: string;
 };
 
@@ -29,22 +22,8 @@ const MatchingPendingChatPage: React.FC<MatchingPendingChatPageProps> = ({ embed
   const { requestId } = useParams<{ requestId: string }>();
   const { token, user } = useAuth();
   const navigate = useNavigate();
-  const [messages, setMessages] = useState<PendingMessage[]>([]);
   const [requestInfo, setRequestInfo] = useState<ChatRequestInfo | null>(null);
-  const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null);
-  const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   const fetchRequestInfo = async () => {
     if (!token || !requestId) return;
@@ -91,79 +70,44 @@ const MatchingPendingChatPage: React.FC<MatchingPendingChatPageProps> = ({ embed
     }
   };
 
-  const fetchMessages = async () => {
-    if (!token || !requestId) return;
-    try {
-      const res = await fetch(`${API_URL}/api/matching/chat_requests/${requestId}/messages`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Failed to fetch messages');
-      const data = await res.json();
-      setMessages(data.messages || []);
-    } catch (e: any) {
-      setError(e?.message || 'メッセージの取得に失敗しました');
-    }
-  };
-
-  const fetchMyAvatar = async () => {
-    if (!token) return;
-    try {
-      const res = await fetch(`${API_URL}/api/matching/profile`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (!res.ok) return;
-      const data = await res.json();
-      if (data.images && data.images.length > 0) {
-        setMyAvatarUrl(data.images[0].image_url);
-      } else if (data.avatar_url) {
-        setMyAvatarUrl(data.avatar_url);
-      }
-    } catch (e: any) {
-      console.error('Failed to fetch my avatar:', e);
-    }
-  };
-
   useEffect(() => {
     fetchRequestInfo();
-    fetchMessages();
-    fetchMyAvatar();
-    
-    pollIntervalRef.current = setInterval(() => {
-      fetchRequestInfo();
-    }, 5000);
-
-    return () => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-      }
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, requestId]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!token || !requestId || !newMessage.trim()) return;
-
+  const handleAccept = async () => {
+    if (!token || !requestId) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/matching/chat_requests/${requestId}/messages`, {
+      const res = await fetch(`${API_URL}/api/matching/chat_requests/${requestId}/accept`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ content: newMessage.trim() }),
+        headers: { 'Authorization': `Bearer ${token}` },
       });
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText);
+      if (!res.ok) throw new Error('承諾に失敗しました');
+      const data = await res.json();
+      if (data.chat_id) {
+        navigate(`/matching/chats/${data.chat_id}`, { replace: true });
       }
-
-      setNewMessage('');
-      await fetchMessages();
     } catch (e: any) {
-      alert(`エラー: ${e?.message || 'メッセージ送信に失敗しました'}`);
+      alert(`エラー: ${e?.message || '承諾に失敗しました'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDecline = async () => {
+    if (!token || !requestId) return;
+    if (!confirm('このリクエストを辞退しますか？')) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/matching/chat_requests/${requestId}/decline`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('辞退に失敗しました');
+      navigate('/matching/chats', { replace: true });
+    } catch (e: any) {
+      alert(`エラー: ${e?.message || '辞退に失敗しました'}`);
     } finally {
       setLoading(false);
     }
@@ -173,9 +117,9 @@ const MatchingPendingChatPage: React.FC<MatchingPendingChatPageProps> = ({ embed
     return <div className="p-4">読み込み中...</div>;
   }
 
+  const isSender = requestInfo.from_user_id === user?.id;
+  const isRecipient = requestInfo.to_user_id === user?.id;
   const isAccepted = requestInfo.status === 'accepted';
-  const statusLabel = isAccepted ? '既読' : '未読';
-  const statusColor = isAccepted ? 'text-green-600' : 'text-gray-500';
 
   return (
     <div className="flex flex-col h-full">
@@ -187,73 +131,51 @@ const MatchingPendingChatPage: React.FC<MatchingPendingChatPageProps> = ({ embed
           >
             ← 戻る
           </button>
-          <div className={`text-sm font-medium ${statusColor}`}>
-            {statusLabel}
-          </div>
         </div>
       )}
 
-      {!isAccepted && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mb-3">
-          <div className="flex items-center gap-2">
-            <span className="text-yellow-600">⏳</span>
-            <div>
-              <div className="font-medium text-sm">承諾待ち</div>
-              <div className="text-xs text-gray-600">
-                相手が承諾するとメールができます。メッセージは相手に届いています。
-              </div>
+      {isSender && !isAccepted && (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-md">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-yellow-600 text-2xl">⏳</span>
+              <div className="font-medium text-lg">承諾待ち</div>
+            </div>
+            <div className="text-gray-700">
+              相手が承諾するとあなたのメッセージを見ることができます。
             </div>
           </div>
         </div>
       )}
 
-      <div
-        className="flex-1 overflow-y-auto border rounded-lg px-4 bg-gray-50 mb-3"
-        data-chat-messages
-      >
-        {error && <div className="text-red-600 text-sm text-center py-4">{error}</div>}
-        {messages.length === 0 ? (
-          <div className="text-center text-gray-500 text-sm py-8">
-            メッセージを送信してください
+      {isRecipient && !isAccepted && (
+        <div className="flex-1 flex flex-col items-center justify-center p-6">
+          <div className="bg-white border border-gray-200 rounded-lg p-6 max-w-md w-full">
+            <div className="mb-4">
+              <div className="font-medium text-lg mb-2">チャットリクエスト</div>
+              <div className="text-gray-600 text-sm">
+                {requestInfo.from_display_name || 'ユーザー'}さんからチャットリクエストが届いています
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={handleAccept}
+                disabled={loading}
+                className="flex-1 bg-black text-white py-3 rounded-lg font-medium hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+              >
+                承諾
+              </button>
+              <button
+                onClick={handleDecline}
+                disabled={loading}
+                className="flex-1 bg-white text-gray-700 py-3 rounded-lg font-medium border border-gray-300 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+              >
+                辞退
+              </button>
+            </div>
           </div>
-        ) : (
-          <div className="py-4">
-            {messages.map((msg) => {
-              const isMe = msg.from_user_id === user?.id;
-              return (
-                <MessageBubble
-                  key={msg.id}
-                  isMe={isMe}
-                  avatarUrl={!isMe ? requestInfo?.to_avatar_url : null}
-                  myAvatarUrl={isMe ? myAvatarUrl : null}
-                  body={msg.content}
-                  imageUrl={null}
-                  createdAt={msg.created_at}
-                />
-              );
-            })}
-            <div ref={messagesEndRef} />
-          </div>
-        )}
-      </div>
-
-      <form onSubmit={handleSendMessage} className="flex gap-2">
-        <input
-          type="text"
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          placeholder="メッセージを入力..."
-          className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-          disabled={loading}
-        />
-        <button
-          type="submit"
-          disabled={loading || !newMessage.trim()}
-          className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-        >
-          送信
-        </button>
-      </form>
+        </div>
+      )}
     </div>
   );
 };

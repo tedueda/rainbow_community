@@ -17,6 +17,7 @@ const MatchingSendMessagePage: React.FC = () => {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [sent, setSent] = useState(false);
 
   const templates = [
     'こんにちは、今は何をしていますか',
@@ -63,12 +64,11 @@ const MatchingSendMessagePage: React.FC = () => {
         throw new Error(errorText);
       }
 
-      const data = await res.json();
-      if (data.request_id) {
-        navigate(`/matching/chats/requests/${data.request_id}`, { replace: true });
-      } else {
-        navigate('/matching/chats', { replace: true });
-      }
+      setSent(true);
+      setMessage('');
+      setTimeout(() => {
+        navigate(`/matching/users/${userId}`);
+      }, 2000);
     } catch (e: any) {
       alert(`エラー: ${e?.message || 'メッセージ送信に失敗しました'}`);
     } finally {
@@ -98,9 +98,23 @@ const MatchingSendMessagePage: React.FC = () => {
 
       {/* Message Area */}
       <div className="flex-1 p-4">
-        <div className="text-sm text-gray-500 mb-4">
-          最初のメッセージを送信してください
-        </div>
+        {sent ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6 max-w-md">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-green-600 text-2xl">✓</span>
+                <div className="font-medium text-lg">送信完了</div>
+              </div>
+              <div className="text-gray-700">
+                リクエストを送信しました。相手が承諾するとあなたのメッセージを見ることができます。
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-sm text-gray-500 mb-4">
+            最初のメッセージを送信してください
+          </div>
+        )}
       </div>
 
       {/* Template Menu */}
@@ -125,37 +139,39 @@ const MatchingSendMessagePage: React.FC = () => {
 
       {/* Input Area */}
       <div className="border-t border-gray-200 bg-white p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <button
-            onClick={() => setShowTemplates(!showTemplates)}
-            className="text-gray-600 hover:text-black text-sm flex items-center gap-1"
-          >
-            <span>📝</span>
-            <span>定型文を追加</span>
-          </button>
-        </div>
+        <div className="max-w-2xl mx-auto">
+          <div className="flex items-center gap-2 mb-3">
+            <button
+              onClick={() => setShowTemplates(!showTemplates)}
+              className="text-gray-600 hover:text-black text-sm flex items-center gap-1"
+            >
+              <span>📝</span>
+              <span>定型文を追加</span>
+            </button>
+          </div>
 
-        <div className="flex items-end gap-2">
-          <button className="text-teal-500 p-2 hover:bg-gray-50 rounded-full">
-            <span className="text-xl">➕</span>
-          </button>
-          
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="メールを送信"
-            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-teal-500"
-            rows={2}
-            disabled={loading}
-          />
+          <div className="flex items-end gap-2">
+            <button className="text-gray-600 p-2 hover:bg-gray-50 rounded-full">
+              <span className="text-xl">➕</span>
+            </button>
+            
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="メールを送信"
+              className="flex-1 px-4 py-3 border border-gray-500 rounded-lg resize-none focus:outline-none focus:border-black transition-colors"
+              rows={2}
+              disabled={loading}
+            />
 
-          <button
-            onClick={handleSend}
-            disabled={loading || !message.trim()}
-            className="bg-teal-500 text-white p-3 rounded-full hover:bg-teal-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-          >
-            <span className="text-xl">➤</span>
-          </button>
+            <button
+              onClick={handleSend}
+              disabled={loading || !message.trim()}
+              className="bg-black text-white p-3 rounded-full hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            >
+              <span className="text-xl">➤</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
