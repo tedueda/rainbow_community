@@ -775,6 +775,7 @@ def list_outgoing_chat_requests(
         
         items.append({
             "request_id": req.id,
+            "from_user_id": req.from_user_id,
             "to_user_id": req.to_user_id,
             "to_display_name": to_user.display_name if to_user else f"User {req.to_user_id}",
             "to_avatar_url": avatar_url,
