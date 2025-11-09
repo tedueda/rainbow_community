@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { IdentityBadge } from "@/components/ui/IdentityBadge";
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-const USE_MOCK_API = false; // 実APIを使用
+import { API_URL } from "@/config";
 
 type Item = {
   user_id: number;
@@ -30,17 +28,6 @@ export function MatchCard({ item }: { item: Item }) {
     const token = localStorage.getItem('token');
     
     try {
-      if (USE_MOCK_API) {
-        // モック「いいね」機能
-        console.log('🎯 Using Mock Like Function');
-        // 少し待機してリアル感を演出
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setLiked(true);
-        setLoading(false);
-        navigate('/matching/matches');
-        return;
-      }
-      
       const res = await fetch(`${API_URL}/api/matching/likes/${item.user_id}`, {
         method: 'POST',
         headers: {
@@ -67,18 +54,6 @@ export function MatchCard({ item }: { item: Item }) {
     const token = localStorage.getItem('token');
     
     try {
-      if (USE_MOCK_API) {
-        // モック「メールする」機能 - 直接チャットに移動
-        console.log('🎯 Using Mock Message Function');
-        // 少し待機してリアル感を演出
-        await new Promise(resolve => setTimeout(resolve, 500));
-        // ユーザーIDに基づいてチャットIDを決定（1または2）
-        const chatId = item.user_id <= 2 ? item.user_id : 1;
-        navigate(`/matching/chats/${chatId}`);
-        setLoading(false);
-        return;
-      }
-      
       const res = await fetch(`${API_URL}/api/matching/ensure_chat/${item.user_id}`, {
         method: 'POST',
         headers: {
@@ -207,9 +182,11 @@ export function MatchCard({ item }: { item: Item }) {
               <div className="bg-gray-100 rounded overflow-hidden flex items-center justify-center">
                 <img 
                   src={
-                    detail?.avatar_url && detail.avatar_url !== null
+                    detail?.avatar_url && detail.avatar_url !== null && detail.avatar_url !== ''
                       ? (detail.avatar_url.startsWith('http') ? detail.avatar_url : `${API_URL}${detail.avatar_url}`)
-                      : `https://api.dicebear.com/7.x/fun-emoji/png?seed=${item.user_id}&size=256&scale=80`
+                      : (detail?.images && detail.images.length > 0 && detail.images[0].url)
+                        ? (detail.images[0].url.startsWith('http') ? detail.images[0].url : `${API_URL}${detail.images[0].url}`)
+                        : `https://api.dicebear.com/7.x/fun-emoji/png?seed=${item.user_id}&size=256&scale=80`
                   }
                   alt="プロフィール画像" 
                   className="w-full h-auto object-contain max-h-[500px]"
@@ -225,12 +202,12 @@ export function MatchCard({ item }: { item: Item }) {
               )}
             </div>
             <div className="md:col-span-2 space-y-2 text-sm">
-              <div className="text-lg font-semibold">{detail?.display_name || item.display_name}</div>
+              <div className="text-lg font-semibold">{detail?.nickname || detail?.display_name || item.display_name}</div>
               <div className="text-gray-700">{[detail?.age_band, detail?.prefecture].filter(Boolean).join(' ・ ')}</div>
               
-              {detail?.occupation && detail.occupation !== '非表示' && <div><span className="font-medium">職業:</span> {detail.occupation}</div>}
-              {detail?.income_range && detail.income_range !== '非表示' && <div><span className="font-medium">年収:</span> {detail.income_range}</div>}
-              {detail?.meet_pref && detail.meet_pref !== '非表示' && <div><span className="font-medium">マッチングの目的:</span> {detail.meet_pref}</div>}
+              {detail?.occupation && detail.occupation !== '' && detail.occupation !== '非表示' && <div><span className="font-medium">職業:</span> {detail.occupation}</div>}
+              {detail?.income_range && detail.income_range !== '' && detail.income_range !== '非表示' && <div><span className="font-medium">年収:</span> {detail.income_range}</div>}
+              {detail?.meet_pref && detail.meet_pref !== '' && detail.meet_pref !== '非表示' && <div><span className="font-medium">マッチングの目的:</span> {detail.meet_pref}</div>}
               
               {Array.isArray(detail?.romance_targets) && detail.romance_targets.length > 0 && (
                 <div>
@@ -254,11 +231,15 @@ export function MatchCard({ item }: { item: Item }) {
                 </div>
               )}
               
-              {detail?.bio && (
+              {detail?.bio && detail.bio !== '' && (
                 <div>
                   <span className="font-medium">自己紹介:</span>
                   <p className="mt-1 whitespace-pre-wrap text-gray-800">{detail.bio}</p>
                 </div>
+              )}
+              
+              {(!detail?.bio || detail.bio === '') && (!detail?.occupation || detail.occupation === '') && (!detail?.hobbies || detail.hobbies.length === 0) && (
+                <div className="text-gray-500 italic">プロフィール情報が未設定です</div>
               )}
             </div>
           </div>

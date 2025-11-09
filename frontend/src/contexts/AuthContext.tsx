@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { API_URL } from '@/config';
 
 interface User {
   id: number;
@@ -41,9 +42,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAnonymous, setIsAnonymous] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-  const USE_MOCK_API = false;
 
   const clearError = () => setError(null);
 
@@ -98,54 +96,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [API_URL]);
 
   const login = async (email: string, password: string, rememberMe: boolean = true): Promise<boolean> => {
-    console.log('Login attempt with:', { email, rememberMe, API_URL, USE_MOCK_API });
+    console.log('Login attempt with:', { email, rememberMe, API_URL });
     
-    // モックAPIを使用する場合
-    if (USE_MOCK_API) {
-      console.log('🎯 Using Mock API for login');
-      
-      const testAccounts = [
-        { email: 'test@example.com', password: 'test123' },
-        { email: 'premium@test.com', password: 'premium123' },
-      ];
-      
-      const validAccount = testAccounts.find(
-        account => account.email === email && account.password === password
-      );
-      
-      if (validAccount) {
-        console.log('✅ Mock login successful');
-        const mockUser: User = {
-          id: 28,
-          email: email,
-          display_name: email.split('@')[0],
-          nickname: email.split('@')[0],
-          membership_type: 'premium',
-          is_active: true,
-          created_at: new Date().toISOString()
-        };
-        
-        const mockToken = 'mock-jwt-token-' + Date.now();
-        
-        setUser(mockUser);
-        setToken(mockToken);
-        setIsAnonymous(false);
-        
-        if (rememberMe) {
-          localStorage.setItem('token', mockToken);
-          localStorage.setItem('rememberMe', 'true');
-        }
-        localStorage.removeItem('anonymous');
-        
-        return true;
-      } else {
-        console.log('❌ Mock login failed - invalid credentials');
-        setError('ログインに失敗しました');
-        return false;
-      }
-    }
-    
-    // 実際のAPIログイン
     try {
       console.log('🔑 Attempting login with API_URL:', API_URL);
       console.log('🔑 Full login URL:', `${API_URL}/api/auth/token`);
