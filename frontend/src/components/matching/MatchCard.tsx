@@ -75,7 +75,7 @@ export function MatchCard({ item }: { item: Item }) {
         throw new Error(errorText);
       }
       
-      const data = await res.json();
+      await res.json();
       alert('✉️ メールリクエストを送信しました！\n\n相手が承諾するとチャットが開始されます。');
       navigate('/matching/chats');
     } catch (err) {
