@@ -33,7 +33,6 @@ const MatchingChatDetailPage: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
-  const [wsReady, setWsReady] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchChatMeta = async () => {
@@ -172,9 +171,6 @@ const MatchingChatDetailPage: React.FC = () => {
     const wsUrl = `${proto}://${new URL(API_URL).host}/api/matching/ws/matching/chat?chat_id=${chatId}&token=${encodeURIComponent(token)}`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
-    ws.onopen = () => setWsReady(true);
-    ws.onclose = () => setWsReady(false);
-    ws.onerror = () => setWsReady(false);
     ws.onmessage = (ev) => {
       try {
         const m = JSON.parse(ev.data);
