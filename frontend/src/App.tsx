@@ -21,7 +21,9 @@ import MatchingMatchesPage from './components/matching/MatchingMatchesPage';
 import MatchingProfilePage from './components/matching/MatchingProfilePage';
 import MatchingChatDetailPage from './components/matching/MatchingChatDetailPage';
 import MatchingPendingChatPage from './components/matching/MatchingPendingChatPage';
-import MatchingChatShell from './components/matching/MatchingChatShell';
+import MatchingUserProfilePage from './components/matching/MatchingUserProfilePage';
+import MatchingSendMessagePage from './components/matching/MatchingSendMessagePage';
+import MatchingChatsPage from './components/matching/MatchingChatsPage';
 import FoodPage from './pages/members/FoodPage';
 import BeautyPage from './pages/members/BeautyPage';
 import VirtualWeddingPage from './components/VirtualWeddingPage';
@@ -118,11 +120,11 @@ function AppContent() {
             <Route index element={<MatchingSearchPage />} />
             <Route path="likes" element={<MatchingLikesPage />} />
             <Route path="matches" element={<MatchingMatchesPage />} />
-            <Route path="chats" element={<MatchingChatShell />}>
-              <Route index element={<div className="flex items-center justify-center h-full text-gray-500">左のリストからチャットを選択してください</div>} />
-              <Route path=":id" element={<MatchingChatDetailPage />} />
-              <Route path="requests/:requestId" element={<MatchingPendingChatPage />} />
-            </Route>
+            <Route path="chats" element={<MatchingChatsPage />} />
+            <Route path="chats/:id" element={<MatchingChatDetailPage />} />
+            <Route path="requests/:requestId" element={<MatchingPendingChatPage />} />
+            <Route path="users/:userId" element={<MatchingUserProfilePage />} />
+            <Route path="compose/:userId" element={<MatchingSendMessagePage />} />
             <Route path="profile" element={<MatchingProfilePage />} />
           </Route>
           <Route path="/members/food" element={

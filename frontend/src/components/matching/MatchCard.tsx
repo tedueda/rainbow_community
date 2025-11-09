@@ -15,8 +15,6 @@ type Item = {
 export function MatchCard({ item }: { item: Item }) {
   const [liked, setLiked] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [detail, setDetail] = useState<any>(null);
   const navigate = useNavigate();
 
   async function handleLike(e: React.MouseEvent) {
@@ -53,64 +51,20 @@ export function MatchCard({ item }: { item: Item }) {
       setLoading(false);
     }
   }
+  function handleCardClick() {
+    navigate(`/matching/users/${item.user_id}`);
+  }
+
   async function handleMessage(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    if (loading) return;
-    setLoading(true);
-    const token = localStorage.getItem('token');
-    
-    try {
-      const res = await fetch(`${API_URL}/api/matching/chat_requests/${item.user_id}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ initial_message: '' }),
-      });
-      
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText);
-      }
-      
-      const data = await res.json();
-      alert('✉️ メールリクエストを送信しました！\n\n相手が承諾する前でもメッセージを送信できます。');
-      navigate(`/matching/chats/requests/${data.request_id}`);
-    } catch (err) {
-      console.error('send chat request failed', err);
-      alert('メールリクエストの送信に失敗しました');
-    } finally {
-      setLoading(false);
-    }
+    navigate(`/matching/compose/${item.user_id}`);
   }
 
-  useEffect(() => {
-    if (!open) return;
-    let cancelled = false;
-    const token = localStorage.getItem('token');
-    (async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/matching/profiles/${item.user_id}`, {
-          headers: { 'Authorization': `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error(await res.text());
-        const data = await res.json();
-        console.log('Profile API response:', data);
-        if (!cancelled) setDetail(data);
-      } catch (e) {
-        if (!cancelled) setDetail(null);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [open, item.user_id]);
-
   return (
-    <div>
     <article
       className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md cursor-pointer"
-      onClick={() => setOpen(true)}
+      onClick={handleCardClick}
     >
       {/* 画像エリア - 縦長レイアウト */}
       <div className="block relative aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200">
@@ -182,101 +136,6 @@ export function MatchCard({ item }: { item: Item }) {
         </div>
       </div>
     </article>
-
-    {/* 詳細モーダル */}
-    {open && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-label="プロフィール詳細" onClick={() => setOpen(false)}>
-        <div className="w-full max-w-2xl rounded-lg bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
-          <div className="flex items-center justify-between border-b px-4 py-3">
-            <div className="font-semibold">プロフィール</div>
-            <button className="text-gray-500 hover:text-gray-700" aria-label="閉じる" onClick={() => setOpen(false)}>×</button>
-          </div>
-          <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-1">
-              <div className="bg-gray-100 rounded overflow-hidden flex items-center justify-center min-h-[300px]">
-                {(detail?.avatar_url && detail.avatar_url !== null && detail.avatar_url !== '') || (detail?.images && detail.images.length > 0 && detail.images[0].url) ? (
-                  <img 
-                    src={
-                      detail?.avatar_url && detail.avatar_url !== null && detail.avatar_url !== ''
-                        ? (detail.avatar_url.startsWith('http') ? detail.avatar_url : `${API_URL}${detail.avatar_url}`)
-                        : (detail.images[0].url.startsWith('http') ? detail.images[0].url : `${API_URL}${detail.images[0].url}`)
-                    }
-                    alt="プロフィール画像" 
-                    className="w-full h-auto object-contain max-h-[500px]"
-                    onError={(e) => {
-                      const target = e.currentTarget as HTMLImageElement;
-                      target.style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <div className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center">
-                    <span className="text-gray-500 text-4xl">👤</span>
-                  </div>
-                )}
-              </div>
-              {detail?.identity && (
-                <div className="mt-2 inline-block"><IdentityBadge value={detail.identity} /></div>
-              )}
-            </div>
-            <div className="md:col-span-2 space-y-2 text-sm">
-              <div className="text-lg font-semibold">{detail?.nickname || detail?.display_name || item.display_name}</div>
-              <div className="text-gray-700">
-                {[
-                  detail?.age_band,
-                  detail?.prefecture,
-                  detail?.residence_detail
-                ].filter(v => v && v !== '' && v !== '非表示').join(' ・ ')}
-              </div>
-              
-              {detail?.occupation && detail.occupation !== '' && detail.occupation !== '非表示' && <div><span className="font-medium">職業:</span> {detail.occupation}</div>}
-              {detail?.blood_type && detail.blood_type !== '' && detail.blood_type !== '非表示' && <div><span className="font-medium">血液型:</span> {detail.blood_type}</div>}
-              {detail?.zodiac && detail.zodiac !== '' && detail.zodiac !== '非表示' && <div><span className="font-medium">星座:</span> {detail.zodiac}</div>}
-              {detail?.meet_pref && detail.meet_pref !== '' && detail.meet_pref !== '非表示' && <div><span className="font-medium">マッチングの目的:</span> {detail.meet_pref}</div>}
-              
-              {Array.isArray(detail?.romance_targets) && detail.romance_targets.filter((t: string) => t !== '非表示').length > 0 && (
-                <div>
-                  <span className="font-medium">恋愛対象:</span>
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    {detail.romance_targets.filter((t: string) => t !== '非表示').map((target: string) => (
-                      <span key={target} className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800 border border-gray-300">{target}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {Array.isArray(detail?.hobbies) && detail.hobbies.filter((h: string) => h !== '非表示').length > 0 && (
-                <div>
-                  <span className="font-medium">興味・趣味:</span>
-                  <div className="mt-1 flex flex-wrap gap-2">
-                    {detail.hobbies.filter((h: string) => h !== '非表示').map((h: string) => (
-                      <span key={h} className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800 border border-gray-300">{h}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {detail?.bio && detail.bio !== '' && detail.bio !== '非表示' && (
-                <div>
-                  <span className="font-medium">自己紹介:</span>
-                  <p className="mt-1 whitespace-pre-wrap text-gray-800">{detail.bio}</p>
-                </div>
-              )}
-              
-              {(!detail?.bio || detail.bio === '' || detail.bio === '非表示') && 
-               (!detail?.occupation || detail.occupation === '' || detail.occupation === '非表示') && 
-               (!detail?.hobbies || detail.hobbies.length === 0) && (
-                <div className="text-gray-500 italic">プロフィール情報が未設定です</div>
-              )}
-            </div>
-          </div>
-          <div className="flex justify-end gap-2 border-t px-4 py-3">
-            <button className="px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors" onClick={() => setOpen(false)}>閉じる</button>
-            <button className="px-3 py-2 text-sm bg-black text-white rounded hover:bg-gray-800 transition-colors" onClick={handleMessage}>メールをする</button>
-          </div>
-        </div>
-      </div>
-    )}
-    </div>
   );
 }
 
