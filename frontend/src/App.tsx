@@ -121,7 +121,7 @@ function AppContent() {
             <Route path="likes" element={<MatchingLikesPage />} />
             <Route path="matches" element={<MatchingMatchesPage />} />
             <Route path="chats" element={<MatchingChatShell />}>
-              <Route index element={<div className="flex items-center justify-center h-full text-gray-500">読み込み中...</div>} />
+              <Route index element={<div className="flex items-center justify-center h-full text-gray-500">左のリストから選択してください</div>} />
               <Route path=":id" element={<MatchingChatDetailPage embedded />} />
               <Route path="requests/:requestId" element={<MatchingPendingChatPage embedded />} />
             </Route>

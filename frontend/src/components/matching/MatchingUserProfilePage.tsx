@@ -104,7 +104,7 @@ const MatchingUserProfilePage: React.FC = () => {
       {/* Profile Content */}
       <div className="max-w-2xl mx-auto">
         {/* Image Gallery */}
-        <div className="relative w-full aspect-square bg-gray-100">
+        <div className="relative mx-auto max-w-xl md:max-w-2xl max-h-[420px] md:max-h-[480px] aspect-[4/3] rounded-lg overflow-hidden bg-gray-100">
           {profile.images && profile.images.length > 0 ? (
             <>
               <img
@@ -230,19 +230,18 @@ const MatchingUserProfilePage: React.FC = () => {
 
       {/* Sticky Bottom Action Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
-        <div className="max-w-2xl mx-auto grid grid-cols-2 gap-3">
-          <button
-            onClick={handleSendMessage}
-            className="w-full bg-teal-500 text-white py-3 rounded-lg font-medium hover:bg-teal-600 transition-colors flex items-center justify-center gap-2"
-          >
-            <span>✉️</span>
-            <span>メールする</span>
-          </button>
+        <div className="max-w-2xl mx-auto flex gap-2">
           <button
             onClick={handleLike}
-            className="w-full bg-pink-500 text-white py-3 rounded-lg font-medium hover:bg-pink-600 transition-colors flex items-center justify-center"
+            className="flex-1 rounded-md px-4 py-3 text-sm font-medium transition-all bg-black text-white hover:bg-gray-800 active:scale-95"
           >
-            <span>❤️ いいね！</span>
+            ♡ お気に入り
+          </button>
+          <button
+            onClick={handleSendMessage}
+            className="flex-1 rounded-md border border-gray-300 px-4 py-3 text-center text-sm font-medium text-gray-700 transition-all hover:bg-gray-100 active:scale-95"
+          >
+            メールをする
           </button>
         </div>
       </div>

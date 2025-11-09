@@ -67,7 +67,7 @@ const MatchingSendMessagePage: React.FC = () => {
       setSent(true);
       setMessage('');
       setTimeout(() => {
-        navigate(`/matching/users/${userId}`);
+        navigate('/matching/chats');
       }, 2000);
     } catch (e: any) {
       alert(`エラー: ${e?.message || 'メッセージ送信に失敗しました'}`);
@@ -96,84 +96,83 @@ const MatchingSendMessagePage: React.FC = () => {
         </h1>
       </div>
 
-      {/* Message Area */}
-      <div className="flex-1 p-4">
-        {sent ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6 max-w-md">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-green-600 text-2xl">✓</span>
-                <div className="font-medium text-lg">送信完了</div>
-              </div>
-              <div className="text-gray-700">
-                リクエストを送信しました。相手が承諾するとあなたのメッセージを見ることができます。
-              </div>
+      {sent ? (
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6 max-w-md">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-green-600 text-2xl">✓</span>
+              <div className="font-medium text-lg">送信完了</div>
+            </div>
+            <div className="text-gray-700">
+              リクエストを送信しました。相手が承諾するとあなたのメッセージを見ることができます。
             </div>
           </div>
-        ) : (
-          <div className="text-sm text-gray-500 mb-4">
-            最初のメッセージを送信してください
-          </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl">
+            {/* Template Menu */}
+            {showTemplates && (
+              <div className="mb-4 border border-gray-200 rounded-lg bg-white">
+                <div className="p-4">
+                  <div className="text-sm font-medium text-gray-700 mb-3">定型文を選択</div>
+                  <div className="space-y-2">
+                    {templates.map((template, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleTemplateSelect(template)}
+                        className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-sm"
+                      >
+                        {template}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
-      {/* Template Menu */}
-      {showTemplates && (
-        <div className="border-t border-gray-200 bg-white">
-          <div className="p-4">
-            <div className="text-sm font-medium text-gray-700 mb-3">定型文を選択</div>
-            <div className="space-y-2">
-              {templates.map((template, index) => (
+            {/* Compose Card */}
+            <div className="border border-gray-200 rounded-lg bg-white p-6">
+              <div className="text-sm text-gray-500 mb-4">
+                最初のメッセージを送信してください
+              </div>
+
+              <div className="flex items-center gap-2 mb-3">
                 <button
-                  key={index}
-                  onClick={() => handleTemplateSelect(template)}
-                  className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-sm"
+                  onClick={() => setShowTemplates(!showTemplates)}
+                  className="text-gray-600 hover:text-black text-sm flex items-center gap-1"
                 >
-                  {template}
+                  <span>📝</span>
+                  <span>定型文を追加</span>
                 </button>
-              ))}
+              </div>
+
+              <div className="flex items-end gap-2">
+                <button className="text-gray-600 p-2 hover:bg-gray-50 rounded-full">
+                  <span className="text-xl">➕</span>
+                </button>
+                
+                <textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="メールを送信"
+                  className="flex-1 px-4 py-3 border border-gray-500 rounded-lg resize-none focus:outline-none focus:border-black transition-colors"
+                  rows={3}
+                  disabled={loading}
+                />
+
+                <button
+                  onClick={handleSend}
+                  disabled={loading || !message.trim()}
+                  className="bg-black text-white p-3 rounded-full hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                >
+                  <span className="text-xl">➤</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
-
-      {/* Input Area */}
-      <div className="border-t border-gray-200 bg-white p-4">
-        <div className="max-w-2xl mx-auto">
-          <div className="flex items-center gap-2 mb-3">
-            <button
-              onClick={() => setShowTemplates(!showTemplates)}
-              className="text-gray-600 hover:text-black text-sm flex items-center gap-1"
-            >
-              <span>📝</span>
-              <span>定型文を追加</span>
-            </button>
-          </div>
-
-          <div className="flex items-end gap-2">
-            <button className="text-gray-600 p-2 hover:bg-gray-50 rounded-full">
-              <span className="text-xl">➕</span>
-            </button>
-            
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="メールを送信"
-              className="flex-1 px-4 py-3 border border-gray-500 rounded-lg resize-none focus:outline-none focus:border-black transition-colors"
-              rows={2}
-              disabled={loading}
-            />
-
-            <button
-              onClick={handleSend}
-              disabled={loading || !message.trim()}
-              className="bg-black text-white p-3 rounded-full hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-            >
-              <span className="text-xl">➤</span>
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
