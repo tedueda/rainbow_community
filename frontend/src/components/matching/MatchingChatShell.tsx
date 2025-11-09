@@ -217,13 +217,7 @@ const MatchingChatShell: React.FC = () => {
 
       {/* Right side - Chat detail */}
       <div className="flex-1 overflow-hidden">
-        {selectedChatId ? (
-          <Outlet />
-        ) : (
-          <div className="flex items-center justify-center h-full text-gray-500">
-            左のリストからチャットを選択してください
-          </div>
-        )}
+        <Outlet />
       </div>
     </div>
   );

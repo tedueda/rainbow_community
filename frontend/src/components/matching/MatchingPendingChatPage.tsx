@@ -44,18 +44,34 @@ const MatchingPendingChatPage: React.FC = () => {
   const fetchRequestInfo = async () => {
     if (!token || !requestId) return;
     try {
-      const res = await fetch(`${API_URL}/api/matching/chat_requests/outgoing`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Failed to fetch request info');
-      const data = await res.json();
-      const list = Array.isArray(data?.items) ? data.items : Array.isArray(data?.requests) ? data.requests : [];
-      const request = list.find((r: any) => r.request_id === parseInt(requestId));
+      const [outgoingRes, incomingRes] = await Promise.all([
+        fetch(`${API_URL}/api/matching/chat_requests/outgoing`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        }),
+        fetch(`${API_URL}/api/matching/chat_requests/incoming`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        }),
+      ]);
+      
+      if (!outgoingRes.ok || !incomingRes.ok) throw new Error('Failed to fetch request info');
+      
+      const outgoingData = await outgoingRes.json();
+      const incomingData = await incomingRes.json();
+      
+      const outgoingList = Array.isArray(outgoingData?.items) ? outgoingData.items : [];
+      const incomingList = Array.isArray(incomingData?.items) ? incomingData.items : [];
+      
+      let request = outgoingList.find((r: any) => r.request_id === parseInt(requestId));
+      if (!request) {
+        request = incomingList.find((r: any) => r.request_id === parseInt(requestId));
+      }
+      
       if (request) {
         setRequestInfo(request);
         
         if (request.status === 'accepted') {
-          const chatRes = await fetch(`${API_URL}/api/matching/ensure_chat/${request.to_user_id}`, {
+          const targetUserId = request.to_user_id || request.from_user_id;
+          const chatRes = await fetch(`${API_URL}/api/matching/ensure_chat/${targetUserId}`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${token}` },
           });
