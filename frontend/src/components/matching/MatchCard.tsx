@@ -179,23 +179,26 @@ export function MatchCard({ item }: { item: Item }) {
           </div>
           <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-1">
-              <div className="bg-gray-100 rounded overflow-hidden flex items-center justify-center">
-                <img 
-                  src={
-                    detail?.avatar_url && detail.avatar_url !== null && detail.avatar_url !== ''
-                      ? (detail.avatar_url.startsWith('http') ? detail.avatar_url : `${API_URL}${detail.avatar_url}`)
-                      : (detail?.images && detail.images.length > 0 && detail.images[0].url)
-                        ? (detail.images[0].url.startsWith('http') ? detail.images[0].url : `${API_URL}${detail.images[0].url}`)
-                        : `https://api.dicebear.com/7.x/fun-emoji/png?seed=${item.user_id}&size=256&scale=80`
-                  }
-                  alt="プロフィール画像" 
-                  className="w-full h-auto object-contain max-h-[500px]"
-                  onError={(e) => {
-                    const target = e.currentTarget as HTMLImageElement;
-                    const fallback = `https://api.dicebear.com/7.x/fun-emoji/png?seed=${item.user_id}&size=256&scale=80`;
-                    if (target.src !== fallback) target.src = fallback;
-                  }}
-                />
+              <div className="bg-gray-100 rounded overflow-hidden flex items-center justify-center min-h-[300px]">
+                {(detail?.avatar_url && detail.avatar_url !== null && detail.avatar_url !== '') || (detail?.images && detail.images.length > 0 && detail.images[0].url) ? (
+                  <img 
+                    src={
+                      detail?.avatar_url && detail.avatar_url !== null && detail.avatar_url !== ''
+                        ? (detail.avatar_url.startsWith('http') ? detail.avatar_url : `${API_URL}${detail.avatar_url}`)
+                        : (detail.images[0].url.startsWith('http') ? detail.images[0].url : `${API_URL}${detail.images[0].url}`)
+                    }
+                    alt="プロフィール画像" 
+                    className="w-full h-auto object-contain max-h-[500px]"
+                    onError={(e) => {
+                      const target = e.currentTarget as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center">
+                    <span className="text-gray-500 text-4xl">👤</span>
+                  </div>
+                )}
               </div>
               {detail?.identity && (
                 <div className="mt-2 inline-block"><IdentityBadge value={detail.identity} /></div>
