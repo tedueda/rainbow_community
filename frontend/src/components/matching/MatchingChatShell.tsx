@@ -156,7 +156,7 @@ const MatchingChatShell: React.FC = () => {
                   <button
                     key={req.request_id}
                     onClick={() => navigate(`requests/${req.request_id}`)}
-                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 text-left border border-yellow-200 bg-yellow-50 transition-colors"
+                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 text-left border border-gray-200 bg-gray-50 transition-colors"
                   >
                     <div className="flex-shrink-0">
                       {req.to_avatar_url ? (
@@ -173,7 +173,7 @@ const MatchingChatShell: React.FC = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-medium truncate">{req.to_display_name || 'ユーザー'}</div>
-                      <div className="text-xs text-yellow-700 truncate">
+                      <div className="text-xs text-gray-600 truncate">
                         ⏳ 承諾待ち
                       </div>
                     </div>

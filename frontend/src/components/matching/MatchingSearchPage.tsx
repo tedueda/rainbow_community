@@ -12,6 +12,8 @@ type MatchItem = {
   prefecture?: string | null;
   age_band?: string | null;
   avatar_url?: string | null;
+  occupation?: string | null;
+  meet_pref?: string | null;
 };
 
 const MatchingSearchPage: React.FC = () => {
@@ -22,6 +24,12 @@ const MatchingSearchPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<MatchItem[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [allItems, setAllItems] = useState<MatchItem[]>([]);
+  
+  const [selectedPrefecture, setSelectedPrefecture] = useState<string>("");
+  const [selectedAgeBand, setSelectedAgeBand] = useState<string>("");
+  const [selectedOccupation, setSelectedOccupation] = useState<string>("");
+  const [selectedMeetPref, setSelectedMeetPref] = useState<string>("");
 
   const fetchSearch = async () => {
     if (!token) return;
@@ -71,6 +79,7 @@ const MatchingSearchPage: React.FC = () => {
         );
       }
       
+      setAllItems(fetchedItems);
       setItems(fetchedItems);
     } catch (e: any) {
       setError(e?.message || '検索に失敗しました');
@@ -84,6 +93,37 @@ const MatchingSearchPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, segment]);
 
+  useEffect(() => {
+    let filtered = [...allItems];
+    
+    if (selectedPrefecture) {
+      filtered = filtered.filter(it => it.prefecture === selectedPrefecture);
+    }
+    if (selectedAgeBand) {
+      filtered = filtered.filter(it => it.age_band === selectedAgeBand);
+    }
+    if (selectedOccupation) {
+      filtered = filtered.filter(it => it.occupation === selectedOccupation);
+    }
+    if (selectedMeetPref) {
+      filtered = filtered.filter(it => it.meet_pref === selectedMeetPref);
+    }
+    
+    setItems(filtered);
+  }, [allItems, selectedPrefecture, selectedAgeBand, selectedOccupation, selectedMeetPref]);
+
+  const uniquePrefectures = Array.from(new Set(allItems.map(it => it.prefecture).filter(Boolean))) as string[];
+  const uniqueAgeBands = Array.from(new Set(allItems.map(it => it.age_band).filter(Boolean))) as string[];
+  const uniqueOccupations = Array.from(new Set(allItems.map(it => it.occupation).filter(Boolean))) as string[];
+  const uniqueMeetPrefs = Array.from(new Set(allItems.map(it => it.meet_pref).filter(Boolean))) as string[];
+
+  const clearFilters = () => {
+    setSelectedPrefecture("");
+    setSelectedAgeBand("");
+    setSelectedOccupation("");
+    setSelectedMeetPref("");
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-pink-50/30">
       <div className="mx-auto max-w-6xl px-4 py-6">
@@ -92,6 +132,75 @@ const MatchingSearchPage: React.FC = () => {
         </h1>
         
         <TopTabs />
+        
+        {/* Filter Section */}
+        <div className="mb-6 bg-white rounded-lg border border-gray-200 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-gray-700">条件検索</h3>
+            {(selectedPrefecture || selectedAgeBand || selectedOccupation || selectedMeetPref) && (
+              <button
+                onClick={clearFilters}
+                className="text-xs text-gray-500 hover:text-gray-700 underline"
+              >
+                クリア
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">居住地</label>
+              <select
+                value={selectedPrefecture}
+                onChange={(e) => setSelectedPrefecture(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              >
+                <option value="">すべて</option>
+                {uniquePrefectures.map((pref) => (
+                  <option key={pref} value={pref}>{pref}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">年代</label>
+              <select
+                value={selectedAgeBand}
+                onChange={(e) => setSelectedAgeBand(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              >
+                <option value="">すべて</option>
+                {uniqueAgeBands.map((age) => (
+                  <option key={age} value={age}>{age}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">職種</label>
+              <select
+                value={selectedOccupation}
+                onChange={(e) => setSelectedOccupation(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              >
+                <option value="">すべて</option>
+                {uniqueOccupations.map((occ) => (
+                  <option key={occ} value={occ}>{occ}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">マッチングの目的</label>
+              <select
+                value={selectedMeetPref}
+                onChange={(e) => setSelectedMeetPref(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              >
+                <option value="">すべて</option>
+                {uniqueMeetPrefs.map((pref) => (
+                  <option key={pref} value={pref}>{pref}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
         
         {loading && (
           <div className="flex items-center justify-center py-12">
