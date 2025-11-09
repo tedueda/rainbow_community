@@ -109,7 +109,11 @@ const MatchingLikesPage: React.FC = () => {
         {viewMode === 'list' ? (
           <ul className="space-y-2">
             {items.map((like) => (
-              <li key={like.like_id} className="border rounded p-3 flex items-center justify-between">
+              <li 
+                key={like.like_id} 
+                className="border rounded p-3 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => navigate(`/matching/users/${like.user_id}`)}
+              >
                 <div className="flex items-center gap-3">
                   {like.avatar_url && like.avatar_url !== '' ? (
                     <img 
@@ -134,7 +138,10 @@ const MatchingLikesPage: React.FC = () => {
                   </div>
                 </div>
                 <button
-                  onClick={() => handleSendEmail(like.user_id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSendEmail(like.user_id);
+                  }}
                   className="px-3 py-1 text-sm bg-black text-white rounded hover:bg-gray-800 transition-colors"
                 >
                   メールをする
@@ -148,7 +155,11 @@ const MatchingLikesPage: React.FC = () => {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {items.map((like) => (
-              <div key={like.like_id} className="border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow">
+              <div 
+                key={like.like_id} 
+                className="border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => navigate(`/matching/users/${like.user_id}`)}
+              >
                 {like.avatar_url && like.avatar_url !== '' ? (
                   <img 
                     src={like.avatar_url.startsWith('http') ? like.avatar_url : `${API_URL}${like.avatar_url}`}
@@ -171,7 +182,10 @@ const MatchingLikesPage: React.FC = () => {
                     {[like.age_band, like.prefecture].filter(Boolean).join(' ・ ')}
                   </div>
                   <button
-                    onClick={() => handleSendEmail(like.user_id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSendEmail(like.user_id);
+                    }}
                     className="w-full px-3 py-2 text-sm bg-black text-white rounded hover:bg-gray-800 transition-colors"
                   >
                     メールをする

@@ -42,7 +42,15 @@ const MatchingUserProfilePage: React.FC = () => {
         });
         if (!res.ok) throw new Error('プロフィールの取得に失敗しました');
         const data = await res.json();
-        setProfile(data);
+        const normalizedData = {
+          ...data,
+          images: (data.images || []).map((img: any) => ({
+            id: img.id,
+            image_url: img.image_url ?? img.url,
+            order: img.order ?? img.display_order,
+          })),
+        };
+        setProfile(normalizedData);
       } catch (e: any) {
         setError(e?.message || 'エラーが発生しました');
       } finally {
@@ -108,11 +116,17 @@ const MatchingUserProfilePage: React.FC = () => {
           {profile.images && profile.images.length > 0 ? (
             <>
               <img
-                src={profile.images[currentImageIndex].image_url.startsWith('http') 
+                src={profile.images[currentImageIndex].image_url && profile.images[currentImageIndex].image_url.startsWith('http') 
                   ? profile.images[currentImageIndex].image_url 
-                  : `${API_URL}${profile.images[currentImageIndex].image_url}`}
+                  : profile.images[currentImageIndex].image_url 
+                    ? `${API_URL}${profile.images[currentImageIndex].image_url}`
+                    : ''}
                 alt={`${profile.display_name} - ${currentImageIndex + 1}`}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.currentTarget as HTMLImageElement;
+                  target.style.display = 'none';
+                }}
               />
               {profile.images.length > 1 && (
                 <>
@@ -170,8 +184,8 @@ const MatchingUserProfilePage: React.FC = () => {
               )}
               {profile.hometown && <div>出身地: {profile.hometown}</div>}
               {profile.occupation && <div>職業: {profile.occupation}</div>}
-              {profile.blood_type && <div>血液型: {profile.blood_type}</div>}
-              {profile.zodiac && <div>星座: {profile.zodiac}</div>}
+              <div>血液型: {profile.blood_type || '未設定'}</div>
+              <div>星座: {profile.zodiac || '未設定'}</div>
             </div>
           </div>
 
