@@ -112,10 +112,12 @@ const MatchingSearchPage: React.FC = () => {
     setItems(filtered);
   }, [allItems, selectedPrefecture, selectedAgeBand, selectedOccupation, selectedMeetPref]);
 
-  const uniquePrefectures = Array.from(new Set(allItems.map(it => it.prefecture).filter(Boolean))) as string[];
-  const uniqueAgeBands = Array.from(new Set(allItems.map(it => it.age_band).filter(Boolean))) as string[];
-  const uniqueOccupations = Array.from(new Set(allItems.map(it => it.occupation).filter(Boolean))) as string[];
-  const uniqueMeetPrefs = Array.from(new Set(allItems.map(it => it.meet_pref).filter(Boolean))) as string[];
+  const PREFECTURES = [
+    '北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県','茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県','新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県','三重県','滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県','鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県','福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県'
+  ];
+  const AGE_BANDS = ['10代','20代前半','20代後半','30代前半','30代後半','40代前半','40代後半','50代前半','50代後半','60代以上'];
+  const OCCUPATIONS = ['会社員','自営業','フリーランス','学生','専門職','公務員','パート・アルバイト','その他'];
+  const MEET_PREFS = ['パートナー探し','友人探し','相談相手探し','メンバー募集','その他'];
 
   const clearFilters = () => {
     setSelectedPrefecture("");
@@ -155,7 +157,7 @@ const MatchingSearchPage: React.FC = () => {
                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
               >
                 <option value="">すべて</option>
-                {uniquePrefectures.map((pref) => (
+                {PREFECTURES.map((pref) => (
                   <option key={pref} value={pref}>{pref}</option>
                 ))}
               </select>
@@ -168,7 +170,7 @@ const MatchingSearchPage: React.FC = () => {
                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
               >
                 <option value="">すべて</option>
-                {uniqueAgeBands.map((age) => (
+                {AGE_BANDS.map((age) => (
                   <option key={age} value={age}>{age}</option>
                 ))}
               </select>
@@ -181,7 +183,7 @@ const MatchingSearchPage: React.FC = () => {
                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
               >
                 <option value="">すべて</option>
-                {uniqueOccupations.map((occ) => (
+                {OCCUPATIONS.map((occ) => (
                   <option key={occ} value={occ}>{occ}</option>
                 ))}
               </select>
@@ -194,7 +196,7 @@ const MatchingSearchPage: React.FC = () => {
                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
               >
                 <option value="">すべて</option>
-                {uniqueMeetPrefs.map((pref) => (
+                {MEET_PREFS.map((pref) => (
                   <option key={pref} value={pref}>{pref}</option>
                 ))}
               </select>
