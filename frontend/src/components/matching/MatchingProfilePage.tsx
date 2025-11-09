@@ -253,23 +253,24 @@ const MatchingProfilePage: React.FC = () => {
       });
       if (!res.ok) {
         const errorText = await res.text();
-        console.error('Save profile error:', errorText);
+        console.error('Save profile error:', res.status, errorText);
         try {
           const errorData = JSON.parse(errorText);
-          throw new Error(errorData.detail || '保存に失敗しました');
-        } catch {
-          throw new Error(errorText || '保存に失敗しました');
+          throw new Error(errorData.detail || `保存に失敗しました (${res.status})`);
+        } catch (parseError) {
+          throw new Error(errorText || `保存に失敗しました (${res.status})`);
         }
       }
-      // DB未対応時のフォールバック保存
-      localStorage.setItem('profile:residence_detail', payload.residence_detail || '');
-      localStorage.setItem('profile:hometown', payload.hometown || '');
+      
       await fetchProfile();
       setNewPassword('');
-      alert('保存しました');
+      
+      alert('✅ 保存しました\n\nプロフィール情報が正常に保存されました。');
     } catch (e: any) {
       console.error('Profile save error:', e);
-      setError(e?.message || '保存に失敗しました');
+      const errorMessage = e?.message || '保存に失敗しました';
+      setError(errorMessage);
+      alert(`❌ エラー\n\n${errorMessage}\n\n入力内容を確認してもう一度お試しください。`);
     } finally {
       setSaving(false);
     }
