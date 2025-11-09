@@ -206,42 +206,51 @@ export function MatchCard({ item }: { item: Item }) {
             </div>
             <div className="md:col-span-2 space-y-2 text-sm">
               <div className="text-lg font-semibold">{detail?.nickname || detail?.display_name || item.display_name}</div>
-              <div className="text-gray-700">{[detail?.age_band, detail?.prefecture].filter(Boolean).join(' ・ ')}</div>
+              <div className="text-gray-700">
+                {[
+                  detail?.age_band,
+                  detail?.prefecture,
+                  detail?.residence_detail
+                ].filter(v => v && v !== '' && v !== '非表示').join(' ・ ')}
+              </div>
               
               {detail?.occupation && detail.occupation !== '' && detail.occupation !== '非表示' && <div><span className="font-medium">職業:</span> {detail.occupation}</div>}
-              {detail?.income_range && detail.income_range !== '' && detail.income_range !== '非表示' && <div><span className="font-medium">年収:</span> {detail.income_range}</div>}
+              {detail?.blood_type && detail.blood_type !== '' && detail.blood_type !== '非表示' && <div><span className="font-medium">血液型:</span> {detail.blood_type}</div>}
+              {detail?.zodiac && detail.zodiac !== '' && detail.zodiac !== '非表示' && <div><span className="font-medium">星座:</span> {detail.zodiac}</div>}
               {detail?.meet_pref && detail.meet_pref !== '' && detail.meet_pref !== '非表示' && <div><span className="font-medium">マッチングの目的:</span> {detail.meet_pref}</div>}
               
-              {Array.isArray(detail?.romance_targets) && detail.romance_targets.length > 0 && (
+              {Array.isArray(detail?.romance_targets) && detail.romance_targets.filter((t: string) => t !== '非表示').length > 0 && (
                 <div>
                   <span className="font-medium">恋愛対象:</span>
                   <div className="mt-1 flex flex-wrap gap-1">
-                    {detail.romance_targets.map((target: string) => (
+                    {detail.romance_targets.filter((t: string) => t !== '非表示').map((target: string) => (
                       <span key={target} className="px-2 py-1 text-xs rounded-full bg-pink-50 text-pink-700 border border-pink-300">{target}</span>
                     ))}
                   </div>
                 </div>
               )}
               
-              {Array.isArray(detail?.hobbies) && detail.hobbies.length > 0 && (
+              {Array.isArray(detail?.hobbies) && detail.hobbies.filter((h: string) => h !== '非表示').length > 0 && (
                 <div>
                   <span className="font-medium">興味・趣味:</span>
                   <div className="mt-1 flex flex-wrap gap-2">
-                    {detail.hobbies.map((h: string) => (
+                    {detail.hobbies.filter((h: string) => h !== '非表示').map((h: string) => (
                       <span key={h} className="px-2 py-1 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-300">{h}</span>
                     ))}
                   </div>
                 </div>
               )}
               
-              {detail?.bio && detail.bio !== '' && (
+              {detail?.bio && detail.bio !== '' && detail.bio !== '非表示' && (
                 <div>
                   <span className="font-medium">自己紹介:</span>
                   <p className="mt-1 whitespace-pre-wrap text-gray-800">{detail.bio}</p>
                 </div>
               )}
               
-              {(!detail?.bio || detail.bio === '') && (!detail?.occupation || detail.occupation === '') && (!detail?.hobbies || detail.hobbies.length === 0) && (
+              {(!detail?.bio || detail.bio === '' || detail.bio === '非表示') && 
+               (!detail?.occupation || detail.occupation === '' || detail.occupation === '非表示') && 
+               (!detail?.hobbies || detail.hobbies.length === 0) && (
                 <div className="text-gray-500 italic">プロフィール情報が未設定です</div>
               )}
             </div>
