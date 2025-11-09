@@ -27,7 +27,7 @@ type ChatRequest = {
 };
 
 const MatchingChatShell: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id, requestId } = useParams<{ id?: string; requestId?: string }>();
   const navigate = useNavigate();
   const { token } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -90,7 +90,7 @@ const MatchingChatShell: React.FC = () => {
   }, [token]);
 
   useEffect(() => {
-    if (!id && !loading) {
+    if (!id && !requestId && !loading) {
       if (chats.length > 0) {
         navigate(`/matching/chats/${chats[0].chat_id}`, { replace: true });
       } else if (incomingRequests.length > 0) {
@@ -100,7 +100,7 @@ const MatchingChatShell: React.FC = () => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chats, incomingRequests, outgoingRequests, loading, id]);
+  }, [chats, incomingRequests, outgoingRequests, loading, id, requestId]);
 
   const selectedChatId = id ? Number(id) : null;
 
