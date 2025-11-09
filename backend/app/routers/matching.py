@@ -765,13 +765,23 @@ def list_outgoing_chat_requests(
         to_user = db.query(User).filter(User.id == req.to_user_id).first()
         profile = db.query(MatchingProfile).filter(MatchingProfile.user_id == req.to_user_id).first()
         
+        images = (
+            db.query(MatchingProfileImage)
+            .filter(MatchingProfileImage.profile_id == req.to_user_id)
+            .order_by(MatchingProfileImage.display_order)
+            .all()
+        )
+        avatar_url = images[0].image_url if images else (profile.avatar_url if profile else None)
+        
         items.append({
             "request_id": req.id,
             "to_user_id": req.to_user_id,
             "to_display_name": to_user.display_name if to_user else f"User {req.to_user_id}",
+            "to_avatar_url": avatar_url,
             "identity": profile.identity if profile else None,
             "prefecture": profile.prefecture if profile else None,
             "age_band": profile.age_band if profile else None,
+            "initial_message": req.initial_message,
             "status": req.status,
             "created_at": req.created_at.isoformat() if req.created_at else None,
             "responded_at": req.responded_at.isoformat() if req.responded_at else None,

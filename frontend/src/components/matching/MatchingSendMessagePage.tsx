@@ -64,11 +64,12 @@ const MatchingSendMessagePage: React.FC = () => {
         throw new Error(errorText);
       }
 
-      setSent(true);
-      setMessage('');
-      setTimeout(() => {
-        navigate('/matching/chats');
-      }, 2000);
+      const data = await res.json();
+      if (data.request_id) {
+        navigate(`/matching/chats/requests/${data.request_id}`, { replace: true });
+      } else {
+        navigate('/matching/chats', { replace: true });
+      }
     } catch (e: any) {
       alert(`エラー: ${e?.message || 'メッセージ送信に失敗しました'}`);
     } finally {
