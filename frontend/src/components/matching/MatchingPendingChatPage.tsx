@@ -48,7 +48,8 @@ const MatchingPendingChatPage: React.FC = () => {
       });
       if (!res.ok) throw new Error('Failed to fetch request info');
       const data = await res.json();
-      const request = data.requests.find((r: any) => r.request_id === parseInt(requestId));
+      const list = Array.isArray(data?.items) ? data.items : Array.isArray(data?.requests) ? data.requests : [];
+      const request = list.find((r: any) => r.request_id === parseInt(requestId));
       if (request) {
         setRequestInfo(request);
         
