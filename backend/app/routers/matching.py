@@ -423,13 +423,15 @@ def list_chats(
             db.flush()
         other_id = m.user_b_id if m.user_a_id == current_user.id else m.user_a_id
         other = db.query(User).filter(User.id == other_id).first()
+        other_profile = db.query(MatchingProfile).filter(MatchingProfile.user_id == other_id).first()
         last_msg = (
             db.query(Message).filter(Message.chat_id == ch.id).order_by(Message.created_at.desc()).first()
         )
         chat_items.append({
             "chat_id": ch.id,
             "with_user_id": other_id,
-            "with_display_name": other.display_name if other else f"User {other_id}",
+            "with_display_name": other_profile.display_name if other_profile else (other.display_name if other else f"User {other_id}"),
+            "with_avatar_url": other_profile.avatar_url if other_profile else None,
             "last_message": last_msg.body if last_msg else None,
         })
     return {"items": chat_items}
@@ -454,7 +456,14 @@ def get_messages(
     ch = _ensure_chat_access(chat_id, current_user.id, db)
     msgs = db.query(Message).filter(Message.chat_id == ch.id).order_by(Message.created_at.asc()).all()
     return {"items": [
-        {"id": m.id, "chat_id": m.chat_id, "sender_id": m.sender_id, "body": m.body, "created_at": m.created_at} for m in msgs
+        {
+            "id": m.id,
+            "chat_id": m.chat_id,
+            "sender_id": m.sender_id,
+            "body": m.body,
+            "image_url": m.image_url,
+            "created_at": m.created_at
+        } for m in msgs
     ]}
 
 
@@ -467,13 +476,26 @@ def send_message(
 ):
     ch = _ensure_chat_access(chat_id, current_user.id, db)
     body = (payload or {}).get("body")
-    if not body or not str(body).strip():
-        raise HTTPException(status_code=400, detail="message body required")
-    msg = Message(chat_id=ch.id, sender_id=current_user.id, body=str(body).strip())
+    image_url = (payload or {}).get("image_url")
+    
+    body_text = str(body).strip() if body else None
+    image_url_text = str(image_url).strip() if image_url else None
+    
+    if not body_text and not image_url_text:
+        raise HTTPException(status_code=400, detail="Either body or image_url is required")
+    
+    msg = Message(chat_id=ch.id, sender_id=current_user.id, body=body_text, image_url=image_url_text)
     db.add(msg)
     db.commit()
     db.refresh(msg)
-    return {"id": msg.id, "chat_id": msg.chat_id, "sender_id": msg.sender_id, "body": msg.body, "created_at": msg.created_at}
+    return {
+        "id": msg.id,
+        "chat_id": msg.chat_id,
+        "sender_id": msg.sender_id,
+        "body": msg.body,
+        "image_url": msg.image_url,
+        "created_at": msg.created_at
+    }
 
 
 # ===== WebSocket (simple in-process pub/sub) =====
