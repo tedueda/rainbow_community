@@ -12,7 +12,7 @@ type UserProfile = {
 const MatchingSendMessagePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
-  const { token, user } = useAuth();
+  const { token } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [message, setMessage] = useState('こんにちは、今は何をしていますか');
   const [loading, setLoading] = useState(false);
