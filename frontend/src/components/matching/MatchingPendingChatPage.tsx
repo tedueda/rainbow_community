@@ -16,6 +16,14 @@ type ChatRequestInfo = {
   created_at?: string;
 };
 
+type Message = {
+  id: number;
+  from_user_id: number;
+  content: string;
+  created_at: string;
+  image_url?: string;
+};
+
 interface MatchingPendingChatPageProps {
   embedded?: boolean;
 }
@@ -26,6 +34,7 @@ const MatchingPendingChatPage: React.FC<MatchingPendingChatPageProps> = ({ embed
   const navigate = useNavigate();
   const [requestInfo, setRequestInfo] = useState<ChatRequestInfo | null>(null);
   const [foundInList, setFoundInList] = useState<'outgoing' | 'incoming' | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchRequestInfo = async () => {
@@ -81,8 +90,24 @@ const MatchingPendingChatPage: React.FC<MatchingPendingChatPageProps> = ({ embed
     }
   };
 
+  const fetchMessages = async () => {
+    if (!token || !requestId) return;
+    try {
+      const res = await fetch(`${API_URL}/api/matching/chat_requests/${requestId}/messages`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setMessages(data.messages || []);
+      }
+    } catch (e: any) {
+      console.error('Failed to fetch messages:', e);
+    }
+  };
+
   useEffect(() => {
     fetchRequestInfo();
+    fetchMessages();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, requestId]);
 
@@ -162,30 +187,39 @@ const MatchingPendingChatPage: React.FC<MatchingPendingChatPageProps> = ({ embed
           {/* Message Display */}
           <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
             <div className="max-w-2xl mx-auto">
-              {requestInfo.initial_message && (
+              {messages.length > 0 ? (
+                messages.map((msg) => (
+                  <div key={msg.id} className="flex justify-end mb-4">
+                    <div className="bg-black text-white rounded-lg px-4 py-2 max-w-[70%]">
+                      <div className="text-sm">{msg.content}</div>
+                      <div className="text-xs text-gray-300 mt-1">未読</div>
+                    </div>
+                  </div>
+                ))
+              ) : requestInfo.initial_message ? (
                 <div className="flex justify-end mb-4">
                   <div className="bg-black text-white rounded-lg px-4 py-2 max-w-[70%]">
                     <div className="text-sm">{requestInfo.initial_message}</div>
                     <div className="text-xs text-gray-300 mt-1">未読</div>
                   </div>
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
 
           {/* Input Area (disabled) */}
-          <div className="border-t border-gray-200 bg-white p-4">
+          <div className="border-t-2 border-gray-400 bg-white p-4 pb-6">
             <div className="max-w-2xl mx-auto">
               <div className="flex items-center gap-2 opacity-50">
                 <textarea
                   disabled
                   placeholder="相手が承諾するまでメッセージを送信できません"
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg resize-none bg-gray-100 cursor-not-allowed"
+                  className="flex-1 px-4 py-3 border-2 border-gray-400 rounded-lg resize-none bg-gray-100 cursor-not-allowed"
                   rows={2}
                 />
                 <button
                   disabled
-                  className="bg-gray-300 text-white p-3 rounded-full cursor-not-allowed"
+                  className="bg-black text-white p-3 rounded-full cursor-not-allowed opacity-50"
                 >
                   <span className="text-xl">➤</span>
                 </button>
@@ -200,7 +234,24 @@ const MatchingPendingChatPage: React.FC<MatchingPendingChatPageProps> = ({ embed
           {/* Message Display */}
           <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
             <div className="max-w-2xl mx-auto">
-              {requestInfo.initial_message && (
+              {messages.length > 0 ? (
+                messages.map((msg) => (
+                  <div key={msg.id} className="flex justify-start mb-4">
+                    <div className="flex items-start gap-2 max-w-[70%]">
+                      {requestInfo.from_avatar_url && (
+                        <img
+                          src={requestInfo.from_avatar_url.startsWith('http') ? requestInfo.from_avatar_url : `${API_URL}${requestInfo.from_avatar_url}`}
+                          alt={requestInfo.from_display_name || 'ユーザー'}
+                          className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                        />
+                      )}
+                      <div className="bg-white border border-gray-200 rounded-lg px-4 py-2">
+                        <div className="text-sm">{msg.content}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : requestInfo.initial_message ? (
                 <div className="flex justify-start mb-4">
                   <div className="flex items-start gap-2 max-w-[70%]">
                     {requestInfo.from_avatar_url && (
@@ -215,7 +266,7 @@ const MatchingPendingChatPage: React.FC<MatchingPendingChatPageProps> = ({ embed
                     </div>
                   </div>
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
 
