@@ -17,7 +17,6 @@ const MatchingSendMessagePage: React.FC = () => {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
-  const [sent, setSent] = useState(false);
 
   const templates = [
     'こんにちは、今は何をしていますか',
@@ -97,20 +96,7 @@ const MatchingSendMessagePage: React.FC = () => {
         </h1>
       </div>
 
-      {sent ? (
-        <div className="flex-1 flex items-center justify-center p-4">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6 max-w-md">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="text-green-600 text-2xl">✓</span>
-              <div className="font-medium text-lg">送信完了</div>
-            </div>
-            <div className="text-gray-700">
-              リクエストを送信しました。相手が承諾するとあなたのメッセージを見ることができます。
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="flex-1 flex items-center justify-center p-4">
+      <div className="flex-1 flex items-center justify-center p-4">
           <div className="w-full max-w-2xl">
             {/* Template Menu */}
             {showTemplates && (
@@ -173,7 +159,7 @@ const MatchingSendMessagePage: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
