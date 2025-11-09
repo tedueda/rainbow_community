@@ -64,8 +64,7 @@ async def upload_image(
                 Bucket=S3_BUCKET,
                 Key=s3_key,
                 Body=content,
-                ContentType=file.content_type or "application/octet-stream",
-                ACL='public-read'
+                ContentType=file.content_type or "application/octet-stream"
             )
             # S3のURL
             url = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{s3_key}"
