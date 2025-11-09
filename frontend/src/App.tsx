@@ -16,6 +16,7 @@ import NewsPage from './components/NewsPage';
 import PremiumGate from './components/matching/PremiumGate';
 import MatchingLayout from './components/matching/MatchingLayout';
 import MatchingSearchPage from './components/matching/MatchingSearchPage';
+import MatchingLikesPage from './components/matching/MatchingLikesPage';
 import MatchingMatchesPage from './components/matching/MatchingMatchesPage';
 import MatchingChatsPage from './components/matching/MatchingChatsPage';
 import MatchingProfilePage from './components/matching/MatchingProfilePage';
@@ -114,6 +115,7 @@ function AppContent() {
             </FeedRoute>
           }>
             <Route index element={<MatchingSearchPage />} />
+            <Route path="likes" element={<MatchingLikesPage />} />
             <Route path="matches" element={<MatchingMatchesPage />} />
             <Route path="chats" element={<MatchingChatsPage />} />
             <Route path="chats/:id" element={<MatchingChatDetailPage />} />

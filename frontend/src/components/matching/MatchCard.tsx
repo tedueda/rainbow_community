@@ -37,8 +37,15 @@ export function MatchCard({ item }: { item: Item }) {
       });
       
       if (!res.ok) throw new Error('Like failed');
+      const data = await res.json();
       setLiked(true);
-      navigate('/matching/matches');
+      
+      if (data.matched) {
+        alert('✨ マッチしました！');
+        navigate('/matching/matches');
+      } else {
+        navigate('/matching/likes');
+      }
     } catch (err) {
       console.error("Like failed:", err);
       alert('いいねに失敗しました');
@@ -61,7 +68,15 @@ export function MatchCard({ item }: { item: Item }) {
           'Content-Type': 'application/json',
         },
       });
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) {
+        const errorText = await res.text();
+        if (res.status === 404) {
+          alert('❌ このユーザーとはまだマッチしていません。\n\n先に「♡ タイプ」を送って、相手からもタイプをもらうとメッセージを送れるようになります。');
+        } else {
+          throw new Error(errorText);
+        }
+        return;
+      }
       const data = await res.json();
       navigate(`/matching/chats/${data.chat_id}`);
     } catch (err) {
