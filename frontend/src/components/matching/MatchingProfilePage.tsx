@@ -1002,7 +1002,7 @@ const MatchingProfilePage: React.FC = () => {
                                   if (e.target.checked) set.add(target); else set.delete(target);
                                   setProfile({ ...profile, romance_targets: Array.from(set) });
                                 }}
-                                className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
+                                className="w-4 h-4 text-black border-gray-300 rounded focus:ring-black"
                               />
                               <span className="text-sm">{target}</span>
                             </label>
@@ -1034,7 +1034,7 @@ const MatchingProfilePage: React.FC = () => {
                         <span className="text-xs text-gray-500">未選択</span>
                       )}
                       {(profile.hobbies || []).map((h) => (
-                        <span key={h} className="px-2 py-1 bg-blue-50 text-blue-700 border border-blue-300 rounded-full text-xs">
+                        <span key={h} className="px-2 py-1 bg-gray-100 text-gray-800 border border-gray-300 rounded-full text-xs">
                           {h}
                         </span>
                       ))}
@@ -1060,7 +1060,7 @@ const MatchingProfilePage: React.FC = () => {
                   <button
                     onClick={saveProfile}
                     disabled={saving}
-                    className="px-4 py-2 bg-pink-600 text-white rounded text-sm hover:bg-pink-700 disabled:opacity-60"
+                    className="px-4 py-2 bg-black text-white rounded text-sm hover:bg-gray-800 disabled:opacity-60 transition-colors"
                   >
                     {saving ? '保存中...' : '保存'}
                   </button>

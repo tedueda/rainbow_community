@@ -164,8 +164,8 @@ export function MatchCard({ item }: { item: Item }) {
             className={`
               flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all
               ${liked 
-                ? "bg-pink-100 text-pink-700 cursor-not-allowed" 
-                : "bg-gradient-to-r from-pink-500 to-rose-500 text-white hover:from-pink-600 hover:to-rose-600 active:scale-95"
+                ? "bg-gray-100 text-gray-500 cursor-not-allowed" 
+                : "bg-black text-white hover:bg-gray-800 active:scale-95"
               }
               ${loading ? "opacity-50 cursor-wait" : ""}
             `}
@@ -174,7 +174,7 @@ export function MatchCard({ item }: { item: Item }) {
           </button>
           <button
             onClick={handleMessage}
-            className="flex-1 rounded-md border border-gray-300 px-2 py-1.5 text-center text-xs font-medium text-gray-700 transition-all hover:bg-gray-50 active:scale-95"
+            className="flex-1 rounded-md border border-gray-300 px-2 py-1.5 text-center text-xs font-medium text-gray-700 transition-all hover:bg-gray-100 active:scale-95"
             aria-label={`${item.display_name || "このユーザー"}にメールする`}
           >
             メールをする
@@ -238,7 +238,7 @@ export function MatchCard({ item }: { item: Item }) {
                   <span className="font-medium">恋愛対象:</span>
                   <div className="mt-1 flex flex-wrap gap-1">
                     {detail.romance_targets.filter((t: string) => t !== '非表示').map((target: string) => (
-                      <span key={target} className="px-2 py-1 text-xs rounded-full bg-pink-50 text-pink-700 border border-pink-300">{target}</span>
+                      <span key={target} className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800 border border-gray-300">{target}</span>
                     ))}
                   </div>
                 </div>
@@ -249,7 +249,7 @@ export function MatchCard({ item }: { item: Item }) {
                   <span className="font-medium">興味・趣味:</span>
                   <div className="mt-1 flex flex-wrap gap-2">
                     {detail.hobbies.filter((h: string) => h !== '非表示').map((h: string) => (
-                      <span key={h} className="px-2 py-1 text-xs rounded-full bg-blue-50 text-blue-700 border border-blue-300">{h}</span>
+                      <span key={h} className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800 border border-gray-300">{h}</span>
                     ))}
                   </div>
                 </div>
@@ -270,8 +270,8 @@ export function MatchCard({ item }: { item: Item }) {
             </div>
           </div>
           <div className="flex justify-end gap-2 border-t px-4 py-3">
-            <button className="px-3 py-2 text-sm border rounded hover:bg-gray-50" onClick={() => setOpen(false)}>閉じる</button>
-            <button className="px-3 py-2 text-sm bg-pink-600 text-white rounded hover:bg-pink-700" onClick={handleMessage}>メールをする</button>
+            <button className="px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors" onClick={() => setOpen(false)}>閉じる</button>
+            <button className="px-3 py-2 text-sm bg-black text-white rounded hover:bg-gray-800 transition-colors" onClick={handleMessage}>メールをする</button>
           </div>
         </div>
       </div>

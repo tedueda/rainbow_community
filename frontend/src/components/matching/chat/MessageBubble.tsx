@@ -57,8 +57,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         <div
           className={`rounded-2xl px-4 py-3 ${
             isMe
-              ? 'bg-pink-600 text-white rounded-tr-sm'
-              : 'bg-white border border-gray-200 rounded-tl-sm'
+              ? 'bg-black text-white rounded-tr-sm'
+              : 'bg-gray-100 border border-gray-200 rounded-tl-sm'
           }`}
         >
           {/* Image */}

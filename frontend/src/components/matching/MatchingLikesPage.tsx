@@ -88,16 +88,16 @@ const MatchingLikesPage: React.FC = () => {
       <div className="p-4 border rounded-lg bg-white">
         <div className="mb-3 flex gap-2 items-center justify-between">
           <button onClick={fetchLikes} className="px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200">再取得</button>
-          <div className="flex gap-1 border rounded">
+          <div className="flex gap-1 border border-gray-300 rounded">
             <button
               onClick={() => handleViewModeChange('list')}
-              className={`px-3 py-1 text-sm ${viewMode === 'list' ? 'bg-pink-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+              className={`px-3 py-1 text-sm transition-colors ${viewMode === 'list' ? 'bg-black text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
             >
               リスト
             </button>
             <button
               onClick={() => handleViewModeChange('grid')}
-              className={`px-3 py-1 text-sm ${viewMode === 'grid' ? 'bg-pink-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+              className={`px-3 py-1 text-sm transition-colors ${viewMode === 'grid' ? 'bg-black text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
             >
               タイル
             </button>
@@ -135,7 +135,7 @@ const MatchingLikesPage: React.FC = () => {
                 </div>
                 <button
                   onClick={() => handleSendEmail(like.user_id)}
-                  className="px-3 py-1 text-sm bg-pink-600 text-white rounded hover:bg-pink-700"
+                  className="px-3 py-1 text-sm bg-black text-white rounded hover:bg-gray-800 transition-colors"
                 >
                   メールをする
                 </button>
@@ -172,7 +172,7 @@ const MatchingLikesPage: React.FC = () => {
                   </div>
                   <button
                     onClick={() => handleSendEmail(like.user_id)}
-                    className="w-full px-3 py-2 text-sm bg-pink-600 text-white rounded hover:bg-pink-700"
+                    className="w-full px-3 py-2 text-sm bg-black text-white rounded hover:bg-gray-800 transition-colors"
                   >
                     メールをする
                   </button>

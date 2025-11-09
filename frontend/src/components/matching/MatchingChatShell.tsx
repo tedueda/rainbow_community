@@ -75,20 +75,20 @@ const MatchingChatShell: React.FC = () => {
   return (
     <div className="flex h-[calc(100vh-200px)] gap-4">
       {/* Left sidebar - Chat list */}
-      <div className="w-80 flex-shrink-0 border-r overflow-y-auto">
+      <div className="w-80 flex-shrink-0 border-r border-gray-200 overflow-y-auto bg-white">
         <div className="p-4">
-          <h2 className="text-lg font-semibold mb-3">チャット</h2>
+          <h2 className="text-lg font-semibold text-black mb-3">チャット</h2>
           
           {/* Pending requests */}
           {requests.length > 0 && (
             <div className="mb-4">
-              <h3 className="text-sm font-medium text-gray-600 mb-2">承諾待ち</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-2">承諾待ち</h3>
               <div className="space-y-2">
                 {requests.map((req) => (
                   <button
                     key={req.request_id}
                     onClick={() => navigate(`/matching/requests/${req.request_id}`)}
-                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 text-left"
+                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 text-left border border-gray-100 transition-colors"
                   >
                     <div className="flex-shrink-0">
                       {req.from_avatar_url ? (
@@ -117,7 +117,7 @@ const MatchingChatShell: React.FC = () => {
 
           {/* Active chats */}
           <div>
-            <h3 className="text-sm font-medium text-gray-600 mb-2">チャット</h3>
+            <h3 className="text-sm font-medium text-gray-500 mb-2">チャット</h3>
             {loading && <div className="text-sm text-gray-500">読み込み中...</div>}
             {error && <div className="text-sm text-red-600">{error}</div>}
             <div className="space-y-2">
@@ -125,8 +125,8 @@ const MatchingChatShell: React.FC = () => {
                 <button
                   key={chat.chat_id}
                   onClick={() => navigate(`/matching/chats/${chat.chat_id}`)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg text-left ${
-                    selectedChatId === chat.chat_id ? 'bg-pink-50 border-l-4 border-pink-600' : 'hover:bg-gray-50'
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors ${
+                    selectedChatId === chat.chat_id ? 'bg-gray-100 border-l-4 border-black' : 'hover:bg-gray-50 border border-gray-100'
                   }`}
                 >
                   <div className="flex-shrink-0">
