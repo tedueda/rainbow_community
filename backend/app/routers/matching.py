@@ -183,12 +183,16 @@ def get_profile_by_id(
     
     return {
         "user_id": prof.user_id,
+        "nickname": getattr(prof, 'nickname', None) or "",
         "display_name": user.display_name,
         "display_flag": prof.display_flag,
         "prefecture": prof.prefecture or "",
+        "residence_detail": getattr(prof, 'residence_detail', None) or "",
         "age_band": prof.age_band or "",
         "occupation": prof.occupation or "",
         "income_range": prof.income_range or "",
+        "blood_type": getattr(prof, 'blood_type', None) or "",
+        "zodiac": getattr(prof, 'zodiac', None) or "",
         "meet_pref": prof.meet_pref or "",
         "meeting_style": getattr(prof, 'meeting_style', None) or prof.meet_pref or "",
         "bio": prof.bio or "",
