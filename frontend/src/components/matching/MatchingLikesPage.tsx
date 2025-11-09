@@ -84,7 +84,7 @@ const MatchingLikesPage: React.FC = () => {
 
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-3">タイプ一覧</h2>
+      <h2 className="text-lg font-semibold mb-3">お気に入り一覧</h2>
       <div className="p-4 border rounded-lg bg-white">
         <div className="mb-3 flex gap-2 items-center justify-between">
           <button onClick={fetchLikes} className="px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200">再取得</button>
@@ -149,7 +149,7 @@ const MatchingLikesPage: React.FC = () => {
               </li>
             ))}
             {!loading && !error && items.length === 0 && (
-              <li className="text-sm text-gray-500">タイプはまだありません。</li>
+              <li className="text-sm text-gray-500">お気に入りはまだありません。</li>
             )}
           </ul>
         ) : (
@@ -194,7 +194,7 @@ const MatchingLikesPage: React.FC = () => {
               </div>
             ))}
             {!loading && !error && items.length === 0 && (
-              <div className="col-span-full text-sm text-gray-500 text-center py-8">タイプはまだありません。</div>
+              <div className="col-span-full text-sm text-gray-500 text-center py-8">お気に入りはまだありません。</div>
             )}
           </div>
         )}

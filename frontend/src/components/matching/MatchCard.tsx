@@ -114,7 +114,7 @@ export function MatchCard({ item }: { item: Item }) {
           <button
             onClick={handleLike}
             disabled={loading || liked}
-            aria-label={`${item.display_name || "このユーザー"}にタイプを送る`}
+            aria-label={`${item.display_name || "このユーザー"}をお気に入りに追加`}
             className={`
               flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all
               ${liked 
@@ -124,7 +124,7 @@ export function MatchCard({ item }: { item: Item }) {
               ${loading ? "opacity-50 cursor-wait" : ""}
             `}
           >
-            {liked ? "♡ タイプ" : "♡ タイプ"}
+            {liked ? "💎 お気に入り" : "💎 お気に入り"}
           </button>
           <button
             onClick={handleMessage}
