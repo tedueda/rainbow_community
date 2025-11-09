@@ -14,8 +14,11 @@ type ChatItem = {
 type ChatRequest = {
   request_id: number;
   from_user_id: number;
+  to_user_id?: number;
   from_display_name: string;
+  to_display_name?: string;
   from_avatar_url?: string;
+  to_avatar_url?: string;
   identity?: string;
   prefecture?: string;
   age_band?: string;
@@ -29,7 +32,8 @@ const MatchingChatShell: React.FC = () => {
   const { token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [chats, setChats] = useState<ChatItem[]>([]);
-  const [requests, setRequests] = useState<ChatRequest[]>([]);
+  const [incomingRequests, setIncomingRequests] = useState<ChatRequest[]>([]);
+  const [outgoingRequests, setOutgoingRequests] = useState<ChatRequest[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const fetchChats = async () => {
@@ -50,7 +54,7 @@ const MatchingChatShell: React.FC = () => {
     }
   };
 
-  const fetchRequests = async () => {
+  const fetchIncomingRequests = async () => {
     if (!token) return;
     try {
       const res = await fetch(`${API_URL}/api/matching/chat_requests/incoming`, {
@@ -58,15 +62,30 @@ const MatchingChatShell: React.FC = () => {
       });
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
-      setRequests(data.items || []);
+      setIncomingRequests(data.items || []);
     } catch (e: any) {
-      console.error('Failed to fetch requests:', e);
+      console.error('Failed to fetch incoming requests:', e);
+    }
+  };
+
+  const fetchOutgoingRequests = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/api/matching/chat_requests/outgoing`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      setOutgoingRequests(data.items || []);
+    } catch (e: any) {
+      console.error('Failed to fetch outgoing requests:', e);
     }
   };
 
   useEffect(() => {
     fetchChats();
-    fetchRequests();
+    fetchIncomingRequests();
+    fetchOutgoingRequests();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
@@ -79,12 +98,12 @@ const MatchingChatShell: React.FC = () => {
         <div className="p-4">
           <h2 className="text-lg font-semibold text-black mb-3">チャット</h2>
           
-          {/* Pending requests */}
-          {requests.length > 0 && (
+          {/* Incoming requests (received) */}
+          {incomingRequests.length > 0 && (
             <div className="mb-4">
-              <h3 className="text-sm font-medium text-gray-500 mb-2">承諾待ち</h3>
+              <h3 className="text-sm font-medium text-gray-500 mb-2">受信リクエスト</h3>
               <div className="space-y-2">
-                {requests.map((req) => (
+                {incomingRequests.map((req) => (
                   <button
                     key={req.request_id}
                     onClick={() => navigate(`/matching/requests/${req.request_id}`)}
@@ -107,6 +126,42 @@ const MatchingChatShell: React.FC = () => {
                       <div className="font-medium truncate">{req.from_display_name}</div>
                       <div className="text-xs text-gray-500 truncate">
                         {req.initial_message || 'メールリクエスト'}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Outgoing requests (sent) */}
+          {outgoingRequests.length > 0 && (
+            <div className="mb-4">
+              <h3 className="text-sm font-medium text-gray-500 mb-2">送信済みリクエスト</h3>
+              <div className="space-y-2">
+                {outgoingRequests.map((req) => (
+                  <button
+                    key={req.request_id}
+                    onClick={() => navigate(`/matching/requests/${req.request_id}`)}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 text-left border border-gray-100 transition-colors"
+                  >
+                    <div className="flex-shrink-0">
+                      {req.to_avatar_url ? (
+                        <img
+                          src={req.to_avatar_url.startsWith('http') ? req.to_avatar_url : `${API_URL}${req.to_avatar_url}`}
+                          alt={req.to_display_name || 'ユーザー'}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                          <span className="text-2xl">😊</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{req.to_display_name || 'ユーザー'}</div>
+                      <div className="text-xs text-gray-500 truncate">
+                        承諾待ち
                       </div>
                     </div>
                   </button>
@@ -150,7 +205,7 @@ const MatchingChatShell: React.FC = () => {
                   </div>
                 </button>
               ))}
-              {!loading && !error && chats.length === 0 && requests.length === 0 && (
+              {!loading && !error && chats.length === 0 && incomingRequests.length === 0 && outgoingRequests.length === 0 && (
                 <div className="text-sm text-gray-500 text-center py-4">
                   チャットはまだありません
                 </div>

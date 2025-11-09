@@ -75,9 +75,9 @@ export function MatchCard({ item }: { item: Item }) {
         throw new Error(errorText);
       }
       
-      await res.json();
-      alert('✉️ メールリクエストを送信しました！\n\n相手が承諾するとチャットが開始されます。');
-      navigate('/matching/chats');
+      const data = await res.json();
+      alert('✉️ メールリクエストを送信しました！\n\n相手が承諾する前でもメッセージを送信できます。');
+      navigate(`/matching/requests/${data.request_id}`);
     } catch (err) {
       console.error('send chat request failed', err);
       alert('メールリクエストの送信に失敗しました');
