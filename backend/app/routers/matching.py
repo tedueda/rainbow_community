@@ -237,6 +237,38 @@ def search_profiles(
             )
     total = q.count()
     rows = q.offset((page - 1) * size).limit(size).all()
+    
+    # Get main image for each profile (first image by display_order)
+    user_ids = [prof.user_id for prof, _ in rows]
+    main_images = {}
+    if user_ids:
+        try:
+            subq = (
+                db.query(
+                    MatchingProfileImage.profile_id,
+                    func.min(MatchingProfileImage.display_order).label('min_order')
+                )
+                .filter(MatchingProfileImage.profile_id.in_(user_ids))
+                .group_by(MatchingProfileImage.profile_id)
+                .subquery()
+            )
+            
+            images = (
+                db.query(MatchingProfileImage)
+                .join(
+                    subq,
+                    and_(
+                        MatchingProfileImage.profile_id == subq.c.profile_id,
+                        MatchingProfileImage.display_order == subq.c.min_order
+                    )
+                )
+                .all()
+            )
+            
+            main_images = {img.profile_id: img.image_url for img in images}
+        except Exception:
+            pass
+    
     items = [
         {
             "user_id": prof.user_id,
@@ -244,7 +276,7 @@ def search_profiles(
             "prefecture": prof.prefecture,
             "age_band": prof.age_band,
             "identity": prof.identity,
-            "avatar_url": getattr(prof, 'avatar_url', None) or "",
+            "avatar_url": main_images.get(prof.user_id) or getattr(prof, 'avatar_url', None) or "",
         }
         for prof, disp in rows
     ]
