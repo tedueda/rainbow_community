@@ -154,20 +154,22 @@ const MatchingUserProfilePage: React.FC = () => {
       </div>
 
       {/* Sticky Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 flex gap-3">
-        <button
-          onClick={handleSendMessage}
-          className="flex-1 bg-teal-500 text-white py-3 rounded-lg font-medium hover:bg-teal-600 transition-colors flex items-center justify-center gap-2"
-        >
-          <span>✉️</span>
-          <span>メールする</span>
-        </button>
-        <button
-          onClick={handleLike}
-          className="bg-pink-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-pink-600 transition-colors flex items-center justify-center"
-        >
-          <span>❤️ いいね！</span>
-        </button>
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+        <div className="max-w-2xl mx-auto grid grid-cols-2 gap-3">
+          <button
+            onClick={handleSendMessage}
+            className="w-full bg-teal-500 text-white py-3 rounded-lg font-medium hover:bg-teal-600 transition-colors flex items-center justify-center gap-2"
+          >
+            <span>✉️</span>
+            <span>メールする</span>
+          </button>
+          <button
+            onClick={handleLike}
+            className="w-full bg-pink-500 text-white py-3 rounded-lg font-medium hover:bg-pink-600 transition-colors flex items-center justify-center"
+          >
+            <span>❤️ いいね！</span>
+          </button>
+        </div>
       </div>
     </div>
   );

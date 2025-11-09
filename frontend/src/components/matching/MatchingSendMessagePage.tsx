@@ -14,7 +14,7 @@ const MatchingSendMessagePage: React.FC = () => {
   const navigate = useNavigate();
   const { token } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [message, setMessage] = useState('こんにちは、今は何をしていますか');
+  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
 
@@ -64,9 +64,11 @@ const MatchingSendMessagePage: React.FC = () => {
       }
 
       const data = await res.json();
-      navigate(`/matching/requests/${data.request_id}`, {
-        state: { fromProfile: true }
-      });
+      if (data.request_id) {
+        navigate(`/matching/chats/requests/${data.request_id}`, { replace: true });
+      } else {
+        navigate('/matching/chats', { replace: true });
+      }
     } catch (e: any) {
       alert(`エラー: ${e?.message || 'メッセージ送信に失敗しました'}`);
     } finally {

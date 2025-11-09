@@ -21,12 +21,17 @@ type ChatRequestInfo = {
   to_avatar_url?: string;
 };
 
-const MatchingPendingChatPage: React.FC = () => {
+interface MatchingPendingChatPageProps {
+  embedded?: boolean;
+}
+
+const MatchingPendingChatPage: React.FC<MatchingPendingChatPageProps> = ({ embedded = false }) => {
   const { requestId } = useParams<{ requestId: string }>();
   const { token, user } = useAuth();
   const navigate = useNavigate();
   const [messages, setMessages] = useState<PendingMessage[]>([]);
   const [requestInfo, setRequestInfo] = useState<ChatRequestInfo | null>(null);
+  const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -100,9 +105,28 @@ const MatchingPendingChatPage: React.FC = () => {
     }
   };
 
+  const fetchMyAvatar = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/api/matching/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.images && data.images.length > 0) {
+        setMyAvatarUrl(data.images[0].image_url);
+      } else if (data.avatar_url) {
+        setMyAvatarUrl(data.avatar_url);
+      }
+    } catch (e: any) {
+      console.error('Failed to fetch my avatar:', e);
+    }
+  };
+
   useEffect(() => {
     fetchRequestInfo();
     fetchMessages();
+    fetchMyAvatar();
     
     pollIntervalRef.current = setInterval(() => {
       fetchRequestInfo();
@@ -154,19 +178,20 @@ const MatchingPendingChatPage: React.FC = () => {
   const statusColor = isAccepted ? 'text-green-600' : 'text-gray-500';
 
   return (
-    <div className="flex flex-col h-[calc(100vh-200px)]">
-      {/* Header with back button and status */}
-      <div className="pb-3 border-b mb-3 flex items-center justify-between">
-        <button
-          onClick={() => navigate(-1)}
-          className="text-gray-600 hover:text-black"
-        >
-          ← 戻る
-        </button>
-        <div className={`text-sm font-medium ${statusColor}`}>
-          {statusLabel}
+    <div className="flex flex-col h-full">
+      {!embedded && (
+        <div className="pb-3 border-b mb-3 flex items-center justify-between">
+          <button
+            onClick={() => navigate(-1)}
+            className="text-gray-600 hover:text-black"
+          >
+            ← 戻る
+          </button>
+          <div className={`text-sm font-medium ${statusColor}`}>
+            {statusLabel}
+          </div>
         </div>
-      </div>
+      )}
 
       {!isAccepted && (
         <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mb-3">
@@ -200,6 +225,7 @@ const MatchingPendingChatPage: React.FC = () => {
                   key={msg.id}
                   isMe={isMe}
                   avatarUrl={!isMe ? requestInfo?.to_avatar_url : null}
+                  myAvatarUrl={isMe ? myAvatarUrl : null}
                   body={msg.content}
                   imageUrl={null}
                   createdAt={msg.created_at}

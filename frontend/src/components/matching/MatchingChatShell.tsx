@@ -89,6 +89,19 @@ const MatchingChatShell: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
+  useEffect(() => {
+    if (!id && !loading) {
+      if (chats.length > 0) {
+        navigate(`/matching/chats/${chats[0].chat_id}`, { replace: true });
+      } else if (incomingRequests.length > 0) {
+        navigate(`/matching/chats/requests/${incomingRequests[0].request_id}`, { replace: true });
+      } else if (outgoingRequests.length > 0) {
+        navigate(`/matching/chats/requests/${outgoingRequests[0].request_id}`, { replace: true });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chats, incomingRequests, outgoingRequests, loading, id]);
+
   const selectedChatId = id ? Number(id) : null;
 
   return (

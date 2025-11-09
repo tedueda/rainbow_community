@@ -4,6 +4,7 @@ import { API_URL } from '@/config';
 type MessageBubbleProps = {
   isMe: boolean;
   avatarUrl?: string | null;
+  myAvatarUrl?: string | null;
   body?: string | null;
   imageUrl?: string | null;
   createdAt: string;
@@ -12,6 +13,7 @@ type MessageBubbleProps = {
 const MessageBubble: React.FC<MessageBubbleProps> = ({
   isMe,
   avatarUrl,
+  myAvatarUrl,
   body,
   imageUrl,
   createdAt,
@@ -35,10 +37,22 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
   return (
     <div className={`flex gap-2 mb-4 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
-      {/* Avatar (only show for other person) */}
-      {!isMe && (
-        <div className="flex-shrink-0">
-          {avatarUrl ? (
+      {/* Avatar */}
+      <div className="flex-shrink-0">
+        {isMe ? (
+          myAvatarUrl ? (
+            <img
+              src={getImageUrl(myAvatarUrl)}
+              alt="My Avatar"
+              className="w-10 h-10 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+              <span className="text-gray-600 text-sm">👤</span>
+            </div>
+          )
+        ) : (
+          avatarUrl ? (
             <img
               src={getImageUrl(avatarUrl)}
               alt="Avatar"
@@ -48,12 +62,12 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
               <span className="text-gray-600 text-sm">👤</span>
             </div>
-          )}
-        </div>
-      )}
+          )
+        )}
+      </div>
 
       {/* Message bubble */}
-      <div className={`flex flex-col max-w-[70%] ${isMe ? 'items-end' : 'items-start'}`}>
+      <div className={`flex flex-col max-w-[80%] ${isMe ? 'items-end' : 'items-start'}`}>
         <div
           className={`rounded-2xl px-4 py-3 ${
             isMe
@@ -85,7 +99,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
           {/* Text */}
           {body && (
-            <div className={`text-sm whitespace-pre-wrap ${isMe ? 'text-white' : 'text-gray-900'}`}>
+            <div className={`text-base whitespace-pre-wrap ${isMe ? 'text-white' : 'text-gray-900'}`}>
               {body}
             </div>
           )}

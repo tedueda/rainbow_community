@@ -19,13 +19,18 @@ interface ChatMeta {
   with_avatar_url?: string | null;
 }
 
-const MatchingChatDetailPage: React.FC = () => {
+interface MatchingChatDetailPageProps {
+  embedded?: boolean;
+}
+
+const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedded = false }) => {
   const { id } = useParams<{ id: string }>();
   const chatId = useMemo(() => Number(id), [id]);
   const { token, user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<Msg[]>([]);
   const [chatMeta, setChatMeta] = useState<ChatMeta | null>(null);
+  const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [body, setBody] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -53,6 +58,24 @@ const MatchingChatDetailPage: React.FC = () => {
       }
     } catch (e: any) {
       console.error('Failed to fetch chat meta:', e);
+    }
+  };
+
+  const fetchMyAvatar = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/api/matching/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.images && data.images.length > 0) {
+        setMyAvatarUrl(data.images[0].image_url);
+      } else if (data.avatar_url) {
+        setMyAvatarUrl(data.avatar_url);
+      }
+    } catch (e: any) {
+      console.error('Failed to fetch my avatar:', e);
     }
   };
 
@@ -161,6 +184,7 @@ const MatchingChatDetailPage: React.FC = () => {
   useEffect(() => {
     fetchChatMeta();
     fetchMessages();
+    fetchMyAvatar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, chatId]);
 
@@ -186,12 +210,14 @@ const MatchingChatDetailPage: React.FC = () => {
   }, [token, chatId]);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-200px)]">
-      <div className="pb-3 border-b mb-3">
-        <h2 className="text-lg font-semibold">
-          {chatMeta?.with_display_name || 'チャット'}
-        </h2>
-      </div>
+    <div className="flex flex-col h-full">
+      {!embedded && (
+        <div className="pb-3 border-b mb-3">
+          <h2 className="text-lg font-semibold">
+            {chatMeta?.with_display_name || 'チャット'}
+          </h2>
+        </div>
+      )}
 
       <div
         className="flex-1 overflow-y-auto px-4 bg-gray-50 rounded-lg"
@@ -205,6 +231,7 @@ const MatchingChatDetailPage: React.FC = () => {
               key={m.id}
               isMe={m.sender_id === user?.id}
               avatarUrl={m.sender_id !== user?.id ? chatMeta?.with_avatar_url : null}
+              myAvatarUrl={m.sender_id === user?.id ? myAvatarUrl : null}
               body={m.body}
               imageUrl={m.image_url}
               createdAt={m.created_at}
@@ -261,7 +288,7 @@ const MatchingChatDetailPage: React.FC = () => {
               sendMessage();
             }
           }}
-          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:border-black transition-colors"
+          className="flex-1 border border-gray-500 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:border-black transition-colors"
           placeholder="メッセージを入力"
           rows={2}
         />
