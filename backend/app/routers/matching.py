@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSock
 from sqlalchemy import and_, or_, func, select
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models import User, MatchingProfile, Hobby, MatchingProfileHobby, MatchingProfileImage, Like, Match, Chat, Message, ChatRequest
+from app.models import User, MatchingProfile, Hobby, MatchingProfileHobby, MatchingProfileImage, Like, Match, Chat, Message, ChatRequest, ChatRequestMessage
 from app.auth import get_current_active_user
 from jose import jwt, JWTError
 import os
@@ -805,6 +805,39 @@ def accept_chat_request(
     else:
         chat_id = existing_chat.id
     
+    pending_messages = (
+        db.query(ChatRequestMessage)
+        .filter(
+            ChatRequestMessage.chat_request_id == request_id,
+            ChatRequestMessage.migrated_at.is_(None)
+        )
+        .order_by(ChatRequestMessage.created_at)
+        .all()
+    )
+    
+    for pm in pending_messages:
+        existing_msg = (
+            db.query(Message)
+            .filter(
+                Message.chat_id == chat_id,
+                Message.from_user_id == pm.from_user_id,
+                Message.body == pm.content,
+                Message.created_at == pm.created_at
+            )
+            .first()
+        )
+        
+        if not existing_msg:
+            msg = Message(
+                chat_id=chat_id,
+                from_user_id=pm.from_user_id,
+                body=pm.content,
+                created_at=pm.created_at
+            )
+            db.add(msg)
+        
+        pm.migrated_at = datetime.utcnow()
+    
     db.commit()
     
     return {"status": "accepted", "chat_id": chat_id, "match_id": match_id}
@@ -833,3 +866,81 @@ def decline_chat_request(
     db.commit()
     
     return {"status": "declined"}
+
+
+@router.post("/chat_requests/{request_id}/messages")
+def send_pending_message(
+    request_id: int,
+    body: dict,
+    current_user: User = Depends(require_premium),
+    db: Session = Depends(get_db),
+):
+    """承諾前のメッセージを送信（送信者のみ）"""
+    request = db.query(ChatRequest).filter(ChatRequest.id == request_id).first()
+    if not request:
+        raise HTTPException(status_code=404, detail="Chat request not found")
+    
+    if request.from_user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Only sender can send pending messages")
+    
+    if request.status == "accepted":
+        raise HTTPException(status_code=400, detail="Request already accepted, use regular chat")
+    
+    if request.status == "declined":
+        raise HTTPException(status_code=400, detail="Request was declined")
+    
+    content = body.get("content", "").strip()
+    if not content:
+        raise HTTPException(status_code=400, detail="Content is required")
+    
+    msg = ChatRequestMessage(
+        chat_request_id=request_id,
+        from_user_id=current_user.id,
+        content=content
+    )
+    db.add(msg)
+    db.commit()
+    db.refresh(msg)
+    
+    return {
+        "id": msg.id,
+        "chat_request_id": msg.chat_request_id,
+        "from_user_id": msg.from_user_id,
+        "content": msg.content,
+        "created_at": msg.created_at.isoformat() if msg.created_at else None
+    }
+
+
+@router.get("/chat_requests/{request_id}/messages")
+def get_pending_messages(
+    request_id: int,
+    current_user: User = Depends(require_premium),
+    db: Session = Depends(get_db),
+):
+    """承諾前のメッセージを取得"""
+    request = db.query(ChatRequest).filter(ChatRequest.id == request_id).first()
+    if not request:
+        raise HTTPException(status_code=404, detail="Chat request not found")
+    
+    if request.from_user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Only sender can view pending messages")
+    
+    messages = (
+        db.query(ChatRequestMessage)
+        .filter(ChatRequestMessage.chat_request_id == request_id)
+        .order_by(ChatRequestMessage.created_at)
+        .all()
+    )
+    
+    return {
+        "messages": [
+            {
+                "id": msg.id,
+                "from_user_id": msg.from_user_id,
+                "content": msg.content,
+                "created_at": msg.created_at.isoformat() if msg.created_at else None,
+                "migrated": msg.migrated_at is not None
+            }
+            for msg in messages
+        ]
+    }

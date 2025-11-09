@@ -21,6 +21,7 @@ import MatchingMatchesPage from './components/matching/MatchingMatchesPage';
 import MatchingChatsPage from './components/matching/MatchingChatsPage';
 import MatchingProfilePage from './components/matching/MatchingProfilePage';
 import MatchingChatDetailPage from './components/matching/MatchingChatDetailPage';
+import MatchingPendingChatPage from './components/matching/MatchingPendingChatPage';
 import FoodPage from './pages/members/FoodPage';
 import BeautyPage from './pages/members/BeautyPage';
 import VirtualWeddingPage from './components/VirtualWeddingPage';
@@ -119,6 +120,7 @@ function AppContent() {
             <Route path="matches" element={<MatchingMatchesPage />} />
             <Route path="chats" element={<MatchingChatsPage />} />
             <Route path="chats/:id" element={<MatchingChatDetailPage />} />
+            <Route path="requests/:requestId" element={<MatchingPendingChatPage />} />
             <Route path="profile" element={<MatchingProfilePage />} />
           </Route>
           <Route path="/members/food" element={
