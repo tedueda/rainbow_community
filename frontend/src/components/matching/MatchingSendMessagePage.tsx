@@ -94,16 +94,6 @@ const MatchingSendMessagePage: React.FC = () => {
         </h1>
       </div>
 
-      {/* Age Verification Banner */}
-      <div className="bg-yellow-50 border-b border-yellow-200 p-4">
-        <div className="text-sm text-gray-700">
-          年齢確認を完了するとお相手にメールを送信することができます。
-        </div>
-        <button className="text-pink-500 text-sm mt-1 hover:underline">
-          年齢確認はこちら →
-        </button>
-      </div>
-
       {/* Message Area */}
       <div className="flex-1 p-4">
         <div className="text-sm text-gray-500 mb-4">
