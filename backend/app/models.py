@@ -375,17 +375,17 @@ class MatchingProfile(Base):
     nickname = Column(String(100))
     display_flag = Column(Boolean, nullable=False, default=True)
     prefecture = Column(String(100), nullable=False, default="")
-    residence_detail = Column(String(100))  # 区・市町村
-    hometown = Column(String(100))  # 出身地
+    residence_detail = Column(String(100))
+    hometown = Column(String(100))
     age_band = Column(String(50))
     occupation = Column(String(100))
     income_range = Column(String(100))
-    blood_type = Column(String(20))  # A型、B型、O型、AB型
-    zodiac = Column(String(20))  # 星座
-    meet_pref = Column(String(50))  # 旧フィールド（互換性のため残す）
-    meeting_style = Column(String(50))  # 新フィールド: 'msg_first', 'voice_after', etc.
+    blood_type = Column(String(20))
+    zodiac = Column(String(20))
+    meet_pref = Column(String(50))
+    meeting_style = Column(String(50))
     bio = Column(Text)
-    identity = Column(String(50))  # e.g., 'gay','lesbian','transgender','bisexual','questioning','other'
+    identity = Column(String(50))
     avatar_url = Column(String(500))
     romance_targets = Column(JSON, default=list)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -468,6 +468,36 @@ class Message(Base):
     id = Column(Integer, primary_key=True, index=True)
     chat_id = Column(Integer, ForeignKey("chats.id"), nullable=False)
     sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    body = Column(Text, nullable=False)
+    body = Column(Text, nullable=True)
+    image_url = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     read_at = Column(DateTime(timezone=True))
+
+
+class ChatRequest(Base):
+    __tablename__ = "chat_requests"
+
+    id = Column(Integer, primary_key=True, index=True)
+    from_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    to_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    status = Column(String(20), nullable=False, default="pending")
+    initial_message = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    responded_at = Column(DateTime(timezone=True))
+
+    __table_args__ = (
+        UniqueConstraint("from_user_id", "to_user_id", "status", name="uniq_chat_request_pending"),
+        CheckConstraint("status IN ('pending','accepted','declined')", name="check_chat_request_status"),
+        CheckConstraint("from_user_id != to_user_id", name="check_chat_request_distinct_users"),
+    )
+
+
+class ChatRequestMessage(Base):
+    __tablename__ = "chat_request_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    chat_request_id = Column(Integer, ForeignKey("chat_requests.id"), nullable=False)
+    from_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    migrated_at = Column(DateTime(timezone=True))

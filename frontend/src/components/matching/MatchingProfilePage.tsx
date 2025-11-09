@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { resolveImageUrl } from '@/utils/imageUtils';
+import { API_URL } from '@/config';
 
 type Profile = {
   user_id: number;
@@ -27,13 +28,13 @@ type Profile = {
 type MediaImage = {
   id: number;
   url: string;
+  order?: number;
   created_at: string;
   size_bytes?: number;
 };
 
 const MatchingProfilePage: React.FC = () => {
   const { token } = useAuth();
-  const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -164,9 +165,8 @@ const MatchingProfilePage: React.FC = () => {
   const fetchImages = async () => {
     if (!token) return;
     try {
-      // キャッシュバスターを追加してキャッシュを回避
       const timestamp = Date.now();
-      const res = await fetch(`${API_URL}/api/media/user/images?_t=${timestamp}`, {
+      const res = await fetch(`${API_URL}/api/matching/profiles/me?_t=${timestamp}`, {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Cache-Control': 'no-cache',
@@ -175,49 +175,21 @@ const MatchingProfilePage: React.FC = () => {
       });
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
-      console.log('Raw image data:', data);
-      // 有効な画像のみをフィルタリング
-      let items = (data.items || [])
+      console.log('Profile data with images:', data);
+      
+      let items = (data.images || [])
         .filter((img: any) => img && img.id && img.url) // id と url が存在する画像のみ
         .slice(0, 4)
-        .map((img: MediaImage) => ({
-          ...img,
-          url: img.url.startsWith('http') ? img.url : `${API_URL}${img.url}`
+        .map((img: any) => ({
+          id: img.id,
+          url: img.url.startsWith('http') ? img.url : `${API_URL}${img.url}`,
+          order: img.order,
+          created_at: img.created_at
         }));
-      // ローカル保存された順序で並べ替え
-      try {
-        const orderKey = `media:order:me`;
-        const saved = localStorage.getItem(orderKey);
-        if (saved) {
-          const idOrder: number[] = JSON.parse(saved);
-          const pos = new Map<number, number>();
-          idOrder.forEach((id, i) => pos.set(id, i));
-          items = items
-            .slice()
-            .sort((a: MediaImage, b: MediaImage) => {
-              const pa = pos.has(a.id) ? (pos.get(a.id) as number) : Number.MAX_SAFE_INTEGER;
-              const pb = pos.has(b.id) ? (pos.get(b.id) as number) : Number.MAX_SAFE_INTEGER;
-              return pa - pb;
-            });
-        }
-      } catch {}
-      console.log('Filtered images:', items);
+      
+      console.log('Filtered profile images:', items);
       setImages(items);
-      // 現在の並びを保存
-      try {
-        const orderKey = `media:order:me`;
-        const ids = items.map((i: MediaImage) => i.id);
-        localStorage.setItem(orderKey, JSON.stringify(ids));
-        // サーバーにも順序を保存（端末間共有）
-        await fetch(`${API_URL}/api/media/user/images/order`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ order: ids }),
-        }).catch(() => {});
-      } catch {}
+      
       // 現在のスライドが範囲外になった場合は調整
       if (items.length > 0) {
         if (profile?.avatar_url) {
@@ -279,15 +251,26 @@ const MatchingProfilePage: React.FC = () => {
         },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error(await res.text());
-      // DB未対応時のフォールバック保存
-      localStorage.setItem('profile:residence_detail', payload.residence_detail || '');
-      localStorage.setItem('profile:hometown', payload.hometown || '');
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Save profile error:', res.status, errorText);
+        try {
+          const errorData = JSON.parse(errorText);
+          throw new Error(errorData.detail || `保存に失敗しました (${res.status})`);
+        } catch (parseError) {
+          throw new Error(errorText || `保存に失敗しました (${res.status})`);
+        }
+      }
+      
       await fetchProfile();
       setNewPassword('');
-      alert('保存しました');
+      
+      alert('✅ 保存しました\n\nプロフィール情報が正常に保存されました。');
     } catch (e: any) {
-      setError(e?.message || '保存に失敗しました');
+      console.error('Profile save error:', e);
+      const errorMessage = e?.message || '保存に失敗しました';
+      setError(errorMessage);
+      alert(`❌ エラー\n\n${errorMessage}\n\n入力内容を確認してもう一度お試しください。`);
     } finally {
       setSaving(false);
     }
@@ -316,24 +299,34 @@ const MatchingProfilePage: React.FC = () => {
     form.append('file', file);
     try {
       setUploading(true);
-      const res = await fetch(`${API_URL}/api/media/upload`, {
+      const uploadRes = await fetch(`${API_URL}/api/media/upload`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: form,
       });
-      if (!res.ok) throw new Error(await res.text());
-      await res.json(); // Response confirmation
-      // 少し待機してから画像リストを再取得（データベース反映を待つ）
-      setTimeout(async () => {
-        await fetchImages();
-      }, 500);
+      if (!uploadRes.ok) throw new Error(await uploadRes.text());
+      const uploadData = await uploadRes.json();
+      
+      const attachRes = await fetch(`${API_URL}/api/matching/profiles/me/images`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ image_url: uploadData.url }),
+      });
+      if (!attachRes.ok) throw new Error(await attachRes.text());
+      
+      await fetchImages();
+      
       // ファイル入力をリセット（同じファイルを再選択可能にする）
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
       alert('画像をアップロードしました');
     } catch (e: any) {
-      alert('画像アップロードに失敗しました');
+      console.error('Image upload error:', e);
+      alert(`画像アップロードに失敗しました: ${e.message || 'ネットワークエラー'}`);
     } finally {
       setUploading(false);
       // エラー時もファイル入力をリセット
@@ -343,11 +336,11 @@ const MatchingProfilePage: React.FC = () => {
     }
   };
 
-  const deleteImage = async (mediaId: number) => {
+  const deleteImage = async (imageId: number) => {
     if (!token) return;
     if (!confirm('この画像を削除しますか？')) return;
     try {
-      const res = await fetch(`${API_URL}/api/media/${mediaId}`, {
+      const res = await fetch(`${API_URL}/api/matching/profiles/me/images/${imageId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -356,10 +349,7 @@ const MatchingProfilePage: React.FC = () => {
         console.error('Delete error:', errorText);
         throw new Error(errorText);
       }
-      // 少し待機してから画像リストを再取得（データベース反映を待つ）
-      setTimeout(async () => {
-        await fetchImages();
-      }, 500);
+      await fetchImages();
       // ファイル入力をリセット（削除後も新しい画像を選択可能にする）
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -385,21 +375,21 @@ const MatchingProfilePage: React.FC = () => {
     const [movedImage] = newImages.splice(fromIndex, 1);
     newImages.splice(toIndex, 0, movedImage);
     setImages(newImages);
-    setCurrentSlide(toIndex); // 移動先の画像を表示
+    setCurrentSlide(toIndex);
     try {
-      const orderKey = `media:order:me`;
       const ids = newImages.map((i) => i.id);
-      localStorage.setItem(orderKey, JSON.stringify(ids));
-      // サーバーにも保存
-      await fetch(`${API_URL}/api/media/user/images/order`, {
+      await fetch(`${API_URL}/api/matching/profiles/me/images/reorder`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ order: ids }),
+        body: JSON.stringify({ image_ids: ids }),
       });
-    } catch {}
+    } catch (e) {
+      console.error('Failed to save order:', e);
+      alert('画像の順序保存に失敗しました');
+    }
   };
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
@@ -1012,7 +1002,7 @@ const MatchingProfilePage: React.FC = () => {
                                   if (e.target.checked) set.add(target); else set.delete(target);
                                   setProfile({ ...profile, romance_targets: Array.from(set) });
                                 }}
-                                className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
+                                className="w-4 h-4 text-black border-gray-300 rounded focus:ring-black"
                               />
                               <span className="text-sm">{target}</span>
                             </label>
@@ -1044,7 +1034,7 @@ const MatchingProfilePage: React.FC = () => {
                         <span className="text-xs text-gray-500">未選択</span>
                       )}
                       {(profile.hobbies || []).map((h) => (
-                        <span key={h} className="px-2 py-1 bg-blue-50 text-blue-700 border border-blue-300 rounded-full text-xs">
+                        <span key={h} className="px-2 py-1 bg-gray-100 text-gray-800 border border-gray-300 rounded-full text-xs">
                           {h}
                         </span>
                       ))}
@@ -1070,7 +1060,7 @@ const MatchingProfilePage: React.FC = () => {
                   <button
                     onClick={saveProfile}
                     disabled={saving}
-                    className="px-4 py-2 bg-pink-600 text-white rounded text-sm hover:bg-pink-700 disabled:opacity-60"
+                    className="px-4 py-2 bg-black text-white rounded text-sm hover:bg-gray-800 disabled:opacity-60 transition-colors"
                   >
                     {saving ? '保存中...' : '保存'}
                   </button>

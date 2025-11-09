@@ -1,4 +1,4 @@
-#!/Users/tedueda/Desktop/LGBTQ/LGBTQ_Community2/rainbow_community-7/backend/.venv/bin/python
+#!/home/ubuntu/rainbow_community/backend/.venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys

@@ -57,11 +57,18 @@ def upgrade():
         op.add_column('matching_profiles', sa.Column('meeting_style', sa.String(50), nullable=True))
     
     # meet_pref の既存値を meeting_style にコピー（互換性のため）
-    op.execute(sa.text("""
-        UPDATE matching_profiles 
-        SET meeting_style = meet_pref 
-        WHERE meet_pref IS NOT NULL AND meeting_style IS NULL
-    """))
+    # meet_pref カラムが存在する場合のみコピーを実行
+    meet_pref_exists = conn.execute(sa.text(
+        "SELECT column_name FROM information_schema.columns "
+        "WHERE table_name='matching_profiles' AND column_name='meet_pref'"
+    )).fetchone()
+    
+    if meet_pref_exists:
+        op.execute(sa.text("""
+            UPDATE matching_profiles 
+            SET meeting_style = meet_pref 
+            WHERE meet_pref IS NOT NULL AND meeting_style IS NULL
+        """))
 
 
 def downgrade():

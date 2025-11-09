@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Header from './components/Header';
 import LoginForm from './components/LoginForm';
@@ -16,10 +16,14 @@ import NewsPage from './components/NewsPage';
 import PremiumGate from './components/matching/PremiumGate';
 import MatchingLayout from './components/matching/MatchingLayout';
 import MatchingSearchPage from './components/matching/MatchingSearchPage';
+import MatchingLikesPage from './components/matching/MatchingLikesPage';
 import MatchingMatchesPage from './components/matching/MatchingMatchesPage';
-import MatchingChatsPage from './components/matching/MatchingChatsPage';
 import MatchingProfilePage from './components/matching/MatchingProfilePage';
 import MatchingChatDetailPage from './components/matching/MatchingChatDetailPage';
+import MatchingPendingChatPage from './components/matching/MatchingPendingChatPage';
+import MatchingUserProfilePage from './components/matching/MatchingUserProfilePage';
+import MatchingSendMessagePage from './components/matching/MatchingSendMessagePage';
+import MatchingChatShell from './components/matching/MatchingChatShell';
 import FoodPage from './pages/members/FoodPage';
 import BeautyPage from './pages/members/BeautyPage';
 import VirtualWeddingPage from './components/VirtualWeddingPage';
@@ -45,6 +49,11 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }
   
   return user ? <Navigate to="/feed" /> : <>{children}</>;
+};
+
+const RequestsRedirect: React.FC = () => {
+  const { requestId } = useParams<{ requestId: string }>();
+  return <Navigate to={`/matching/chats/requests/${requestId}`} replace />;
 };
 
 function AppContent() {
@@ -114,9 +123,17 @@ function AppContent() {
             </FeedRoute>
           }>
             <Route index element={<MatchingSearchPage />} />
+            <Route path="likes" element={<MatchingLikesPage />} />
             <Route path="matches" element={<MatchingMatchesPage />} />
-            <Route path="chats" element={<MatchingChatsPage />} />
-            <Route path="chats/:id" element={<MatchingChatDetailPage />} />
+            <Route path="chats" element={<MatchingChatShell />}>
+              <Route index element={<div className="flex items-center justify-center h-full text-gray-500">左のリストから選択してください</div>} />
+              <Route path=":id" element={<MatchingChatDetailPage embedded />} />
+              <Route path="requests/:requestId" element={<MatchingPendingChatPage embedded />} />
+            </Route>
+            {/* Legacy redirect for old /matching/requests/:requestId paths */}
+            <Route path="requests/:requestId" element={<RequestsRedirect />} />
+            <Route path="users/:userId" element={<MatchingUserProfilePage />} />
+            <Route path="compose/:userId" element={<MatchingSendMessagePage />} />
             <Route path="profile" element={<MatchingProfilePage />} />
           </Route>
           <Route path="/members/food" element={

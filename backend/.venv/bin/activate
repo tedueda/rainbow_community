@@ -23,17 +23,6 @@ deactivate () {
         unset _OLD_VIRTUAL_PYTHONHOME
     fi
 
-    if ! [ -z "${_OLD_VIRTUAL_TCL_LIBRARY+_}" ]; then
-        TCL_LIBRARY="$_OLD_VIRTUAL_TCL_LIBRARY"
-        export TCL_LIBRARY
-        unset _OLD_VIRTUAL_TCL_LIBRARY
-    fi
-    if ! [ -z "${_OLD_VIRTUAL_TK_LIBRARY+_}" ]; then
-        TK_LIBRARY="$_OLD_VIRTUAL_TK_LIBRARY"
-        export TK_LIBRARY
-        unset _OLD_VIRTUAL_TK_LIBRARY
-    fi
-
     # The hash command must be called to get it to forget past
     # commands. Without forgetting past commands the $PATH changes
     # we made may not be respected
@@ -56,7 +45,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV=/Users/tedueda/Desktop/LGBTQ/LGBTQ_Community2/rainbow_community-7/backend/.venv
+VIRTUAL_ENV=/home/ubuntu/rainbow_community/backend/.venv
 if ([ "$OSTYPE" = "cygwin" ] || [ "$OSTYPE" = "msys" ]) && $(command -v cygpath &> /dev/null) ; then
     VIRTUAL_ENV=$(cygpath -u "$VIRTUAL_ENV")
 fi
@@ -77,22 +66,6 @@ export VIRTUAL_ENV_PROMPT
 if ! [ -z "${PYTHONHOME+_}" ] ; then
     _OLD_VIRTUAL_PYTHONHOME="$PYTHONHOME"
     unset PYTHONHOME
-fi
-
-if [ '' != "" ]; then
-    if ! [ -z "${TCL_LIBRARY+_}" ] ; then
-        _OLD_VIRTUAL_TCL_LIBRARY="$TCL_LIBRARY"
-    fi
-    TCL_LIBRARY=''
-    export TCL_LIBRARY
-fi
-
-if [ '' != "" ]; then
-    if ! [ -z "${TK_LIBRARY+_}" ] ; then
-        _OLD_VIRTUAL_TK_LIBRARY="$TK_LIBRARY"
-    fi
-    TK_LIBRARY=''
-    export TK_LIBRARY
 fi
 
 if [ -z "${VIRTUAL_ENV_DISABLE_PROMPT-}" ] ; then

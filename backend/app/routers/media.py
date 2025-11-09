@@ -64,8 +64,7 @@ async def upload_image(
                 Bucket=S3_BUCKET,
                 Key=s3_key,
                 Body=content,
-                ContentType=file.content_type or "application/octet-stream",
-                ACL='public-read'
+                ContentType=file.content_type or "application/octet-stream"
             )
             # S3のURL
             url = f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{s3_key}"
@@ -105,16 +104,19 @@ def list_user_images(
         .all()
     )
     
-    # ファイルが実際に存在する画像のみを返す
-    valid_assets = []
-    for a in assets:
-        file_path = MEDIA_DIR / a.url.split('/')[-1]
-        if file_path.exists():
-            valid_assets.append(a)
-        else:
-            # ファイルが存在しない場合でも、他テーブルから参照されている可能性があるため
-            # ここではレコード削除は行わず、ログ出力のみに留める
-            print(f"Skipping orphaned media record (not deleting to avoid FK issues): {a.id}, missing file: {file_path}")
+    if USE_S3:
+        valid_assets = assets
+    else:
+        # ローカルストレージ使用時のみファイル存在チェック
+        valid_assets = []
+        for a in assets:
+            file_path = MEDIA_DIR / a.url.split('/')[-1]
+            if file_path.exists():
+                valid_assets.append(a)
+            else:
+                # ファイルが存在しない場合でも、他テーブルから参照されている可能性があるため
+                # ここではレコード削除は行わず、ログ出力のみに留める
+                print(f"Skipping orphaned media record (not deleting to avoid FK issues): {a.id}, missing file: {file_path}")
 
     # ユーザーごとの順序ファイルがあれば、その順序で並べ替え
     try:
@@ -174,14 +176,13 @@ def save_user_image_order(
     if "order" not in payload or not isinstance(payload["order"], list):
         raise HTTPException(status_code=400, detail="order must be a list")
     ids = [int(i) for i in payload["order"] if str(i).isdigit()]
-    if not ids:
-        raise HTTPException(status_code=400, detail="order list is empty")
-
-    # Validate ownership
-    owned_ids = {a.id for a in db.query(MediaAsset).filter(MediaAsset.user_id == current_user.id).all()}
-    for mid in ids:
-        if mid not in owned_ids:
-            raise HTTPException(status_code=403, detail=f"Media {mid} not owned by user")
+    
+    if ids:
+        # Validate ownership only when list is not empty
+        owned_ids = {a.id for a in db.query(MediaAsset).filter(MediaAsset.user_id == current_user.id).all()}
+        for mid in ids:
+            if mid not in owned_ids:
+                raise HTTPException(status_code=403, detail=f"Media {mid} not owned by user")
 
     order_file = MEDIA_DIR / f"user_{current_user.id}_order.json"
     try:

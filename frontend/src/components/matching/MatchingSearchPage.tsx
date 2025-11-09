@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSearchParams } from 'react-router-dom';
 import { TopTabs } from './TopTabs';
 import { MatchCard } from './MatchCard';
+import { API_URL } from '@/config';
 
 type MatchItem = {
   user_id: number;
@@ -13,14 +14,10 @@ type MatchItem = {
   avatar_url?: string | null;
 };
 
-// クライアント側フィルタリングは不要（バックエンドでromance_targetsでフィルタリング済み）
-
 const MatchingSearchPage: React.FC = () => {
   const { token } = useAuth();
   const [searchParams] = useSearchParams();
   const segment = searchParams.get("segment") || "gay";
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-  const USE_MOCK_API = false; // 実APIを使用
   
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<MatchItem[]>([]);
@@ -32,42 +29,6 @@ const MatchingSearchPage: React.FC = () => {
     setError(null);
     
     try {
-      if (USE_MOCK_API) {
-        // モックマッチングデータ
-        console.log('🎯 Using Mock Matching Data');
-        const mockMatches: MatchItem[] = [
-          {
-            user_id: 1,
-            display_name: 'ユーザー1',
-            identity: 'gay',
-            prefecture: '東京都',
-            age_band: '20代後半',
-            avatar_url: 'https://api.dicebear.com/7.x/fun-emoji/png?seed=1&size=256&scale=80'
-          },
-          {
-            user_id: 2,
-            display_name: 'ユーザー2',
-            identity: 'gay',
-            prefecture: '神奈川県',
-            age_band: '30代前半',
-            avatar_url: 'https://api.dicebear.com/7.x/fun-emoji/png?seed=2&size=256&scale=80'
-          },
-          {
-            user_id: 3,
-            display_name: 'ユーザー3',
-            identity: 'lesbian',
-            prefecture: '大阪府',
-            age_band: '20代前半',
-            avatar_url: 'https://api.dicebear.com/7.x/fun-emoji/png?seed=3&size=256&scale=80'
-          }
-        ];
-        
-        // モックデータをそのまま使用（フィルタリングはバックエンドで実施）
-        setItems(mockMatches);
-        setLoading(false);
-        return;
-      }
-      
       const params = new URLSearchParams({ page: "1", size: "50" });
       
       const url = `${API_URL}/api/matching/search?${params.toString()}&_t=${Date.now()}`;

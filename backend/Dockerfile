@@ -11,14 +11,14 @@ RUN apt-get update && apt-get install -y \
 RUN pip install poetry
 
 # Copy poetry files
-COPY pyproject.toml poetry.lock ./
+COPY backend/pyproject.toml backend/poetry.lock ./
 
 # Configure poetry and install dependencies
 RUN poetry config virtualenvs.create false \
     && poetry install --no-root -vvv
 
 # Copy application code
-COPY . .
+COPY backend/ .
 # Ensure media directory exists (for runtime mounting/serving)
 RUN mkdir -p media && chmod +x start.sh || true
 
