@@ -10,6 +10,123 @@
 
 ---
 
+## 🔄 Handoff 2025-11-09
+
+### 最新の変更内容
+
+このブランチ (`2025-11-09`) には、以下のPRで実装された機能と修正が含まれています：
+
+#### PR #25: RDS スキーマミスマッチ修正
+- MatchingProfile モデルから余分なフィールドを削除
+- RDS データベースとモデル定義の整合性を確保
+
+#### PR #26: Dockerfile パス修正
+- バックエンド Dockerfile のビルドコンテキストパスを修正
+- 相対パスを使用するように変更
+
+#### PR #27: ペンディングチャットメッセージ表示修正
+- `messages` テーブルからメッセージを取得・表示する機能を追加
+- `initial_message` が空でもすべてのユーザーのメッセージが表示されるように修正
+- 実装ファイル: `frontend/src/components/matching/MatchingPendingChatPage.tsx`
+
+#### PR #28: マッチング UI 改善
+1. **フィルター機能の追加と改善**
+   - 条件検索フィルターをプロフィール編集ページの選択肢と統一
+   - 動的抽出から静的配列に変更（常にすべての選択肢を表示）
+
+2. **用語統一: "タイプ" → "お気に入り"**
+   - ナビゲーションタブ、ページタイトル、ボタンラベルを統一
+   - 変更ファイル:
+     - `frontend/src/components/matching/MatchingLayout.tsx` (line 10)
+     - `frontend/src/components/matching/MatchingLikesPage.tsx` (lines 87, 152, 197)
+     - `frontend/src/components/matching/MatchCard.tsx` (lines 117, 127)
+
+3. **アイコン変更: ♡ → 💎**
+   - ハートアイコンをダイヤモンド絵文字に変更（モノクロ）
+   - 変更ファイル: `frontend/src/components/matching/MatchCard.tsx` (line 127)
+
+4. **スタイリング改善**
+   - トップナビゲーションを暗いグレー背景に変更
+   - サイドバー背景を黄色からグレーに変更
+
+### 技術仕様の変更点
+
+#### マッチング機能のフィルター選択肢
+
+フィルター選択肢は、プロフィール編集ページと完全に一致するように静的配列で定義されています：
+
+**居住地 (PREFECTURES)**: 47都道府県
+```
+北海道、青森県、岩手県、宮城県、秋田県、山形県、福島県、茨城県、栃木県、群馬県、
+埼玉県、千葉県、東京都、神奈川県、新潟県、富山県、石川県、福井県、山梨県、長野県、
+岐阜県、静岡県、愛知県、三重県、滋賀県、京都府、大阪府、兵庫県、奈良県、和歌山県、
+鳥取県、島根県、岡山県、広島県、山口県、徳島県、香川県、愛媛県、高知県、福岡県、
+佐賀県、長崎県、熊本県、大分県、宮崎県、鹿児島県、沖縄県
+```
+
+**年代 (AGE_BANDS)**:
+```
+10代、20代前半、20代後半、30代前半、30代後半、40代前半、40代後半、50代前半、50代後半、60代以上
+```
+
+**職種 (OCCUPATIONS)**:
+```
+会社員、自営業、フリーランス、学生、専門職、公務員、パート・アルバイト、その他
+```
+
+**マッチングの目的 (MEET_PREFS)**:
+```
+パートナー探し、友人探し、相談相手探し、メンバー募集、その他
+```
+
+#### 定義場所
+
+- **プロフィール編集ページ**: `frontend/src/components/matching/MatchingProfilePage.tsx`
+  - PREFECTURES: line 52-54
+  - AGE_BANDS: line 65
+  - OCCUPATIONS: line 66
+  - MEET_PREFS: line 69
+
+- **検索ページフィルター**: `frontend/src/components/matching/MatchingSearchPage.tsx`
+  - 定義: lines 115-120
+  - 使用: lines 160, 173, 186, 199
+
+#### API エンドポイント
+
+マッチング機能で使用されている主要なエンドポイント：
+
+- `GET /api/matching/search` - ユーザー検索
+- `GET /api/matching/likes` - お気に入り一覧取得
+- `POST /api/matching/likes/{user_id}` - お気に入り追加
+- `GET /api/matching/profiles/me` - 自分のプロフィール取得
+- `PUT /api/matching/profiles/me` - プロフィール更新
+- `POST /api/matching/chat_requests/{user_id}` - チャットリクエスト送信
+- `GET /api/matching/chat_requests/{id}/messages` - チャットメッセージ取得
+
+### デプロイ済み環境
+
+- **フロントエンド**: https://rainbow-community-app-lr7ap1j0.devinapps.com
+- **バックエンド**: https://ddxdewgmen.ap-northeast-1.awsapprunner.com
+- **データベース**: AWS RDS PostgreSQL 17.4 (ap-northeast-1)
+
+### テストアカウント
+
+- **Email**: tedyueda@gmail.com
+- **Password**: tedyueda2024!
+
+### 今後の改善提案
+
+1. **定数の一元管理**
+   - 現在、フィルター選択肢がプロフィール編集ページと検索ページの2箇所に定義されています
+   - 共通の定数モジュール（例: `frontend/src/constants/matchingOptions.ts`）を作成し、両方のページで同じ配列をインポートすることを推奨します
+   - これにより、選択肢の追加・変更時の整合性が保たれます
+
+2. **PR のマージ**
+   - PR #27 は main ブランチにマージされていません
+   - このブランチには cherry-pick で含まれていますが、Git 履歴の整合性のため、PR #27 を main にマージすることを推奨します
+
+---
+
 ## 📖 目次
 
 - [概要](#概要)
@@ -45,9 +162,10 @@
 
 ### デプロイ済み環境
 
-- **バックエンド API**: https://7cjpf7nunm.ap-northeast-1.awsapprunner.com
+- **フロントエンド**: https://rainbow-community-app-lr7ap1j0.devinapps.com
+- **バックエンド API**: https://ddxdewgmen.ap-northeast-1.awsapprunner.com
 - **データベース**: AWS RDS PostgreSQL 17.4 (ap-northeast-1)
-- **API ドキュメント**: https://7cjpf7nunm.ap-northeast-1.awsapprunner.com/docs
+- **API ドキュメント**: https://ddxdewgmen.ap-northeast-1.awsapprunner.com/docs
 
 ---
 
@@ -400,6 +518,7 @@ npm run dev
 
 ---
 
-**最終更新**: 2025-10-26  
-**作成者**: Cascade AI + プロジェクトチーム
+**最終更新**: 2025-11-09  
+**作成者**: Cascade AI + Devin AI + プロジェクトチーム  
+**Handoff Branch**: 2025-11-09
 
