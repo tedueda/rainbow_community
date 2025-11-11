@@ -18,6 +18,9 @@ const categories = {
   shops: { title: "お店", emoji: "🏬", desc: "LGBTQフレンドリーなお店紹介", slug: "shops" },
   tourism: { title: "ツーリズム", emoji: "📍", desc: "会員ガイドの交流型ツアー", slug: "tourism" },
   comics: { title: "コミック・映画", emoji: "🎬", desc: "LGBTQ+テーマの作品レビューと感想", slug: "comics" },
+  news: { title: "ニュース", emoji: "📰", desc: "最新の制度・条例情報と解説記事", slug: "news" },
+  food: { title: "食レポ", emoji: "🍽️", desc: "単品メニュー・市販品のレビュー", slug: "food" },
+  beauty: { title: "美容", emoji: "💄", desc: "コスメ・スキンケアのレビュー", slug: "beauty" },
 };
 
 const sortOptions = [

@@ -460,7 +460,9 @@ const HomePage: React.FC = () => {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          navigate(`/category/${post.category}`);
+                          // categoryがnullの場合は掲示板に遷移
+                          const targetCategory = post.category || 'board';
+                          navigate(`/category/${targetCategory}`);
                         }}
                         className="group backdrop-blur-md bg-gray-50/80 border border-gray-200 hover:bg-white hover:border-gray-300 transition-all duration-300 cursor-pointer hover:scale-[1.02] shadow-lg hover:shadow-2xl"
                       >
