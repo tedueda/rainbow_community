@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Heart, MessageCircle, Send, Camera } from 'lucide-react';
+import { X, Heart, MessageCircle, Send, Camera, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { useAuth } from '../contexts/AuthContext';
@@ -29,7 +29,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
   const { token, user: currentUser, isAnonymous, isLoading } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
-  // const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(post.is_liked || false);
   const [likeCount, setLikeCount] = useState(post.like_count || 0);
   const [showFullText, setShowFullText] = useState(false);
@@ -567,9 +567,9 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
         )}
 
         <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
-          {(post.media_url || (post.media_urls && post.media_urls[0])) && (
+          {(post.media_url || (post.media_urls && post.media_urls.length > 0)) && (
             <div className="relative">
-              <div className="aspect-[3/2] bg-gray-100">
+              <div className="aspect-[3/2] bg-gray-100 flex items-center justify-center">
                 {isEditing ? (
                   <>
                     {/* Preview priority: new selected image > current image (unless marked for removal) */}
@@ -581,7 +581,13 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
                       />
                     ) : !removeCurrentImage ? (
                       <img
-                        src={`${(post.media_url || (post.media_urls && post.media_urls[0]) || '').startsWith('http') ? '' : API_URL}${post.media_url || (post.media_urls && post.media_urls[0])}`}
+                        src={`${(() => {
+                          const imageUrl = post.media_url || (post.media_urls && post.media_urls[currentImageIndex]);
+                          if (!imageUrl) return '';
+                          return imageUrl.startsWith('http') ? imageUrl : 
+                                 (imageUrl.startsWith('/assets/') || imageUrl.startsWith('/images/')) ? imageUrl : 
+                                 `${API_URL}${imageUrl}`;
+                        })()}`}
                         alt="投稿画像"
                         className="max-w-full max-h-full object-contain"
                       />
@@ -593,12 +599,54 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
                   </>
                 ) : (
                   <img
-                    src={`${(post.media_url || (post.media_urls && post.media_urls[0]) || '').startsWith('http') ? '' : API_URL}${post.media_url || (post.media_urls && post.media_urls[0])}`}
+                    src={`${(() => {
+                      const imageUrl = post.media_url || (post.media_urls && post.media_urls[currentImageIndex]);
+                      if (!imageUrl) return '';
+                      return imageUrl.startsWith('http') ? imageUrl : 
+                             (imageUrl.startsWith('/assets/') || imageUrl.startsWith('/images/')) ? imageUrl : 
+                             `${API_URL}${imageUrl}`;
+                    })()}`}
                     alt="投稿画像"
                     className="max-w-full max-h-full object-contain"
                   />
                 )}
               </div>
+              
+              {/* 複数画像のナビゲーションボタン */}
+              {!isEditing && post.media_urls && post.media_urls.length > 1 && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2"
+                    onClick={() => setCurrentImageIndex((prev) => (prev === 0 ? post.media_urls!.length - 1 : prev - 1))}
+                    aria-label="前の画像"
+                  >
+                    <ChevronLeft className="h-6 w-6" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-2"
+                    onClick={() => setCurrentImageIndex((prev) => (prev === post.media_urls!.length - 1 ? 0 : prev + 1))}
+                    aria-label="次の画像"
+                  >
+                    <ChevronRight className="h-6 w-6" />
+                  </Button>
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                    {post.media_urls.map((_, index) => (
+                      <button
+                        key={index}
+                        className={`w-2 h-2 rounded-full transition-all ${
+                          index === currentImageIndex ? 'bg-white w-4' : 'bg-white/50'
+                        }`}
+                        onClick={() => setCurrentImageIndex(index)}
+                        aria-label={`画像${index + 1}を表示`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           )}
 
