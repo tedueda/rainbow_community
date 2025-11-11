@@ -420,11 +420,11 @@ const CategoryPage: React.FC = () => {
                       ? imageSrc
                       : `${API_URL}${imageSrc}`;
                 return (
-                  <div className="aspect-[3/2] w-full h-[220px] overflow-hidden rounded-t-2xl">
+                  <div className="aspect-[3/2] w-full h-[220px] overflow-hidden rounded-t-2xl bg-gray-100 flex items-center justify-center">
                     <img
                       src={finalSrc}
                       alt={post.title || '投稿画像'}
-                      className="w-full h-full object-cover"
+                      className="max-w-full max-h-full object-contain"
                     />
                   </div>
                 );

@@ -583,13 +583,13 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
                       <img
                         src={newImagePreview}
                         alt="新しい画像プレビュー"
-                        className="w-full h-full object-cover"
+                        className="max-w-full max-h-full object-contain"
                       />
                     ) : !removeCurrentImage ? (
                       <img
                         src={`${(post.media_url || (post.media_urls && post.media_urls[0]) || '').startsWith('http') ? '' : API_URL}${post.media_url || (post.media_urls && post.media_urls[0])}`}
                         alt="投稿画像"
-                        className="w-full h-full object-cover"
+                        className="max-w-full max-h-full object-contain"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -601,7 +601,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
                   <img
                     src={`${(post.media_url || (post.media_urls && post.media_urls[0]) || '').startsWith('http') ? '' : API_URL}${post.media_url || (post.media_urls && post.media_urls[0])}`}
                     alt="投稿画像"
-                    className="w-full h-full object-cover"
+                    className="max-w-full max-h-full object-contain"
                   />
                 )}
               </div>
@@ -620,11 +620,11 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
               />
             </div>
           ) : !(post.media_url || (post.media_urls && post.media_urls[0])) && (
-            <div className="aspect-[3/2] bg-gray-100">
+            <div className="aspect-[3/2] bg-gray-100 flex items-center justify-center">
               <img
                 src={getCategoryPlaceholder(post.category)}
                 alt="カテゴリプレースホルダー"
-                className="w-full h-full object-cover"
+                className="max-w-full max-h-full object-contain"
               />
             </div>
           )}
