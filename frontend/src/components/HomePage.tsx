@@ -455,7 +455,15 @@ const HomePage: React.FC = () => {
                 <CarouselItem key={post.id} className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3">
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Card key={post.id} className="group backdrop-blur-md bg-gray-50/80 border border-gray-200 hover:bg-white hover:border-gray-300 transition-all duration-300 cursor-pointer hover:scale-[1.02] shadow-lg hover:shadow-2xl">
+                      <Card 
+                        key={post.id} 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          navigate(`/category/${post.category}`);
+                        }}
+                        className="group backdrop-blur-md bg-gray-50/80 border border-gray-200 hover:bg-white hover:border-gray-300 transition-all duration-300 cursor-pointer hover:scale-[1.02] shadow-lg hover:shadow-2xl"
+                      >
                         {(post.media_url || (post.media_urls && post.media_urls.length > 0)) ? (
                           <div className="h-40 overflow-hidden rounded-t-lg bg-gray-100 flex items-center justify-center">
                             <img 
