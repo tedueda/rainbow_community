@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Heart, MessageCircle, Share2, Flag, Send, Camera } from 'lucide-react';
+import { X, Heart, MessageCircle, Send, Camera } from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { useAuth } from '../contexts/AuthContext';
@@ -483,12 +483,6 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700" aria-label="共有">
-              <Share2 className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700" aria-label="通報">
-              <Flag className="h-4 w-4" />
-            </Button>
             {canEdit && (
               <>
                 {isEditing ? (
