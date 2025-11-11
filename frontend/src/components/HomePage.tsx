@@ -855,21 +855,26 @@ const HomePage: React.FC = () => {
             </Button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {newsArticles.map((article) => (
+            {newsArticles.slice(0, 3).map((article) => (
               <Card key={article.id} className="border-gray-200 hover:shadow-lg hover:gold-border transition-all cursor-pointer overflow-hidden" onClick={() => setSelectedNewsArticle(article)}>
-                {article.media_url && (
+                {(article.media_url || (article.media_urls && article.media_urls.length > 0)) ? (
                   <div className="h-[160px] overflow-hidden bg-gray-100">
                     <img
-                      src={`${article.media_url.startsWith('/images/')
-                        ? ''
-                        : (article.media_url.startsWith('http') ? '' : API_URL)
-                      }${article.media_url}`}
-                      alt={article.title}
+                      src={`${(() => {
+                        const imageUrl = article.media_url || (article.media_urls && article.media_urls[0]);
+                        if (!imageUrl) return '';
+                        return imageUrl.startsWith('http') ? imageUrl : 
+                               (imageUrl.startsWith('/assets/') || imageUrl.startsWith('/images/')) ? imageUrl : 
+                               `${API_URL}${imageUrl}`;
+                      })()}`}
+                      alt={article.title || 'ニュース画像'}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
                     />
                   </div>
-                )}
-                {!article.media_url && (
+                ) : (
                   <div className="h-[160px] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                     <span className="text-5xl">📰</span>
                   </div>
