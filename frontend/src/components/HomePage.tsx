@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import UnderConstructionModal from './UnderConstructionModal';
+import PostDetailModal from './PostDetailModal';
 import { Post, User } from '../types/Post';
 
 
@@ -154,6 +155,8 @@ const HomePage: React.FC = () => {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [selectedNewsArticle, setSelectedNewsArticle] = useState<any>(null);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const carouselApiRef = useRef<any>(null);
   const { token, user, isAnonymous } = useAuth();
   const navigate = useNavigate();
@@ -460,9 +463,13 @@ const HomePage: React.FC = () => {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          // categoryがnullの場合は掲示板に遷移
-                          const targetCategory = post.category || 'board';
-                          navigate(`/category/${targetCategory}`);
+                          // PostDetailModalを開く
+                          setSelectedPost(post);
+                          setSelectedUser({
+                            id: post.user_id,
+                            display_name: post.user_display_name || 'テッドさん',
+                            email: ''
+                          });
                         }}
                         className="group backdrop-blur-md bg-gray-50/80 border border-gray-200 hover:bg-white hover:border-gray-300 transition-all duration-300 cursor-pointer hover:scale-[1.02] shadow-lg hover:shadow-2xl"
                       >
@@ -1000,6 +1007,28 @@ const HomePage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* PostDetailModal */}
+      {selectedPost && selectedUser && (
+        <PostDetailModal
+          post={selectedPost}
+          user={selectedUser}
+          isOpen={true}
+          onClose={() => {
+            setSelectedPost(null);
+            setSelectedUser(null);
+          }}
+          onUpdated={(updatedPost: Post) => {
+            setPosts(posts.map(p => p.id === updatedPost.id ? updatedPost : p));
+            setSelectedPost(updatedPost);
+          }}
+          onDeleted={(postId: number) => {
+            setPosts(posts.filter(p => p.id !== postId));
+            setSelectedPost(null);
+            setSelectedUser(null);
+          }}
+        />
       )}
     </div>
   );

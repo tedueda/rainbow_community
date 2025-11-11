@@ -21,6 +21,9 @@ const categories = {
   shops: { title: "お店", emoji: "🏬", desc: "LGBTQフレンドリーなお店紹介" },
   tourism: { title: "ツーリズム", emoji: "📍", desc: "会員ガイドの交流型ツアー" },
   comics: { title: "コミック・映画", emoji: "🎬", desc: "LGBTQ+テーマの作品レビューと感想" },
+  news: { title: "ニュース", emoji: "📰", desc: "最新の制度・条例情報と解説記事" },
+  food: { title: "食レポ", emoji: "🍽️", desc: "単品メニュー・市販品のレビュー" },
+  beauty: { title: "美容", emoji: "💄", desc: "コスメ・スキンケアのレビュー" },
 };
 
 const subcategories: Record<string, string[]> = {
@@ -83,7 +86,7 @@ const NewPostForm: React.FC<NewPostFormProps> = ({
       }
     }
 
-    if ((categoryKey === 'board' || categoryKey === 'art' || categoryKey === 'shops' || categoryKey === 'tourism' || categoryKey === 'comics') && formData.images.length > 0) {
+    if ((categoryKey === 'board' || categoryKey === 'art' || categoryKey === 'shops' || categoryKey === 'tourism' || categoryKey === 'comics' || categoryKey === 'news' || categoryKey === 'food' || categoryKey === 'beauty') && formData.images.length > 0) {
       if (formData.images.length > 5) {
         newErrors.images = '画像は5枚まで選択できます';
       } else {
@@ -300,7 +303,7 @@ const NewPostForm: React.FC<NewPostFormProps> = ({
             </div>
           </div>
 
-          {(categoryKey === 'board' || categoryKey === 'shops' || categoryKey === 'tourism' || categoryKey === 'comics') && (
+          {(categoryKey === 'board' || categoryKey === 'shops' || categoryKey === 'tourism' || categoryKey === 'comics' || categoryKey === 'news' || categoryKey === 'food' || categoryKey === 'beauty' || categoryKey === 'art') && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 画像をアップロード（最大5枚）
@@ -310,6 +313,7 @@ const NewPostForm: React.FC<NewPostFormProps> = ({
                   type="file"
                   multiple
                   accept="image/*"
+                  capture="environment"
                   onChange={handleImageUpload}
                   className="hidden"
                   id="image-upload"
