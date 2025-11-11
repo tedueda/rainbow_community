@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Heart, MessageCircle, Send, Camera, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, Heart, MessageCircle, Send, Camera, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { useAuth } from '../contexts/AuthContext';
@@ -44,6 +44,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
   const [removeCurrentImage, setRemoveCurrentImage] = useState<boolean>(false);
   const [isUploadingImage, setIsUploadingImage] = useState<boolean>(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
   const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8000';
 
@@ -461,7 +462,11 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
       />
       <div 
         ref={modalRef}
-        className="relative w-full max-w-3xl max-h-[90vh] mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden"
+        className={`relative w-full bg-white shadow-2xl overflow-hidden transition-all duration-300 ${
+          isFullscreen 
+            ? 'h-screen max-w-none rounded-none' 
+            : 'max-w-3xl max-h-[90vh] mx-4 rounded-2xl'
+        }`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
@@ -535,6 +540,15 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
                 )}
               </>
             )}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              className="text-gray-500 hover:text-gray-700"
+              aria-label={isFullscreen ? '通常表示' : '全画面表示'}
+            >
+              {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            </Button>
             <Button 
               variant="ghost" 
               size="sm" 
