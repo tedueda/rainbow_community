@@ -57,16 +57,8 @@ async def read_posts(
     if category_id and not cat_value:
         cat_value = category_id
     if cat_value:
-        category_map = {
-            "board": "board",
-            "art": "art",
-            "music": "music",
-            "shops": "shops",
-            "tourism": "tourism",
-            "comics": "comics"
-        }
-        hashtag = category_map.get(cat_value, cat_value)
-        query = query.filter(Post.body.contains(f"#{hashtag}"))
+        # Filter by category field directly instead of hashtag in body
+        query = query.filter(Post.category == cat_value)
     
     if subcategory:
         query = query.filter(Post.subcategory == subcategory)
