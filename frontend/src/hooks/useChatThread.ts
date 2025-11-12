@@ -30,15 +30,23 @@ export function useChatThread(chatId: number | null, token: string | null, _curr
     setError(null);
     
     try {
-      const res = await fetch(`${API_URL}/api/matching/chats/${chatId}/messages`, {
+      const url = `${API_URL}/api/matching/chats/${chatId}/messages`;
+      console.log('[DEBUG] Fetching messages from:', url);
+      
+      const res = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       
+      console.log('[DEBUG] Messages response status:', res.status);
+      
       if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
+        const errorText = await res.text();
+        console.error('[DEBUG] Messages fetch error response:', errorText);
+        throw new Error(`HTTP ${res.status}: ${errorText}`);
       }
       
       const data: MessagesResponse = await res.json();
+      console.log('[DEBUG] Messages data:', data);
       const fetchedMessages = data.items || [];
       
       messageMapRef.current.clear();
@@ -50,7 +58,7 @@ export function useChatThread(chatId: number | null, token: string | null, _curr
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       ));
     } catch (e: any) {
-      console.error('Failed to fetch messages:', e);
+      console.error('[DEBUG] Failed to fetch messages:', e);
       setError(e?.message || 'メッセージの取得に失敗しました');
     } finally {
       setLoading(false);

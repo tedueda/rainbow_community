@@ -221,9 +221,6 @@ const MatchingChatShell: React.FC = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{chat.with_display_name}</div>
-                    <div className="text-xs text-gray-500 truncate">
-                      {chat.last_message || 'メッセージはまだありません'}
-                    </div>
                   </div>
                 </button>
               ))}

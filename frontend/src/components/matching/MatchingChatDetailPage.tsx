@@ -176,6 +176,16 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   }, [messages]);
 
+  if (!chatId) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center bg-gray-50">
+        <div className="text-center text-gray-500">
+          <p className="text-lg">左のリストから相手を選んでください</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full">
       {!embedded && (
