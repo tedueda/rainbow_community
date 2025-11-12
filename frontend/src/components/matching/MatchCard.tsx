@@ -58,6 +58,29 @@ export function MatchCard({ item }: { item: Item }) {
   async function handleMessage(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
+    
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate(`/matching/compose/${item.user_id}`);
+      return;
+    }
+    
+    try {
+      const res = await fetch(`${API_URL}/api/matching/chats`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const existingChat = data.items?.find((chat: any) => chat.with_user_id === item.user_id);
+        if (existingChat) {
+          navigate(`/matching/chats/${existingChat.chat_id}`);
+          return;
+        }
+      }
+    } catch (err) {
+      console.error('Failed to check existing chat:', err);
+    }
+    
     navigate(`/matching/compose/${item.user_id}`);
   }
 
