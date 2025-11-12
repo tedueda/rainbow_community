@@ -64,7 +64,7 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
   const fetchMyAvatar = async () => {
     if (!token) return;
     try {
-      const res = await fetch(`${API_URL}/api/matching/profile`, {
+      const res = await fetch(`${API_URL}/api/matching/profiles/me`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (!res.ok) return;
