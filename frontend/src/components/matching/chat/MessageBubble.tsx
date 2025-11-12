@@ -36,7 +36,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   };
 
   return (
-    <div className={`flex gap-2 mb-4 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
+    <div className={`flex gap-2 mb-3 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
       {/* Avatar */}
       <div className="flex-shrink-0">
         {isMe ? (
@@ -67,13 +67,18 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
       </div>
 
       {/* Message bubble */}
-      <div className={`flex flex-col max-w-[80%] ${isMe ? 'items-end' : 'items-start'}`}>
+      <div className={`flex flex-col max-w-[70%] ${isMe ? 'items-end' : 'items-start'}`}>
         <div
-          className={`rounded-2xl px-4 py-3 ${
+          className={`rounded-2xl px-4 py-2.5 shadow-sm ${
             isMe
-              ? 'bg-black text-white rounded-tr-sm'
-              : 'bg-gray-100 border border-gray-200 rounded-tl-sm'
+              ? 'bg-[#06c755] text-white'
+              : 'bg-white border border-gray-200 text-gray-900'
           }`}
+          style={isMe ? {
+            borderTopRightRadius: '4px'
+          } : {
+            borderTopLeftRadius: '4px'
+          }}
         >
           {/* Image */}
           {imageUrl && (
@@ -99,14 +104,14 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
           {/* Text */}
           {body && (
-            <div className={`text-base whitespace-pre-wrap ${isMe ? 'text-white' : 'text-gray-900'}`}>
+            <div className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">
               {body}
             </div>
           )}
         </div>
 
         {/* Timestamp */}
-        <div className={`text-xs text-gray-500 mt-1 px-1 ${isMe ? 'text-right' : 'text-left'}`}>
+        <div className={`text-[11px] text-gray-400 mt-0.5 px-1 ${isMe ? 'text-right' : 'text-left'}`}>
           {formatTime(createdAt)}
         </div>
       </div>

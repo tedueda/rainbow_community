@@ -1,5 +1,5 @@
 # AWS Configuration
-aws_region = "ap-northeast-3"
+aws_region = "ap-northeast-1"
 
 # Network Configuration
 vpc_id             = "vpc-04c2a3263f6e1b99d"
@@ -11,7 +11,7 @@ private_subnet_ids = [
 
 # RDS Configuration
 rds_security_group_id = "sg-01cd3f6d3f5bec2cc"
-rds_endpoint          = "lgbtq-dev.czqogwkequrm.ap-northeast-3.rds.amazonaws.com"
+rds_endpoint          = "rainbow-community-db-tokyo.cj8agmy8kjhv.ap-northeast-1.rds.amazonaws.com"
 rds_port              = 5432
 
 # Database Credentials (NEVER commit these values - use secure input methods)

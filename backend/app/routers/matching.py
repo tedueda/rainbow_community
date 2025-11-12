@@ -475,8 +475,8 @@ def get_messages(
             "chat_id": m.chat_id,
             "sender_id": m.sender_id,
             "body": m.body,
-            "image_url": m.image_url,
-            "created_at": m.created_at
+            "image_url": None,
+            "created_at": m.created_at.isoformat() if m.created_at else None
         } for m in msgs
     ]}
 
@@ -490,7 +490,6 @@ def send_message(
 ):
     ch = _ensure_chat_access(chat_id, current_user.id, db)
     body = (payload or {}).get("body")
-    image_url = (payload or {}).get("image_url")
     
     body_text = str(body).strip() if body else None
     
@@ -506,7 +505,8 @@ def send_message(
         "chat_id": msg.chat_id,
         "sender_id": msg.sender_id,
         "body": msg.body,
-        "created_at": msg.created_at
+        "image_url": None,
+        "created_at": msg.created_at.isoformat() if msg.created_at else None
     }
 
 
