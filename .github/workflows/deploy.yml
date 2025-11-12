@@ -4,6 +4,11 @@ on:
   push:
     branches: [ "main" ]
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag (e.g., prod-v27)'
+        required: false
+        default: ''
 
 permissions:
   id-token: write
@@ -39,11 +44,17 @@ jobs:
           REGISTRY:   ${{ steps.login-ecr-osaka.outputs.registry }}
           REPOSITORY: ${{ vars.TF_VAR_ECR_REPO_NAME }}
           IMAGE_TAG:  ${{ github.sha }}
+          RELEASE_TAG: ${{ github.event.inputs.release_tag }}
         run: |
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f backend/Dockerfile backend
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
           docker tag  $REGISTRY/$REPOSITORY:$IMAGE_TAG  $REGISTRY/$REPOSITORY:latest
           docker push $REGISTRY/$REPOSITORY:latest
+          if [ -n "$RELEASE_TAG" ]; then
+            docker tag $REGISTRY/$REPOSITORY:$IMAGE_TAG $REGISTRY/$REPOSITORY:$RELEASE_TAG
+            docker push $REGISTRY/$REPOSITORY:$RELEASE_TAG
+            echo "✅ Pushed release tag: $RELEASE_TAG"
+          fi
 
       # ===== Tokyo (ap-northeast-1): Retag & Push =====
       - name: Configure AWS credentials (Tokyo)
@@ -69,8 +80,14 @@ jobs:
           DST_REGISTRY: ${{ steps.login-ecr-tokyo.outputs.registry }}
           REPO:         ${{ vars.TF_VAR_ECR_REPO_NAME }}
           IMAGE_TAG:    ${{ github.sha }}
+          RELEASE_TAG: ${{ github.event.inputs.release_tag }}
         run: |
           docker tag ${SRC_REGISTRY}/${REPO}:${IMAGE_TAG} ${DST_REGISTRY}/${REPO}:${IMAGE_TAG}
           docker tag ${SRC_REGISTRY}/${REPO}:latest       ${DST_REGISTRY}/${REPO}:latest
           docker push ${DST_REGISTRY}/${REPO}:${IMAGE_TAG}
           docker push ${DST_REGISTRY}/${REPO}:latest
+          if [ -n "$RELEASE_TAG" ]; then
+            docker tag ${SRC_REGISTRY}/${REPO}:${IMAGE_TAG} ${DST_REGISTRY}/${REPO}:${RELEASE_TAG}
+            docker push ${DST_REGISTRY}/${REPO}:${RELEASE_TAG}
+            echo "✅ Pushed release tag to Tokyo: $RELEASE_TAG"
+          fi
