@@ -110,7 +110,8 @@ export function useChatThread(chatId: number | null, token: string | null, _curr
 
     fetchMessages();
 
-    const wsUrl = `${API_URL.replace('http', 'ws')}/api/matching/chats/${chatId}/ws?token=${token}`;
+    const proto = API_URL.startsWith('https') ? 'wss' : 'ws';
+    const wsUrl = `${proto}://${new URL(API_URL).host}/ws/matching/chat?chat_id=${chatId}&token=${encodeURIComponent(token)}`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
