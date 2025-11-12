@@ -84,13 +84,17 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_URL}/api/matching/chats/${chatId}/messages`, {
+      const messagesUrl = `${API_URL}/api/matching/chats/${chatId}/messages`;
+      console.log('[DEBUG] Fetching messages from:', messagesUrl);
+      const res = await fetch(messagesUrl, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
+      console.log('[DEBUG] Messages response status:', res.status);
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
       setItems(data.items || []);
     } catch (e: any) {
+      console.error('[DEBUG] Messages fetch error:', e);
       setError(e?.message || '取得に失敗しました');
     } finally {
       setLoading(false);
@@ -193,6 +197,7 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
     if (!token || !chatId) return;
     const proto = API_URL.startsWith('https') ? 'wss' : 'ws';
     const wsUrl = `${proto}://${new URL(API_URL).host}/ws/matching/chat?chat_id=${chatId}&token=${encodeURIComponent(token)}`;
+    console.log('[DEBUG] WebSocket URL:', wsUrl);
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
     ws.onmessage = (ev) => {
