@@ -228,7 +228,7 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
       )}
 
       <div
-        className="flex-1 overflow-y-auto px-4 bg-gray-50 rounded-lg"
+        className="flex-1 overflow-y-auto px-4 bg-white"
         data-chat-messages
       >
         {loading && <div className="text-center py-4">読み込み中...</div>}
@@ -271,7 +271,7 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
         </div>
       )}
 
-      <div className="mt-3 flex gap-2 items-end">
+      <div className="mt-3 flex gap-2 items-end bg-white border-t border-gray-200 pt-3">
         <input
           type="file"
           ref={fileInputRef}
@@ -282,7 +282,7 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 disabled:opacity-50 border border-gray-200 transition-colors"
+          className="px-3 py-2 bg-gray-100 text-gray-600 rounded-full text-lg hover:bg-gray-200 disabled:opacity-50 transition-colors flex items-center justify-center"
           title="画像を添付"
         >
           📎
@@ -296,14 +296,14 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
               sendMessage();
             }
           }}
-          className="flex-1 border border-gray-500 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:border-black transition-colors"
+          className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm resize-none focus:outline-none focus:border-gray-400 transition-colors"
           placeholder="メッセージを入力"
-          rows={2}
+          rows={1}
         />
         <button
           onClick={sendMessage}
           disabled={uploading || (!body.trim() && !imageFile)}
-          className="px-4 py-2 bg-black text-white rounded-lg text-sm hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+          className="px-5 py-2 bg-[#06c755] text-white rounded-full text-sm font-medium hover:bg-[#05b04b] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
         >
           {uploading ? '送信中...' : '送信'}
         </button>
