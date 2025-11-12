@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { API_URL } from '@/config';
+import { createApiClient } from '@/lib/apiClient';
+import { findExistingChat, navigateToChat } from '@/lib/chatNavigation';
 
 type UserProfile = {
   user_id: number;
@@ -43,19 +45,10 @@ const MatchingSendMessagePage: React.FC = () => {
 
     const checkExistingChat = async () => {
       if (!token || !userId) return;
-      try {
-        const res = await fetch(`${API_URL}/api/matching/chats`, {
-          headers: { 'Authorization': `Bearer ${token}` },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          const existingChat = data.items?.find((chat: any) => chat.with_user_id === parseInt(userId));
-          if (existingChat) {
-            navigate(`/matching/chats/${existingChat.chat_id}`, { replace: true });
-          }
-        }
-      } catch (e) {
-        console.error('Failed to check existing chat:', e);
+      const apiClient = createApiClient(() => token);
+      const existingChatId = await findExistingChat(apiClient, parseInt(userId));
+      if (existingChatId) {
+        navigate(`/matching/chats/${existingChatId}`, { replace: true });
       }
     };
 
@@ -68,35 +61,8 @@ const MatchingSendMessagePage: React.FC = () => {
     
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/matching/chat_requests/${userId}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ initial_message: message.trim() }),
-      });
-
-      if (res.status === 409) {
-        const errorData = await res.json();
-        const chatId = errorData.detail?.chat_id || errorData.chat_id;
-        if (chatId) {
-          navigate(`/matching/chats/${chatId}`, { replace: true });
-          return;
-        }
-      }
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText);
-      }
-
-      const data = await res.json();
-      if (data.request_id) {
-        navigate(`/matching/chats/requests/${data.request_id}`, { replace: true });
-      } else {
-        navigate('/matching/chats', { replace: true });
-      }
+      const apiClient = createApiClient(() => token);
+      await navigateToChat(apiClient, navigate, parseInt(userId), message.trim());
     } catch (e: any) {
       alert(`エラー: ${e?.message || 'メッセージ送信に失敗しました'}`);
     } finally {

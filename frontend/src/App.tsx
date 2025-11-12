@@ -190,6 +190,10 @@ function AppContent() {
 }
 
 function App() {
+  React.useEffect(() => {
+    console.info('🚀 Build:', import.meta.env.VITE_BUILD_ID || 'dev', '| API:', import.meta.env.VITE_API_URL || 'default');
+  }, []);
+
   return (
     <AuthProvider>
       <Router basename={import.meta.env.BASE_URL}>

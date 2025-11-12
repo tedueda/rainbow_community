@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { IdentityBadge } from "@/components/ui/IdentityBadge";
 import { API_URL } from "@/config";
+import { createApiClient } from "@/lib/apiClient";
+import { navigateToComposeOrChat } from "@/lib/chatNavigation";
 
 type Item = {
   user_id: number;
@@ -66,22 +68,12 @@ export function MatchCard({ item }: { item: Item }) {
     }
     
     try {
-      const res = await fetch(`${API_URL}/api/matching/chats`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const existingChat = data.items?.find((chat: any) => chat.with_user_id === item.user_id);
-        if (existingChat) {
-          navigate(`/matching/chats/${existingChat.chat_id}`);
-          return;
-        }
-      }
+      const apiClient = createApiClient(() => token);
+      await navigateToComposeOrChat(apiClient, navigate, item.user_id);
     } catch (err) {
-      console.error('Failed to check existing chat:', err);
+      console.error('Failed to navigate to chat:', err);
+      alert('エラーが発生しました');
     }
-    
-    navigate(`/matching/compose/${item.user_id}`);
   }
 
   return (

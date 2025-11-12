@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { API_URL } from '@/config';
+import { createApiClient } from '@/lib/apiClient';
+import { navigateToComposeOrChat } from '@/lib/chatNavigation';
 
 type UserProfile = {
   user_id: number;
@@ -65,22 +67,12 @@ const MatchingUserProfilePage: React.FC = () => {
     if (!token || !userId) return;
     
     try {
-      const res = await fetch(`${API_URL}/api/matching/chats`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const existingChat = data.items?.find((chat: any) => chat.with_user_id === parseInt(userId));
-        if (existingChat) {
-          navigate(`/matching/chats/${existingChat.chat_id}`);
-          return;
-        }
-      }
+      const apiClient = createApiClient(() => token);
+      await navigateToComposeOrChat(apiClient, navigate, parseInt(userId));
     } catch (e) {
-      console.error('Failed to check existing chat:', e);
+      console.error('Failed to navigate to chat:', e);
+      alert('エラーが発生しました');
     }
-    
-    navigate(`/matching/compose/${userId}`);
   };
 
   const handleLike = async () => {
