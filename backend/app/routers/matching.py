@@ -221,6 +221,7 @@ def search_profiles(
 ):
     q = db.query(MatchingProfile, User.display_name).join(User, User.id == MatchingProfile.user_id)
     q = q.filter(MatchingProfile.display_flag == True)
+    q = q.filter(MatchingProfile.user_id != current_user.id)
     if prefecture:
         q = q.filter(MatchingProfile.prefecture == prefecture)
     if age_band:

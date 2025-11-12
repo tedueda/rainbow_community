@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { API_URL } from '@/config';
 import { useNavigate } from 'react-router-dom';
+import { createApiClient } from '@/lib/apiClient';
+import { navigateToChat } from '@/lib/chatNavigation';
 
 type LikeItem = {
   like_id: number;
@@ -16,7 +18,7 @@ type LikeItem = {
 type ViewMode = 'list' | 'grid';
 
 const MatchingLikesPage: React.FC = () => {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<LikeItem[]>([]);
@@ -61,48 +63,9 @@ const MatchingLikesPage: React.FC = () => {
     if (!token) return;
     
     try {
-      const chatsRes = await fetch(`${API_URL}/api/matching/chats`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (chatsRes.ok) {
-        const chatsData = await chatsRes.json();
-        const existingChat = chatsData.items?.find((chat: any) => chat.with_user_id === userId);
-        if (existingChat) {
-          navigate(`/matching/chats/${existingChat.chat_id}`);
-          return;
-        }
-      }
-    } catch (e) {
-      console.error('Failed to check existing chat:', e);
-    }
-    
-    try {
-      const res = await fetch(`${API_URL}/api/matching/chat_requests/${userId}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ initial_message: '' }),
-      });
-      
-      if (res.status === 409) {
-        const errorData = await res.json();
-        const chatId = errorData.detail?.chat_id || errorData.chat_id;
-        if (chatId) {
-          navigate(`/matching/chats/${chatId}`);
-          return;
-        }
-      }
-      
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText);
-      }
-      
-      const data = await res.json();
+      const apiClient = createApiClient(() => token);
+      await navigateToChat(apiClient, navigate, userId, '', user?.id || null);
       alert('✉️ メールリクエストを送信しました！\n\n相手が承諾するとメールができます。');
-      navigate(`/matching/chats/requests/${data.request_id}`);
     } catch (e: any) {
       alert(`エラー: ${e?.message || 'メール送信に失敗しました'}`);
     }

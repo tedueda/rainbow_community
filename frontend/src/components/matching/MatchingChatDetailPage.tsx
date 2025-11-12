@@ -1,17 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { API_URL } from '@/config';
+import { useChatThread } from '@/hooks/useChatThread';
 import MessageBubble from './chat/MessageBubble';
-
-interface Msg {
-  id: number;
-  chat_id: number;
-  sender_id: number;
-  body?: string | null;
-  image_url?: string | null;
-  created_at: string;
-}
 
 interface ChatMeta {
   with_user_id: number;
@@ -25,20 +17,24 @@ interface MatchingChatDetailPageProps {
 
 const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedded = false }) => {
   const { id } = useParams<{ id: string }>();
-  const chatId = useMemo(() => Number(id), [id]);
+  const chatId = id ? Number(id) : null;
   const { token, user } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [items, setItems] = useState<Msg[]>([]);
+  
   const [chatMeta, setChatMeta] = useState<ChatMeta | null>(null);
   const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [body, setBody] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  
   const bottomRef = useRef<HTMLDivElement | null>(null);
-  const wsRef = useRef<WebSocket | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { messages, loading, error, sending, sendMessage: sendTextMessage } = useChatThread(
+    chatId,
+    token,
+    user?.id || null
+  );
 
   const fetchChatMeta = async () => {
     if (!token || !chatId) return;
@@ -79,28 +75,6 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
     }
   };
 
-  const fetchMessages = async () => {
-    if (!token || !chatId) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const messagesUrl = `${API_URL}/api/matching/chats/${chatId}/messages`;
-      console.log('[DEBUG] Fetching messages from:', messagesUrl);
-      const res = await fetch(messagesUrl, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      console.log('[DEBUG] Messages response status:', res.status);
-      if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
-      setItems(data.items || []);
-    } catch (e: any) {
-      console.error('[DEBUG] Messages fetch error:', e);
-      setError(e?.message || '取得に失敗しました');
-    } finally {
-      setLoading(false);
-      setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 0);
-    }
-  };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -149,11 +123,12 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
     }
   };
 
-  const sendMessage = async () => {
+  const handleSendMessage = async () => {
     if (!token || !chatId) return;
-    const text = body.trim();
     
+    const text = body.trim();
     let imageUrl: string | null = null;
+    
     if (imageFile) {
       imageUrl = await uploadImage();
       if (!imageUrl) return;
@@ -162,24 +137,30 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
     if (!text && !imageUrl) return;
 
     try {
-      const res = await fetch(`${API_URL}/api/matching/chats/${chatId}/messages`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ body: text || null, image_url: imageUrl }),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const m = await res.json();
-      setItems((prev) => [...prev, m]);
-      setBody('');
-      setImageFile(null);
-      setImagePreview(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+      if (text && !imageUrl) {
+        await sendTextMessage(text);
+        setBody('');
+      } else {
+        const res = await fetch(`${API_URL}/api/matching/chats/${chatId}/messages`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ body: text || null, image_url: imageUrl }),
+        });
+        
+        if (!res.ok) throw new Error(await res.text());
+        
+        setBody('');
+        setImageFile(null);
+        setImagePreview(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       }
-      setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 0);
+      
+      setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     } catch (e: any) {
       alert(`送信に失敗しました: ${e?.message || ''}`);
     }
@@ -187,35 +168,13 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
 
   useEffect(() => {
     fetchChatMeta();
-    fetchMessages();
     fetchMyAvatar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, chatId]);
 
-  // WebSocket接続
   useEffect(() => {
-    if (!token || !chatId) return;
-    console.log('[DEBUG] Raw id from useParams:', id);
-    console.log('[DEBUG] Parsed chatId:', chatId);
-    console.log('[DEBUG] chatId type:', typeof chatId);
-    const proto = API_URL.startsWith('https') ? 'wss' : 'ws';
-    const wsUrl = `${proto}://${new URL(API_URL).host}/ws/matching/chat?chat_id=${chatId}&token=${encodeURIComponent(token)}`;
-    console.log('[DEBUG] WebSocket URL:', wsUrl);
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
-    ws.onmessage = (ev) => {
-      try {
-        const m = JSON.parse(ev.data);
-        setItems((prev) => [...prev, m]);
-        setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 0);
-      } catch (_) {}
-    };
-    return () => {
-      try { ws.close(); } catch (_) {}
-      wsRef.current = null;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, chatId]);
+    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+  }, [messages]);
 
   return (
     <div className="flex flex-col h-full">
@@ -234,15 +193,15 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
         {loading && <div className="text-center py-4">読み込み中...</div>}
         {error && <div className="text-red-600 text-sm text-center py-4">{error}</div>}
         <div className="py-4">
-          {items.map((m) => (
+          {messages.map((msg) => (
             <MessageBubble
-              key={m.id}
-              isMe={m.sender_id === user?.id}
-              avatarUrl={m.sender_id !== user?.id ? chatMeta?.with_avatar_url : null}
-              myAvatarUrl={m.sender_id === user?.id ? myAvatarUrl : null}
-              body={m.body}
-              imageUrl={m.image_url}
-              createdAt={m.created_at}
+              key={msg.id}
+              isMe={msg.sender_id === user?.id}
+              avatarUrl={msg.sender_id !== user?.id ? chatMeta?.with_avatar_url : null}
+              myAvatarUrl={msg.sender_id === user?.id ? myAvatarUrl : null}
+              body={msg.body}
+              imageUrl={null}
+              createdAt={msg.created_at}
             />
           ))}
           <div ref={bottomRef} />
@@ -281,7 +240,7 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
         />
         <button
           onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
+          disabled={uploading || sending}
           className="px-3 py-2 bg-gray-100 text-gray-600 rounded-full text-lg hover:bg-gray-200 disabled:opacity-50 transition-colors flex items-center justify-center"
           title="画像を添付"
         >
@@ -293,7 +252,7 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
-              sendMessage();
+              handleSendMessage();
             }
           }}
           className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm resize-none focus:outline-none focus:border-gray-400 transition-colors"
@@ -301,11 +260,11 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
           rows={1}
         />
         <button
-          onClick={sendMessage}
-          disabled={uploading || (!body.trim() && !imageFile)}
+          onClick={handleSendMessage}
+          disabled={uploading || sending || (!body.trim() && !imageFile)}
           className="px-5 py-2 bg-[#06c755] text-white rounded-full text-sm font-medium hover:bg-[#05b04b] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
         >
-          {uploading ? '送信中...' : '送信'}
+          {uploading || sending ? '送信中...' : '送信'}
         </button>
       </div>
     </div>
