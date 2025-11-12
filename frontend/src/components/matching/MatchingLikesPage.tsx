@@ -59,6 +59,23 @@ const MatchingLikesPage: React.FC = () => {
 
   const handleSendEmail = async (userId: number) => {
     if (!token) return;
+    
+    try {
+      const chatsRes = await fetch(`${API_URL}/api/matching/chats`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (chatsRes.ok) {
+        const chatsData = await chatsRes.json();
+        const existingChat = chatsData.items?.find((chat: any) => chat.with_user_id === userId);
+        if (existingChat) {
+          navigate(`/matching/chats/${existingChat.chat_id}`);
+          return;
+        }
+      }
+    } catch (e) {
+      console.error('Failed to check existing chat:', e);
+    }
+    
     try {
       const res = await fetch(`${API_URL}/api/matching/chat_requests/${userId}`, {
         method: 'POST',
@@ -68,6 +85,15 @@ const MatchingLikesPage: React.FC = () => {
         },
         body: JSON.stringify({ initial_message: '' }),
       });
+      
+      if (res.status === 409) {
+        const errorData = await res.json();
+        const chatId = errorData.detail?.chat_id || errorData.chat_id;
+        if (chatId) {
+          navigate(`/matching/chats/${chatId}`);
+          return;
+        }
+      }
       
       if (!res.ok) {
         const errorText = await res.text();

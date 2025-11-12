@@ -61,7 +61,25 @@ const MatchingUserProfilePage: React.FC = () => {
     fetchProfile();
   }, [token, userId]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
+    if (!token || !userId) return;
+    
+    try {
+      const res = await fetch(`${API_URL}/api/matching/chats`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const existingChat = data.items?.find((chat: any) => chat.with_user_id === parseInt(userId));
+        if (existingChat) {
+          navigate(`/matching/chats/${existingChat.chat_id}`);
+          return;
+        }
+      }
+    } catch (e) {
+      console.error('Failed to check existing chat:', e);
+    }
+    
     navigate(`/matching/compose/${userId}`);
   };
 
