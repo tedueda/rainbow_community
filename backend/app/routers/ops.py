@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
+from app.models import User, Profile, MatchingProfile, MatchingProfileImage, Post, MediaAsset
 from sqlalchemy import text
 import os
 
@@ -64,3 +65,84 @@ def run_migration(
 
     db.commit()
     return {"status": "ok"}
+
+
+@router.post("/cleanup-test-data")
+def cleanup_test_data(
+    payload: dict,
+    db: Session = Depends(get_db),
+    x_admin_secret: str | None = Header(default=None, alias="X-Admin-Secret"),
+):
+    """テストデータをクリーンアップ（指定されたユーザーID以外を削除）"""
+    # Safety guard
+    if os.getenv("ALLOW_MIGRATION_API", "false").lower() != "true":
+        raise HTTPException(status_code=403, detail="migration_api_disabled")
+    admin_secret = os.getenv("ADMIN_SECRET")
+    if not admin_secret or x_admin_secret != admin_secret:
+        raise HTTPException(status_code=401, detail="unauthorized")
+    
+    keep_user_ids = payload.get("keep_user_ids", [])
+    
+    if not keep_user_ids:
+        raise HTTPException(status_code=400, detail="keep_user_ids is required")
+    
+    # 削除対象のユーザーIDを取得
+    users_to_delete = db.query(User).filter(~User.id.in_(keep_user_ids)).all()
+    user_ids_to_delete = [u.id for u in users_to_delete]
+    
+    # カウント用
+    deleted_users = len(user_ids_to_delete)
+    deleted_profiles = 0
+    deleted_matching_profiles = 0
+    deleted_images = 0
+    deleted_posts = 0
+    
+    if user_ids_to_delete:
+        # 関連データを削除
+        # 1. マッチングプロフィール画像
+        deleted_images = db.query(MatchingProfileImage).filter(
+            MatchingProfileImage.profile_id.in_(user_ids_to_delete)
+        ).delete(synchronize_session=False)
+        
+        # 2. マッチングプロフィール
+        deleted_matching_profiles = db.query(MatchingProfile).filter(
+            MatchingProfile.user_id.in_(user_ids_to_delete)
+        ).delete(synchronize_session=False)
+        
+        # 3. プロフィール
+        deleted_profiles = db.query(Profile).filter(
+            Profile.user_id.in_(user_ids_to_delete)
+        ).delete(synchronize_session=False)
+        
+        # 4. 投稿
+        deleted_posts = db.query(Post).filter(
+            Post.user_id.in_(user_ids_to_delete)
+        ).delete(synchronize_session=False)
+        
+        # 5. メディアアセット
+        db.query(MediaAsset).filter(
+            MediaAsset.user_id.in_(user_ids_to_delete)
+        ).delete(synchronize_session=False)
+        
+        # 6. ユーザー
+        db.query(User).filter(
+            User.id.in_(user_ids_to_delete)
+        ).delete(synchronize_session=False)
+        
+        db.commit()
+    
+    # 残っているユーザーを取得
+    remaining_users = db.query(User).all()
+    
+    return {
+        "status": "ok",
+        "deleted_users": deleted_users,
+        "deleted_profiles": deleted_profiles,
+        "deleted_matching_profiles": deleted_matching_profiles,
+        "deleted_images": deleted_images,
+        "deleted_posts": deleted_posts,
+        "remaining_users": [
+            {"id": u.id, "email": u.email, "display_name": u.display_name}
+            for u in remaining_users
+        ]
+    }

@@ -467,7 +467,7 @@ const HomePage: React.FC = () => {
                           setSelectedPost(post);
                           setSelectedUser({
                             id: post.user_id,
-                            display_name: post.user_display_name || 'テッドさん',
+                            display_name: post.user_display_name || 'ユーザー',
                             email: ''
                           });
                         }}
@@ -539,7 +539,7 @@ const HomePage: React.FC = () => {
                               </span>
                             </div>
                             <span className="text-xs text-slate-400">
-                              {post.user_display_name || 'テッドさん'}
+                              {post.user_display_name || 'ユーザー'}
                             </span>
                           </div>
                         </CardContent>
@@ -843,22 +843,26 @@ const HomePage: React.FC = () => {
 
         {/* ニュースセクション */}
         <section className="py-12">
-          <div className="flex items-baseline justify-between mb-3">
-            <h3 className="text-4xl md:text-5xl font-serif font-semibold text-slate-900">最新ニュース</h3>
+          <div className="flex items-baseline justify-between mb-6">
+            <h3 className="text-3xl md:text-4xl font-bold text-slate-900">最新ニュース</h3>
             <Button 
               variant="ghost" 
-              className="text-gray-700 hover:text-black hover:bg-gray-100 font-medium text-xl md:text-2xl"
+              className="text-gray-600 hover:text-black hover:bg-gray-100 font-medium text-base"
               onClick={() => navigate('/news')}
             >
               すべてのニュースを見る
               <ArrowRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {newsArticles.slice(0, 3).map((article) => (
-              <Card key={article.id} className="border-gray-200 hover:shadow-lg hover:gold-border transition-all cursor-pointer overflow-hidden" onClick={() => setSelectedNewsArticle(article)}>
+              <Card 
+                key={article.id} 
+                className="group bg-white border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden rounded-lg"
+                onClick={() => setSelectedNewsArticle(article)}
+              >
                 {(article.media_url || (article.media_urls && article.media_urls.length > 0)) ? (
-                  <div className="h-[160px] overflow-hidden bg-gray-100">
+                  <div className="h-[200px] overflow-hidden bg-gray-50">
                     <img
                       src={`${(() => {
                         const imageUrl = article.media_url || (article.media_urls && article.media_urls[0]);
@@ -868,33 +872,34 @@ const HomePage: React.FC = () => {
                                `${API_URL}${imageUrl}`;
                       })()}`}
                       alt={article.title || 'ニュース画像'}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = 'none';
                       }}
                     />
                   </div>
                 ) : (
-                  <div className="h-[160px] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                    <span className="text-5xl">📰</span>
+                  <div className="h-[200px] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+                    <span className="text-6xl opacity-30">📰</span>
                   </div>
                 )}
-                <CardContent className="p-4">
-                  <div className="flex flex-wrap gap-1 mb-2">
-                    <span className="text-xs bg-gray-100 text-gray-800 px-2.5 py-1 rounded-full border border-gray-300 font-medium">
-                      {article.category || 'ニュース'}
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-xs bg-gray-800 text-white px-2.5 py-1 rounded font-medium">
+                      news
                     </span>
                   </div>
-                  <h4 className="font-serif font-semibold text-slate-900 mb-2 line-clamp-2">
+                  <h4 className="font-bold text-slate-900 mb-3 line-clamp-2 text-lg leading-snug group-hover:text-gray-700 transition-colors">
                     {article.title}
                   </h4>
-                  <p className="text-sm text-slate-600 mb-3 line-clamp-3">
+                  <p className="text-sm text-slate-600 mb-4 line-clamp-3 leading-relaxed">
                     {article.body}
                   </p>
-                  <div className="flex items-center justify-between text-xs text-slate-500">
-                    <span>{new Date(article.created_at).toLocaleDateString('ja-JP')}</span>
-                    <span className="text-gray-700 hover:text-black font-medium">
-                      続きを読む →
+                  <div className="flex items-center justify-between text-xs text-slate-500 pt-3 border-t border-gray-100">
+                    <span>{new Date(article.created_at).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '/')}</span>
+                    <span className="text-gray-700 hover:text-black font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
+                      続きを読む
+                      <ArrowRight className="h-3 w-3" />
                     </span>
                   </div>
                 </CardContent>
@@ -976,7 +981,7 @@ const HomePage: React.FC = () => {
               
               <div className="pt-4 border-t border-gray-200">
                 <p className="text-sm text-gray-500">
-                  投稿者: {selectedNewsArticle.user_display_name || '不明なユーザー'}
+                  投稿者: {selectedNewsArticle.user_display_name || 'ユーザー'}
                 </p>
               </div>
             </div>

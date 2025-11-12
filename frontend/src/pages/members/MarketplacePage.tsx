@@ -493,8 +493,8 @@ const MarketplacePage: React.FC = () => {
 
       {/* Create Listing Modal */}
       {showCreateListing && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-carat-white p-8 rounded-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] p-4" onClick={() => setShowCreateListing(false)}>
+          <div className="bg-white p-8 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-2xl font-bold text-carat-black mb-6">商品を出品</h3>
 
             <form onSubmit={handleSubmitListing} className="space-y-6">
@@ -686,8 +686,8 @@ const MarketplacePage: React.FC = () => {
 
       {/* Listing Detail Modal */}
       {showListingDetail && selectedListing && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-carat-white p-8 rounded-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] p-4" onClick={() => setShowListingDetail(false)}>
+          <div className="bg-white p-8 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-start mb-6">
               <h3 className="text-2xl font-bold text-carat-black">{selectedListing.title}</h3>
               <button
@@ -850,8 +850,8 @@ const MarketplacePage: React.FC = () => {
 
       {/* Withdraw Confirmation Modal */}
       {showWithdrawModal && selectedListing && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-2xl max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] p-4" onClick={() => setShowWithdrawModal(false)}>
+          <div className="bg-white p-8 rounded-2xl max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-2xl font-bold text-gray-900 mb-4">出品を取り下げ</h3>
             <p className="text-gray-600 mb-6">
               「{selectedListing.title}」を取り下げますか？<br />
@@ -877,8 +877,8 @@ const MarketplacePage: React.FC = () => {
 
       {/* Review Modal */}
       {showReviewModal && selectedListing && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-2xl max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] p-4" onClick={() => setShowReviewModal(false)}>
+          <div className="bg-white p-8 rounded-2xl max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-2xl font-bold text-gray-900 mb-4">出品者を評価</h3>
             <p className="text-gray-600 mb-6">
               「{selectedListing.title}」の出品者「{selectedListing.seller_name}」さんを評価してください。
