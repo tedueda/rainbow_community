@@ -153,6 +153,7 @@ const NewPostForm: React.FC<NewPostFormProps> = ({
       const postData = {
         title: formData.title || null,
         body: `${formData.body} #${categoryKey}`,
+        category: categoryKey,
         visibility: 'public',
         youtube_url: formData.youtubeUrl || null,
         media_id: mediaId,
