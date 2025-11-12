@@ -41,13 +41,18 @@ const MatchingChatShell: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_URL}/api/matching/chats`, {
+      const chatsUrl = `${API_URL}/api/matching/chats`;
+      console.log('[DEBUG] Fetching chats from:', chatsUrl);
+      const res = await fetch(chatsUrl, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
+      console.log('[DEBUG] Chats response status:', res.status);
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
+      console.log('[DEBUG] Chats data:', data);
       setChats(data.items || []);
     } catch (e: any) {
+      console.error('[DEBUG] Chats fetch error:', e);
       setError(e?.message || '取得に失敗しました');
     } finally {
       setLoading(false);
@@ -71,14 +76,18 @@ const MatchingChatShell: React.FC = () => {
   const fetchOutgoingRequests = async () => {
     if (!token) return;
     try {
-      const res = await fetch(`${API_URL}/api/matching/chat_requests/outgoing`, {
+      const outgoingUrl = `${API_URL}/api/matching/chat_requests/outgoing`;
+      console.log('[DEBUG] Fetching outgoing requests from:', outgoingUrl);
+      const res = await fetch(outgoingUrl, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
+      console.log('[DEBUG] Outgoing requests response status:', res.status);
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
+      console.log('[DEBUG] Outgoing requests data:', data);
       setOutgoingRequests(data.items || []);
     } catch (e: any) {
-      console.error('Failed to fetch outgoing requests:', e);
+      console.error('[DEBUG] Outgoing requests fetch error:', e);
     }
   };
 

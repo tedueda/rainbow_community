@@ -73,9 +73,13 @@ const MatchingChatsPage: React.FC = () => {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
       alert('✅ チャットリクエストを承諾しました！');
       await fetchRequests();
       await fetchChats();
+      if (data.chat_id) {
+        window.location.href = `/matching/chats/${data.chat_id}`;
+      }
     } catch (e: any) {
       alert('承諾に失敗しました: ' + e.message);
     } finally {

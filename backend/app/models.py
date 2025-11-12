@@ -13,6 +13,10 @@ class User(Base):
     display_name = Column(String(100), nullable=False)
     membership_type = Column(String(20), default="premium")
     is_active = Column(Boolean, default=True)
+    real_name = Column(String(100), nullable=True)
+    is_verified = Column(Boolean, default=False)
+    two_factor_enabled = Column(Boolean, default=False)
+    two_factor_secret = Column(String(255), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
@@ -386,7 +390,6 @@ class MatchingProfile(Base):
     meeting_style = Column(String(50))
     bio = Column(Text)
     identity = Column(String(50))
-    avatar_url = Column(String(500))
     romance_targets = Column(JSON, default=list)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
@@ -469,7 +472,6 @@ class Message(Base):
     chat_id = Column(Integer, ForeignKey("chats.id"), nullable=False)
     sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     body = Column(Text, nullable=True)
-    image_url = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     read_at = Column(DateTime(timezone=True))
 

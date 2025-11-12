@@ -442,7 +442,7 @@ const CategoryPage: React.FC = () => {
                 
                 {/* メタ情報 */}
                 <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                  <span className="font-medium">{post.user_display_name || '不明なユーザー'}</span>
+                  <span className="font-medium">{post.user_display_name || 'ユーザー'}</span>
                   <span>{getRelativeTime(post.created_at)}</span>
                 </div>
                 

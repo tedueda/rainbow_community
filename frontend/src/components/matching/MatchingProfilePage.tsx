@@ -707,6 +707,43 @@ const MatchingProfilePage: React.FC = () => {
             </div>
           </div>
 
+          {/* プロフィール公開設定 */}
+          <div className="p-5 border-b bg-gray-50">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <div className="font-medium text-gray-900 mb-1">プロフィール公開設定</div>
+                <div className="text-sm text-gray-600">
+                  {profile?.display_flag 
+                    ? 'プロフィールは公開されています。マッチング検索に表示されます。' 
+                    : 'プロフィールは非公開です。マッチング検索に表示されません。'}
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  if (profile) {
+                    setProfile({ ...profile, display_flag: !profile.display_flag });
+                  }
+                }}
+                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 ${
+                  profile?.display_flag ? 'bg-pink-500' : 'bg-gray-300'
+                }`}
+                role="switch"
+                aria-checked={profile?.display_flag ? 'true' : 'false'}
+                aria-label="プロフィール公開設定"
+              >
+                <span
+                  className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-lg transition-transform ${
+                    profile?.display_flag ? 'translate-x-7' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+            <div className="mt-3 text-xs text-gray-500">
+              • ONにすると、あなたのプロフィールがマッチング検索に表示されます<br/>
+              • OFFにすると、検索結果に表示されなくなります（既存のマッチやチャットは継続）
+            </div>
+          </div>
+
           {/* 画像モーダル */}
           {modalImageUrl && (
             <div

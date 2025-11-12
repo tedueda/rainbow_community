@@ -138,7 +138,7 @@ const BlogListPage: React.FC = () => {
                 <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
                   <div className="flex items-center gap-1">
                     <User className="h-4 w-4" />
-                    <span>{blog.user_display_name || 'Unknown'}</span>
+                    <span>{blog.user_display_name || 'ユーザー'}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />

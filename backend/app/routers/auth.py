@@ -220,7 +220,7 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
     
     db_matching_profile = MatchingProfile(
         user_id=db_user.id,
-        display_flag=False,
+        display_flag=True,  # デフォルトで公開
         prefecture='未設定'
     )
     db.add(db_matching_profile)

@@ -427,11 +427,25 @@ def list_chats(
         last_msg = (
             db.query(Message).filter(Message.chat_id == ch.id).order_by(Message.created_at.desc()).first()
         )
+        
+        profile_images = (
+            db.query(MatchingProfileImage)
+            .filter(MatchingProfileImage.profile_id == other_id)
+            .order_by(MatchingProfileImage.display_order)
+            .all()
+        )
+        avatar_url = profile_images[0].image_url if profile_images else None
+        
+        display_name = (
+            other_profile.nickname if (other_profile and other_profile.nickname) 
+            else (other.display_name if other else f"User {other_id}")
+        )
+        
         chat_items.append({
             "chat_id": ch.id,
             "with_user_id": other_id,
-            "with_display_name": other_profile.display_name if other_profile else (other.display_name if other else f"User {other_id}"),
-            "with_avatar_url": other_profile.avatar_url if other_profile else None,
+            "with_display_name": display_name,
+            "with_avatar_url": avatar_url,
             "last_message": last_msg.body if last_msg else None,
         })
     return {"items": chat_items}
@@ -479,12 +493,11 @@ def send_message(
     image_url = (payload or {}).get("image_url")
     
     body_text = str(body).strip() if body else None
-    image_url_text = str(image_url).strip() if image_url else None
     
-    if not body_text and not image_url_text:
-        raise HTTPException(status_code=400, detail="Either body or image_url is required")
+    if not body_text:
+        raise HTTPException(status_code=400, detail="Body is required")
     
-    msg = Message(chat_id=ch.id, sender_id=current_user.id, body=body_text, image_url=image_url_text)
+    msg = Message(chat_id=ch.id, sender_id=current_user.id, body=body_text)
     db.add(msg)
     db.commit()
     db.refresh(msg)
@@ -493,7 +506,6 @@ def send_message(
         "chat_id": msg.chat_id,
         "sender_id": msg.sender_id,
         "body": msg.body,
-        "image_url": msg.image_url,
         "created_at": msg.created_at
     }
 
@@ -678,7 +690,7 @@ def send_chat_request(
         raise HTTPException(status_code=400, detail="Cannot send chat request to yourself")
     
     # 既存のpendingリクエストをチェック
-    existing = (
+    existing_pending = (
         db.query(ChatRequest)
         .filter(
             ChatRequest.from_user_id == current_user.id,
@@ -688,8 +700,27 @@ def send_chat_request(
         .first()
     )
     
-    if existing:
-        return {"request_id": existing.id, "status": "pending", "message": "Request already sent"}
+    if existing_pending:
+        return {"request_id": existing_pending.id, "status": "pending", "message": "Request already sent"}
+    
+    a, b = sorted([current_user.id, to_user_id])
+    existing_match = (
+        db.query(Match)
+        .filter(Match.user_a_id == a, Match.user_b_id == b)
+        .first()
+    )
+    
+    if existing_match:
+        existing_chat = db.query(Chat).filter(Chat.match_id == existing_match.id).first()
+        if existing_chat:
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    "error": "already_chatting",
+                    "chat_id": existing_chat.id,
+                    "message": "Chat already exists with this user"
+                }
+            )
     
     # 新しいリクエストを作成
     initial_message = payload.get("initial_message", "")
@@ -723,14 +754,13 @@ def list_incoming_chat_requests(
         from_user = db.query(User).filter(User.id == req.from_user_id).first()
         profile = db.query(MatchingProfile).filter(MatchingProfile.user_id == req.from_user_id).first()
         
-        # プロフィール画像を取得
         images = (
             db.query(MatchingProfileImage)
             .filter(MatchingProfileImage.profile_id == req.from_user_id)
             .order_by(MatchingProfileImage.display_order)
             .all()
         )
-        avatar_url = images[0].image_url if images else (profile.avatar_url if profile else None)
+        avatar_url = images[0].image_url if images else None
         
         items.append({
             "request_id": req.id,
@@ -752,10 +782,13 @@ def list_outgoing_chat_requests(
     current_user: User = Depends(require_premium),
     db: Session = Depends(get_db),
 ):
-    """送信したチャットリクエスト一覧"""
+    """送信したチャットリクエスト一覧（pending のみ）"""
     requests = (
         db.query(ChatRequest)
-        .filter(ChatRequest.from_user_id == current_user.id)
+        .filter(
+            ChatRequest.from_user_id == current_user.id,
+            ChatRequest.status == "pending"
+        )
         .order_by(ChatRequest.created_at.desc())
         .all()
     )
@@ -771,7 +804,7 @@ def list_outgoing_chat_requests(
             .order_by(MatchingProfileImage.display_order)
             .all()
         )
-        avatar_url = images[0].image_url if images else (profile.avatar_url if profile else None)
+        avatar_url = images[0].image_url if images else None
         
         items.append({
             "request_id": req.id,
@@ -838,6 +871,23 @@ def accept_chat_request(
     else:
         chat_id = existing_chat.id
     
+    other_pending_requests = (
+        db.query(ChatRequest)
+        .filter(
+            ChatRequest.id != request_id,
+            ChatRequest.status == "pending",
+            or_(
+                and_(ChatRequest.from_user_id == request.from_user_id, ChatRequest.to_user_id == request.to_user_id),
+                and_(ChatRequest.from_user_id == request.to_user_id, ChatRequest.to_user_id == request.from_user_id)
+            )
+        )
+        .all()
+    )
+    
+    for other_req in other_pending_requests:
+        other_req.status = "declined"
+        other_req.responded_at = datetime.utcnow()
+    
     pending_messages = (
         db.query(ChatRequestMessage)
         .filter(
@@ -853,7 +903,7 @@ def accept_chat_request(
             db.query(Message)
             .filter(
                 Message.chat_id == chat_id,
-                Message.from_user_id == pm.from_user_id,
+                Message.sender_id == pm.from_user_id,
                 Message.body == pm.content,
                 Message.created_at == pm.created_at
             )
@@ -863,7 +913,7 @@ def accept_chat_request(
         if not existing_msg:
             msg = Message(
                 chat_id=chat_id,
-                from_user_id=pm.from_user_id,
+                sender_id=pm.from_user_id,
                 body=pm.content,
                 created_at=pm.created_at
             )

@@ -430,8 +430,8 @@ const DonationPage: React.FC = () => {
 
       {/* Support Modal */}
       {showSupportModal && selectedProject && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-carat-white p-8 rounded-2xl max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] p-4" onClick={() => setShowSupportModal(false)}>
+          <div className="bg-white p-8 rounded-2xl max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-2xl font-bold text-carat-black mb-4">プロジェクトを支援</h3>
             <p className="text-carat-gray6 mb-6">{selectedProject.title}</p>
             <div className="flex gap-4">
@@ -457,8 +457,8 @@ const DonationPage: React.FC = () => {
 
       {/* Project Detail Modal */}
       {showProjectDetail && selectedProject && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-carat-white p-8 rounded-2xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] p-4" onClick={() => setShowProjectDetail(false)}>
+          <div className="bg-white p-8 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-2xl font-bold text-carat-black mb-4">{selectedProject.title}</h3>
             <p className="text-carat-gray6 mb-4">{selectedProject.description}</p>
             <div className="mb-4">
@@ -478,8 +478,8 @@ const DonationPage: React.FC = () => {
 
       {/* Create Project Modal */}
       {showCreateProject && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] p-4" onClick={() => setShowCreateProject(false)}>
+          <div className="bg-white p-8 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-2xl font-bold text-gray-900 mb-6">新しいプロジェクトを作成</h3>
             
             <form onSubmit={handleSubmitProject} className="space-y-6">
