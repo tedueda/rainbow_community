@@ -690,7 +690,7 @@ def send_chat_request(
         raise HTTPException(status_code=400, detail="Cannot send chat request to yourself")
     
     # 既存のpendingリクエストをチェック
-    existing = (
+    existing_pending = (
         db.query(ChatRequest)
         .filter(
             ChatRequest.from_user_id == current_user.id,
@@ -700,8 +700,27 @@ def send_chat_request(
         .first()
     )
     
-    if existing:
-        return {"request_id": existing.id, "status": "pending", "message": "Request already sent"}
+    if existing_pending:
+        return {"request_id": existing_pending.id, "status": "pending", "message": "Request already sent"}
+    
+    a, b = sorted([current_user.id, to_user_id])
+    existing_match = (
+        db.query(Match)
+        .filter(Match.user_a_id == a, Match.user_b_id == b)
+        .first()
+    )
+    
+    if existing_match:
+        existing_chat = db.query(Chat).filter(Chat.match_id == existing_match.id).first()
+        if existing_chat:
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    "error": "already_chatting",
+                    "chat_id": existing_chat.id,
+                    "message": "Chat already exists with this user"
+                }
+            )
     
     # 新しいリクエストを作成
     initial_message = payload.get("initial_message", "")
@@ -763,10 +782,13 @@ def list_outgoing_chat_requests(
     current_user: User = Depends(require_premium),
     db: Session = Depends(get_db),
 ):
-    """送信したチャットリクエスト一覧"""
+    """送信したチャットリクエスト一覧（pending のみ）"""
     requests = (
         db.query(ChatRequest)
-        .filter(ChatRequest.from_user_id == current_user.id)
+        .filter(
+            ChatRequest.from_user_id == current_user.id,
+            ChatRequest.status == "pending"
+        )
         .order_by(ChatRequest.created_at.desc())
         .all()
     )
@@ -848,6 +870,23 @@ def accept_chat_request(
         chat_id = chat.id
     else:
         chat_id = existing_chat.id
+    
+    other_pending_requests = (
+        db.query(ChatRequest)
+        .filter(
+            ChatRequest.id != request_id,
+            ChatRequest.status == "pending",
+            or_(
+                and_(ChatRequest.from_user_id == request.from_user_id, ChatRequest.to_user_id == request.to_user_id),
+                and_(ChatRequest.from_user_id == request.to_user_id, ChatRequest.to_user_id == request.from_user_id)
+            )
+        )
+        .all()
+    )
+    
+    for other_req in other_pending_requests:
+        other_req.status = "declined"
+        other_req.responded_at = datetime.utcnow()
     
     pending_messages = (
         db.query(ChatRequestMessage)
