@@ -41,8 +41,27 @@ const MatchingSendMessagePage: React.FC = () => {
       }
     };
 
+    const checkExistingChat = async () => {
+      if (!token || !userId) return;
+      try {
+        const res = await fetch(`${API_URL}/api/matching/chats`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const existingChat = data.items?.find((chat: any) => chat.with_user_id === parseInt(userId));
+          if (existingChat) {
+            navigate(`/matching/chats/${existingChat.chat_id}`, { replace: true });
+          }
+        }
+      } catch (e) {
+        console.error('Failed to check existing chat:', e);
+      }
+    };
+
     fetchProfile();
-  }, [token, userId]);
+    checkExistingChat();
+  }, [token, userId, navigate]);
 
   const handleSend = async () => {
     if (!token || !userId || !message.trim()) return;
@@ -57,6 +76,15 @@ const MatchingSendMessagePage: React.FC = () => {
         },
         body: JSON.stringify({ initial_message: message.trim() }),
       });
+
+      if (res.status === 409) {
+        const errorData = await res.json();
+        const chatId = errorData.detail?.chat_id || errorData.chat_id;
+        if (chatId) {
+          navigate(`/matching/chats/${chatId}`, { replace: true });
+          return;
+        }
+      }
 
       if (!res.ok) {
         const errorText = await res.text();
