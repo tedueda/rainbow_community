@@ -29,6 +29,7 @@ import BeautyPage from './pages/members/BeautyPage';
 import VirtualWeddingPage from './components/VirtualWeddingPage';
 import DonationPage from './components/DonationPage';
 import MarketplacePage from './pages/members/MarketplacePage';
+import AccountPage from './pages/members/AccountPage';
 
 
 const FeedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -159,6 +160,11 @@ function AppContent() {
           <Route path="/marketplace" element={
             <FeedRoute>
               <MarketplacePage />
+            </FeedRoute>
+          } />
+          <Route path="/account" element={
+            <FeedRoute>
+              <AccountPage />
             </FeedRoute>
           } />
           <Route path="/news" element={

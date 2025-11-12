@@ -13,6 +13,11 @@ class User(Base):
     display_name = Column(String(100), nullable=False)
     membership_type = Column(String(20), default="premium")
     is_active = Column(Boolean, default=True)
+    phone_number = Column(String(20), unique=True, nullable=True)
+    real_name = Column(String(100), nullable=True)
+    is_verified = Column(Boolean, default=False)
+    two_factor_enabled = Column(Boolean, default=False)
+    two_factor_secret = Column(String(255), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
