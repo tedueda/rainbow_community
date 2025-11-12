@@ -52,6 +52,7 @@ else:
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "https://tedueda.github.io",
+        "https://carat-rainbow-community.netlify.app",
     ]
 
 app.add_middleware(
