@@ -249,12 +249,6 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
         <textarea
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              handleSendMessage();
-            }
-          }}
           className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm resize-none focus:outline-none focus:border-gray-400 transition-colors"
           placeholder="メッセージを入力"
           rows={1}
