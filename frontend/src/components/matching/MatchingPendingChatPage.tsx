@@ -117,14 +117,22 @@ const MatchingPendingChatPage: React.FC<MatchingPendingChatPageProps> = ({ embed
     try {
       const res = await fetch(`${API_URL}/api/matching/chat_requests/${requestId}/accept`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
       });
-      if (!res.ok) throw new Error('承諾に失敗しました');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.detail || '承諾に失敗しました');
+      }
       const data = await res.json();
       if (data.chat_id) {
         navigate(`/matching/chats/${data.chat_id}`, { replace: true });
       }
     } catch (e: any) {
+      console.error('Accept error:', e);
       alert(`エラー: ${e?.message || '承諾に失敗しました'}`);
     } finally {
       setLoading(false);
@@ -138,11 +146,19 @@ const MatchingPendingChatPage: React.FC<MatchingPendingChatPageProps> = ({ embed
     try {
       const res = await fetch(`${API_URL}/api/matching/chat_requests/${requestId}/decline`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({})
       });
-      if (!res.ok) throw new Error('辞退に失敗しました');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.detail || '辞退に失敗しました');
+      }
       navigate('/matching/chats', { replace: true });
     } catch (e: any) {
+      console.error('Decline error:', e);
       alert(`エラー: ${e?.message || '辞退に失敗しました'}`);
     } finally {
       setLoading(false);
