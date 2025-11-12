@@ -493,12 +493,11 @@ def send_message(
     image_url = (payload or {}).get("image_url")
     
     body_text = str(body).strip() if body else None
-    image_url_text = str(image_url).strip() if image_url else None
     
-    if not body_text and not image_url_text:
-        raise HTTPException(status_code=400, detail="Either body or image_url is required")
+    if not body_text:
+        raise HTTPException(status_code=400, detail="Body is required")
     
-    msg = Message(chat_id=ch.id, sender_id=current_user.id, body=body_text, image_url=image_url_text)
+    msg = Message(chat_id=ch.id, sender_id=current_user.id, body=body_text)
     db.add(msg)
     db.commit()
     db.refresh(msg)
@@ -507,7 +506,6 @@ def send_message(
         "chat_id": msg.chat_id,
         "sender_id": msg.sender_id,
         "body": msg.body,
-        "image_url": msg.image_url,
         "created_at": msg.created_at
     }
 
