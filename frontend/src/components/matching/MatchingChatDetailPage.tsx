@@ -192,7 +192,7 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
   useEffect(() => {
     if (!token || !chatId) return;
     const proto = API_URL.startsWith('https') ? 'wss' : 'ws';
-    const wsUrl = `${proto}://${new URL(API_URL).host}/api/matching/ws/matching/chat?chat_id=${chatId}&token=${encodeURIComponent(token)}`;
+    const wsUrl = `${proto}://${new URL(API_URL).host}/ws/matching/chat?chat_id=${chatId}&token=${encodeURIComponent(token)}`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
     ws.onmessage = (ev) => {
