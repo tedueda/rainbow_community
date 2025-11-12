@@ -175,9 +175,9 @@ Type `yes` when prompted. This will take 5-10 minutes.
 
 After completion, note the outputs:
 ```
-ecr_repository_url        = "123456789012.dkr.ecr.ap-northeast-3.amazonaws.com/rainbow-community-api"
-app_runner_service_url    = "https://xxxxx.ap-northeast-3.awsapprunner.com"
-database_url_secret_arn   = "arn:aws:secretsmanager:ap-northeast-3:..."
+ecr_repository_url        = "123456789012.dkr.ecr.ap-northeast-1.amazonaws.com/rainbow-community-api"
+app_runner_service_url    = "https://xxxxx.ap-northeast-1.awsapprunner.com"
+database_url_secret_arn   = "arn:aws:secretsmanager:ap-northeast-1:..."
 ```
 
 ## 📤 Deployment Steps
@@ -191,7 +191,7 @@ Before App Runner can start, you need to push an initial Docker image:
 ECR_REPO=$(terraform output -raw ecr_repository_url)
 
 # Login to ECR
-aws ecr get-login-password --region ap-northeast-3 | \
+aws ecr get-login-password --region ap-northeast-1 | \
   docker login --username AWS --password-stdin $ECR_REPO
 
 # Build and push
@@ -260,7 +260,7 @@ curl -i "$APP_URL/api/auth/me" \
 
 Update your frontend `.env` file:
 ```bash
-VITE_API_URL=https://xxxxx.ap-northeast-3.awsapprunner.com
+VITE_API_URL=https://xxxxx.ap-northeast-1.awsapprunner.com
 ```
 
 Test the frontend thoroughly:
@@ -347,7 +347,7 @@ App Runner tracks deployment history. To rollback:
 SERVICE_ARN=$(terraform output -raw app_runner_service_arn)
 aws apprunner list-operations \
   --service-arn $SERVICE_ARN \
-  --region ap-northeast-3
+  --region ap-northeast-1
 
 # Manually push a previous image tag
 docker pull $ECR_REPO:v1.0.0
@@ -388,14 +388,14 @@ If you provided an `alarm_email`, you'll receive SNS notifications.
 ```bash
 aws logs tail /aws/apprunner/rainbow-community-api/service \
   --follow \
-  --region ap-northeast-3
+  --region ap-northeast-1
 ```
 
 **RDS logs** (if enabled):
 ```bash
 aws rds describe-db-log-files \
-  --db-instance-identifier lgbtq-dev \
-  --region ap-northeast-3
+  --db-instance-identifier rainbow-community-db-tokyo \
+  --region ap-northeast-1
 ```
 
 ### Metrics Dashboard
@@ -411,7 +411,7 @@ View in AWS Console:
 
 **Check logs**:
 ```bash
-aws logs tail /aws/apprunner/rainbow-community-api/service --region ap-northeast-3
+aws logs tail /aws/apprunner/rainbow-community-api/service --region ap-northeast-1
 ```
 
 **Common issues**:

@@ -128,7 +128,7 @@ docker run -p 8000:8000 --env-file .env rainbow-api
 
 **Backend Deploy** (`.github/workflows/deploy.yml`):
 - Builds Docker image
-- Pushes to ECR (Osaka and Tokyo regions)
+- Pushes to ECR (Tokyo region)
 - App Runner automatically pulls and deploys latest image
 
 ### Environments
