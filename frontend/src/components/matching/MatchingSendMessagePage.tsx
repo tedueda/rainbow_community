@@ -14,7 +14,7 @@ type UserProfile = {
 const MatchingSendMessagePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,6 +28,12 @@ const MatchingSendMessagePage: React.FC = () => {
   ];
 
   useEffect(() => {
+    if (user && userId && Number(userId) === user.id) {
+      alert('自分自身にはメッセージを送信できません');
+      navigate('/matching/chats', { replace: true });
+      return;
+    }
+
     const fetchProfile = async () => {
       if (!token || !userId) return;
       try {
@@ -54,15 +60,21 @@ const MatchingSendMessagePage: React.FC = () => {
 
     fetchProfile();
     checkExistingChat();
-  }, [token, userId, navigate]);
+  }, [token, userId, navigate, user]);
 
   const handleSend = async () => {
     if (!token || !userId || !message.trim()) return;
     
+    if (user && Number(userId) === user.id) {
+      alert('自分自身にはメッセージを送信できません');
+      navigate('/matching/chats');
+      return;
+    }
+    
     setLoading(true);
     try {
       const apiClient = createApiClient(() => token);
-      await navigateToChat(apiClient, navigate, parseInt(userId), message.trim());
+      await navigateToChat(apiClient, navigate, parseInt(userId), message.trim(), user?.id || null);
     } catch (e: any) {
       alert(`エラー: ${e?.message || 'メッセージ送信に失敗しました'}`);
     } finally {

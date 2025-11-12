@@ -69,7 +69,9 @@ export function MatchCard({ item }: { item: Item }) {
     
     try {
       const apiClient = createApiClient(() => token);
-      await navigateToComposeOrChat(apiClient, navigate, item.user_id);
+      const userStr = localStorage.getItem('user');
+      const currentUserId = userStr ? JSON.parse(userStr).id : null;
+      await navigateToComposeOrChat(apiClient, navigate, item.user_id, currentUserId);
     } catch (err) {
       console.error('Failed to navigate to chat:', err);
       alert('エラーが発生しました');

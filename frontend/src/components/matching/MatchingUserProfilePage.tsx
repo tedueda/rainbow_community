@@ -28,7 +28,7 @@ type UserProfile = {
 const MatchingUserProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +68,7 @@ const MatchingUserProfilePage: React.FC = () => {
     
     try {
       const apiClient = createApiClient(() => token);
-      await navigateToComposeOrChat(apiClient, navigate, parseInt(userId));
+      await navigateToComposeOrChat(apiClient, navigate, parseInt(userId), user?.id || null);
     } catch (e) {
       console.error('Failed to navigate to chat:', e);
       alert('エラーが発生しました');

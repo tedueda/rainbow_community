@@ -18,7 +18,7 @@ type LikeItem = {
 type ViewMode = 'list' | 'grid';
 
 const MatchingLikesPage: React.FC = () => {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<LikeItem[]>([]);
@@ -64,7 +64,7 @@ const MatchingLikesPage: React.FC = () => {
     
     try {
       const apiClient = createApiClient(() => token);
-      await navigateToChat(apiClient, navigate, userId, '');
+      await navigateToChat(apiClient, navigate, userId, '', user?.id || null);
       alert('✉️ メールリクエストを送信しました！\n\n相手が承諾するとメールができます。');
     } catch (e: any) {
       alert(`エラー: ${e?.message || 'メール送信に失敗しました'}`);

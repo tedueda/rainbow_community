@@ -45,8 +45,15 @@ export async function navigateToChat(
   apiClient: ApiClient,
   navigate: NavigateFunction,
   userId: number,
-  initialMessage: string = ''
+  initialMessage: string = '',
+  currentUserId: number | null = null
 ): Promise<void> {
+  if (currentUserId && userId === currentUserId) {
+    alert('自分自身にはメッセージを送信できません');
+    navigate('/matching/chats');
+    return;
+  }
+
   const existingChatId = await findExistingChat(apiClient, userId);
   if (existingChatId) {
     navigate(`/matching/chats/${existingChatId}`);
@@ -65,11 +72,19 @@ export async function navigateToChat(
       navigate('/matching/chats', { replace: true });
     }
   } catch (error) {
-    if (error instanceof ApiError && error.status === 409) {
-      const chatId = error.data?.detail?.chat_id || error.data?.chat_id;
-      if (chatId) {
-        navigate(`/matching/chats/${chatId}`, { replace: true });
+    if (error instanceof ApiError) {
+      if (error.status === 400 && error.data?.detail?.includes('Cannot send chat request to yourself')) {
+        alert('自分自身にはメッセージを送信できません');
+        navigate('/matching/chats');
         return;
+      }
+      
+      if (error.status === 409) {
+        const chatId = error.data?.detail?.chat_id || error.data?.chat_id;
+        if (chatId) {
+          navigate(`/matching/chats/${chatId}`, { replace: true });
+          return;
+        }
       }
     }
     
@@ -84,8 +99,15 @@ export async function navigateToChat(
 export async function navigateToComposeOrChat(
   apiClient: ApiClient,
   navigate: NavigateFunction,
-  userId: number
+  userId: number,
+  currentUserId: number | null
 ): Promise<void> {
+  if (currentUserId && userId === currentUserId) {
+    alert('自分自身にはメッセージを送信できません');
+    navigate('/matching/chats');
+    return;
+  }
+
   const existingChatId = await findExistingChat(apiClient, userId);
   if (existingChatId) {
     navigate(`/matching/chats/${existingChatId}`);
