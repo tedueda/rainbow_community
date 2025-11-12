@@ -17,7 +17,7 @@ type MatchItem = {
 };
 
 const MatchingSearchPage: React.FC = () => {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [searchParams] = useSearchParams();
   const segment = searchParams.get("segment") || "gay";
   
@@ -67,6 +67,10 @@ const MatchingSearchPage: React.FC = () => {
         }
         return { ...it, avatar_url: avatar };
       });
+      
+      if (user?.id) {
+        fetchedItems = fetchedItems.filter(it => it.user_id !== user.id);
+      }
       
       // クライアント側で性志向カテゴリーによるフィルタリング
       if (segment === 'gay') {
