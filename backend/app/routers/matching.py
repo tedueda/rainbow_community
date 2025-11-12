@@ -427,11 +427,25 @@ def list_chats(
         last_msg = (
             db.query(Message).filter(Message.chat_id == ch.id).order_by(Message.created_at.desc()).first()
         )
+        
+        profile_images = (
+            db.query(MatchingProfileImage)
+            .filter(MatchingProfileImage.profile_id == other_id)
+            .order_by(MatchingProfileImage.display_order)
+            .all()
+        )
+        avatar_url = profile_images[0].image_url if profile_images else None
+        
+        display_name = (
+            other_profile.nickname if (other_profile and other_profile.nickname) 
+            else (other.display_name if other else f"User {other_id}")
+        )
+        
         chat_items.append({
             "chat_id": ch.id,
             "with_user_id": other_id,
-            "with_display_name": other_profile.display_name if other_profile else (other.display_name if other else f"User {other_id}"),
-            "with_avatar_url": other_profile.avatar_url if other_profile else None,
+            "with_display_name": display_name,
+            "with_avatar_url": avatar_url,
             "last_message": last_msg.body if last_msg else None,
         })
     return {"items": chat_items}
@@ -723,14 +737,13 @@ def list_incoming_chat_requests(
         from_user = db.query(User).filter(User.id == req.from_user_id).first()
         profile = db.query(MatchingProfile).filter(MatchingProfile.user_id == req.from_user_id).first()
         
-        # プロフィール画像を取得
         images = (
             db.query(MatchingProfileImage)
             .filter(MatchingProfileImage.profile_id == req.from_user_id)
             .order_by(MatchingProfileImage.display_order)
             .all()
         )
-        avatar_url = images[0].image_url if images else (profile.avatar_url if profile else None)
+        avatar_url = images[0].image_url if images else None
         
         items.append({
             "request_id": req.id,
@@ -771,7 +784,7 @@ def list_outgoing_chat_requests(
             .order_by(MatchingProfileImage.display_order)
             .all()
         )
-        avatar_url = images[0].image_url if images else (profile.avatar_url if profile else None)
+        avatar_url = images[0].image_url if images else None
         
         items.append({
             "request_id": req.id,
@@ -853,7 +866,7 @@ def accept_chat_request(
             db.query(Message)
             .filter(
                 Message.chat_id == chat_id,
-                Message.from_user_id == pm.from_user_id,
+                Message.sender_id == pm.from_user_id,
                 Message.body == pm.content,
                 Message.created_at == pm.created_at
             )
@@ -863,7 +876,7 @@ def accept_chat_request(
         if not existing_msg:
             msg = Message(
                 chat_id=chat_id,
-                from_user_id=pm.from_user_id,
+                sender_id=pm.from_user_id,
                 body=pm.content,
                 created_at=pm.created_at
             )
