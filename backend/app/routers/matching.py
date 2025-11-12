@@ -427,11 +427,20 @@ def list_chats(
         last_msg = (
             db.query(Message).filter(Message.chat_id == ch.id).order_by(Message.created_at.desc()).first()
         )
+        # プロフィール画像を取得
+        images = (
+            db.query(MatchingProfileImage)
+            .filter(MatchingProfileImage.profile_id == other_id)
+            .order_by(MatchingProfileImage.display_order)
+            .all()
+        )
+        avatar_url = images[0].image_url if images else (other_profile.avatar_url if other_profile else None)
+        
         chat_items.append({
             "chat_id": ch.id,
             "with_user_id": other_id,
-            "with_display_name": other_profile.display_name if other_profile else (other.display_name if other else f"User {other_id}"),
-            "with_avatar_url": other_profile.avatar_url if other_profile else None,
+            "with_display_name": other_profile.nickname if other_profile and other_profile.nickname else (other.display_name if other else f"User {other_id}"),
+            "with_avatar_url": avatar_url,
             "last_message": last_msg.body if last_msg else None,
         })
     return {"items": chat_items}
@@ -752,10 +761,10 @@ def list_outgoing_chat_requests(
     current_user: User = Depends(require_premium),
     db: Session = Depends(get_db),
 ):
-    """送信したチャットリクエスト一覧"""
+    """送信したチャットリクエスト一覧（承諾待ちのみ）"""
     requests = (
         db.query(ChatRequest)
-        .filter(ChatRequest.from_user_id == current_user.id)
+        .filter(ChatRequest.from_user_id == current_user.id, ChatRequest.status == "pending")
         .order_by(ChatRequest.created_at.desc())
         .all()
     )
