@@ -21,47 +21,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ===== Osaka (ap-northeast-3): Build & Push =====
-      - name: Configure AWS credentials (Osaka)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
-          aws-region: ${{ vars.AWS_REGION_OSAKA }}
-
-      - name: Login to Amazon ECR (Osaka)
-        id: login-ecr-osaka
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Ensure Osaka ECR repository exists
-        env:
-          REPO: ${{ vars.TF_VAR_ECR_REPO_NAME }}
-        run: |
-          aws ecr describe-repositories --repository-names "$REPO" >/dev/null 2>&1 \
-          || aws ecr create-repository --repository-name "$REPO"
-
-      - name: Build & Push image to ECR (Osaka)
-        env:
-          REGISTRY:   ${{ steps.login-ecr-osaka.outputs.registry }}
-          REPOSITORY: ${{ vars.TF_VAR_ECR_REPO_NAME }}
-          IMAGE_TAG:  ${{ github.sha }}
-          RELEASE_TAG: ${{ github.event.inputs.release_tag }}
-        run: |
-          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f backend/Dockerfile backend
-          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
-          docker tag  $REGISTRY/$REPOSITORY:$IMAGE_TAG  $REGISTRY/$REPOSITORY:latest
-          docker push $REGISTRY/$REPOSITORY:latest
-          if [ -n "$RELEASE_TAG" ]; then
-            docker tag $REGISTRY/$REPOSITORY:$IMAGE_TAG $REGISTRY/$REPOSITORY:$RELEASE_TAG
-            docker push $REGISTRY/$REPOSITORY:$RELEASE_TAG
-            echo "✅ Pushed release tag: $RELEASE_TAG"
-          fi
-
-      # ===== Tokyo (ap-northeast-1): Retag & Push =====
+      # ===== Tokyo (ap-northeast-1): Build & Push =====
       - name: Configure AWS credentials (Tokyo)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
-          aws-region: ${{ vars.AWS_REGION_TOKYO }}
+          aws-region: ap-northeast-1
 
       - name: Login to Amazon ECR (Tokyo)
         id: login-ecr-tokyo
@@ -74,20 +39,19 @@ jobs:
           aws ecr describe-repositories --repository-names "$REPO" >/dev/null 2>&1 \
           || aws ecr create-repository --repository-name "$REPO"
 
-      - name: Retag & Push image to ECR (Tokyo)
+      - name: Build & Push image to ECR (Tokyo)
         env:
-          SRC_REGISTRY: ${{ steps.login-ecr-osaka.outputs.registry }}
-          DST_REGISTRY: ${{ steps.login-ecr-tokyo.outputs.registry }}
-          REPO:         ${{ vars.TF_VAR_ECR_REPO_NAME }}
-          IMAGE_TAG:    ${{ github.sha }}
+          REGISTRY:   ${{ steps.login-ecr-tokyo.outputs.registry }}
+          REPOSITORY: ${{ vars.TF_VAR_ECR_REPO_NAME }}
+          IMAGE_TAG:  ${{ github.sha }}
           RELEASE_TAG: ${{ github.event.inputs.release_tag }}
         run: |
-          docker tag ${SRC_REGISTRY}/${REPO}:${IMAGE_TAG} ${DST_REGISTRY}/${REPO}:${IMAGE_TAG}
-          docker tag ${SRC_REGISTRY}/${REPO}:latest       ${DST_REGISTRY}/${REPO}:latest
-          docker push ${DST_REGISTRY}/${REPO}:${IMAGE_TAG}
-          docker push ${DST_REGISTRY}/${REPO}:latest
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f backend/Dockerfile backend
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+          docker tag  $REGISTRY/$REPOSITORY:$IMAGE_TAG  $REGISTRY/$REPOSITORY:latest
+          docker push $REGISTRY/$REPOSITORY:latest
           if [ -n "$RELEASE_TAG" ]; then
-            docker tag ${SRC_REGISTRY}/${REPO}:${IMAGE_TAG} ${DST_REGISTRY}/${REPO}:${RELEASE_TAG}
-            docker push ${DST_REGISTRY}/${REPO}:${RELEASE_TAG}
+            docker tag $REGISTRY/$REPOSITORY:$IMAGE_TAG $REGISTRY/$REPOSITORY:$RELEASE_TAG
+            docker push $REGISTRY/$REPOSITORY:$RELEASE_TAG
             echo "✅ Pushed release tag to Tokyo: $RELEASE_TAG"
           fi
