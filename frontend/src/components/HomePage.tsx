@@ -911,17 +911,19 @@ const HomePage: React.FC = () => {
         {/* 参加CTA */}
         <section className="py-16">
           <Card className="backdrop-blur-md bg-gray-50/90 border border-gray-200 p-6 md:p-8 text-center shadow-2xl">
-            <CardContent>
-              <h3 className="text-3xl md:text-4xl font-serif font-semibold text-slate-900">無料で雰囲気を体験してみませんか？</h3>
+            <CardContent className="py-4">
+              <h3 className="text-2xl md:text-3xl font-serif font-semibold text-slate-900">
+                無料で体験・<br />有料で実践！
+              </h3>
               <p className="mt-4 text-xl md:text-2xl text-slate-600">
                 無料会員はサイト全体の内容を見ていただけます。投稿や有料会員限定サイトを閲覧するには会員登録が必要です。
               </p>
-              <div className="mt-4 flex justify-center">
+              <div className="mt-4 flex justify-center px-4">
                 <Button 
                   onClick={() => window.location.href = '/login'}
-                  className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 px-10 py-5 text-2xl md:text-3xl font-medium shadow-md hover:shadow-lg transition-all"
+                  className="bg-gradient-to-r from-yellow-300 to-yellow-400 hover:from-yellow-400 hover:to-yellow-500 text-gray-900 px-6 md:px-10 py-5 md:py-6 text-lg md:text-xl lg:text-2xl font-medium shadow-md hover:shadow-lg transition-all w-full md:w-auto leading-relaxed"
                 >
-                  プレミアム会員になる（月1,000円）
+                  プレミアム会員になる<br />月1,000円（税別）
                 </Button>
               </div>
             </CardContent>

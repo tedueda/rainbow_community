@@ -9,6 +9,7 @@ import PostDetailModal from './PostDetailModal';
 import NewPostForm from './NewPostForm';
 import { Post } from '../types/Post';
 import { getYouTubeThumbnail, extractYouTubeUrlFromText } from '../utils/youtube';
+import { getPostImageUrl } from '../utils/imageUtils';
 
 
 const categories = {
@@ -412,10 +413,26 @@ const CategoryPage: React.FC = () => {
             >
               {/* 画像ギャラリー（投稿画像がなければ YouTube サムネ、なければプレースホルダーを使用） */}
               {(() => {
-                const firstMedia = post.media_url || (post.media_urls && post.media_urls[0]) || '';
+                // getPostImageUrlを使用してmedia_urlを優先的に取得
+                const postImage = getPostImageUrl(post);
+                
+                // postImageがある場合はそのまま使用（S3のURLまたはUnsplashのURL）
+                if (postImage) {
+                  return (
+                    <div className="aspect-[3/2] w-full h-[220px] overflow-hidden rounded-t-2xl bg-gray-100 flex items-center justify-center">
+                      <img
+                        src={postImage}
+                        alt={post.title || '投稿画像'}
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    </div>
+                  );
+                }
+                
+                // 画像がない場合はYouTubeサムネイルまたはプレースホルダー
                 const ytUrl = post.youtube_url || extractYouTubeUrlFromText(post.body || '') || '';
-                const ytThumb = !firstMedia ? getYouTubeThumbnail(ytUrl) : null;
-                const imageSrc = firstMedia || ytThumb || getCategoryPlaceholder(post.category);
+                const ytThumb = getYouTubeThumbnail(ytUrl);
+                const imageSrc = ytThumb || getCategoryPlaceholder(post.category);
                 const finalSrc =
                   imageSrc.startsWith('http')
                     ? imageSrc

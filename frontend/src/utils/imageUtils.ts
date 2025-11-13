@@ -40,3 +40,37 @@ export const resolveImageUrl = (url: string | undefined | null): string => {
 export const resolveImageUrls = (urls: (string | undefined | null)[]): string[] => {
   return urls.map(resolveImageUrl).filter(url => url !== '');
 };
+
+/**
+ * 投稿の画像URLを取得する（media_urlを優先）
+ * @param post - 投稿オブジェクト
+ * @returns 解決された画像URL
+ */
+export const getPostImageUrl = (post: { media_url?: string; og_image_url?: string }): string => {
+  // デバッグログ
+  console.log('getPostImageUrl:', { media_url: post.media_url, og_image_url: post.og_image_url });
+  
+  // media_urlが存在し、S3のURLまたは完全なURLの場合は優先
+  if (post.media_url && (post.media_url.startsWith('http') || post.media_url.includes('s3.amazonaws.com'))) {
+    console.log('Using media_url:', post.media_url);
+    return post.media_url;
+  }
+  
+  // og_image_urlが完全なURL（Unsplashなど）の場合は使用
+  if (post.og_image_url && post.og_image_url.startsWith('http')) {
+    console.log('Using og_image_url:', post.og_image_url);
+    return post.og_image_url;
+  }
+  
+  // media_urlがローカルパスの場合は解決
+  if (post.media_url) {
+    const resolved = resolveImageUrl(post.media_url);
+    console.log('Resolved media_url:', resolved);
+    return resolved;
+  }
+  
+  // 最後の手段としてog_image_urlを解決
+  const resolved = resolveImageUrl(post.og_image_url);
+  console.log('Resolved og_image_url:', resolved);
+  return resolved;
+};
