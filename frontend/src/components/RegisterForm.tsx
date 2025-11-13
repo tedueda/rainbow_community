@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Heart } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const RegisterForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -16,6 +17,7 @@ const RegisterForm: React.FC = () => {
   const [error, setError] = useState('');
   
   const navigate = useNavigate();
+  const { login } = useAuth();
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,7 +56,14 @@ const RegisterForm: React.FC = () => {
       });
 
       if (response.ok) {
-        navigate('/login');
+        // 登録成功後、自動的にログイン
+        const loginSuccess = await login(email, password);
+        if (loginSuccess) {
+          navigate('/feed');
+        } else {
+          // ログインに失敗した場合はログインページへ
+          navigate('/login');
+        }
       } else {
         setError('このメールアドレスは既に使用されている可能性があります');
       }
