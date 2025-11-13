@@ -85,9 +85,14 @@ app.include_router(account.router)
 
 @app.on_event("startup")
 def on_startup():
-    db_url = os.getenv("DATABASE_URL", "")
-    if "sqlite" in db_url.lower() or not db_url:
-        Base.metadata.create_all(bind=engine)
+    try:
+        db_url = os.getenv("DATABASE_URL", "")
+        if "sqlite" in db_url.lower() or not db_url:
+            Base.metadata.create_all(bind=engine)
+        print("✅ Database initialization completed")
+    except Exception as e:
+        print(f"⚠️ Database initialization failed: {e}")
+        print("⚠️ Application will continue without database initialization")
 
 @app.get("/healthz")
 async def healthz():
