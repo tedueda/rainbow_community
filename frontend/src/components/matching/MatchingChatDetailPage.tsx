@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { API_URL } from '@/config';
 import { useChatThread } from '@/hooks/useChatThread';
 import MessageBubble from './chat/MessageBubble';
+import { ArrowLeft } from 'lucide-react';
 
 interface ChatMeta {
   with_user_id: number;
@@ -19,6 +20,7 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
   const { id } = useParams<{ id: string }>();
   const chatId = id ? Number(id) : null;
   const { token, user } = useAuth();
+  const navigate = useNavigate();
   
   const [chatMeta, setChatMeta] = useState<ChatMeta | null>(null);
   const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null);
@@ -182,9 +184,15 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full pb-20 md:pb-0">
       {!embedded && (
-        <div className="pb-3 border-b mb-3">
+        <div className="pb-3 border-b mb-3 flex items-center gap-3">
+          <button
+            onClick={() => navigate('/matching/chats')}
+            className="md:hidden p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
           <h2 className="text-lg font-semibold">
             {chatMeta?.with_display_name || 'チャット'}
           </h2>
@@ -235,7 +243,7 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
         </div>
       )}
 
-      <div className="mt-3 flex gap-2 items-end bg-white border-t border-gray-200 pt-3">
+      <div className="mt-2 flex gap-2 items-end bg-white border-t border-gray-200 pt-2">
         <input
           type="file"
           ref={fileInputRef}
@@ -261,7 +269,7 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
         <button
           onClick={handleSendMessage}
           disabled={uploading || sending || (!body.trim() && !imageFile)}
-          className="px-5 py-2 bg-[#06c755] text-white rounded-full text-sm font-medium hover:bg-[#05b04b] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+          className="px-5 py-2 bg-black text-white rounded-full text-sm font-medium hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
         >
           {uploading || sending ? '送信中...' : '送信'}
         </button>

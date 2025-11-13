@@ -182,6 +182,13 @@ function AppContent() {
               <BlogDetailPage />
             </FeedRoute>
           } />
+          {/* Board routes */}
+          <Route path="/board/subculture" element={<Navigate to="/category/subculture" replace />} />
+          <Route path="/board/art" element={<Navigate to="/category/art" replace />} />
+          <Route path="/board/music" element={<Navigate to="/category/music" replace />} />
+          <Route path="/board/general" element={<Navigate to="/category/board" replace />} />
+          <Route path="/board/shops" element={<Navigate to="/category/shops" replace />} />
+          <Route path="/board/tourism" element={<Navigate to="/category/tourism" replace />} />
           <Route path="/" element={<Navigate to="/feed" />} />
         </Routes>
       </main>

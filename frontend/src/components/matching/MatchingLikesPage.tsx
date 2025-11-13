@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { API_URL } from '@/config';
 import { useNavigate } from 'react-router-dom';
 import { createApiClient } from '@/lib/apiClient';
-import { navigateToChat } from '@/lib/chatNavigation';
+import { navigateToComposeOrChat } from '@/lib/chatNavigation';
 
 type LikeItem = {
   like_id: number;
@@ -64,8 +64,7 @@ const MatchingLikesPage: React.FC = () => {
     
     try {
       const apiClient = createApiClient(() => token);
-      await navigateToChat(apiClient, navigate, userId, '', user?.id || null);
-      alert('✉️ メールリクエストを送信しました！\n\n相手が承諾するとメールができます。');
+      await navigateToComposeOrChat(apiClient, navigate, userId, user?.id || null);
     } catch (e: any) {
       alert(`エラー: ${e?.message || 'メール送信に失敗しました'}`);
     }
@@ -108,10 +107,11 @@ const MatchingLikesPage: React.FC = () => {
                     <img 
                       src={like.avatar_url.startsWith('http') ? like.avatar_url : `${API_URL}${like.avatar_url}`}
                       alt={like.display_name}
-                      className="w-12 h-12 rounded-full object-cover"
+                      className="w-12 h-12 rounded-full object-cover bg-gray-200"
                       onError={(e) => {
                         const target = e.currentTarget as HTMLImageElement;
-                        target.style.display = 'none';
+                        target.onerror = null;
+                        target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="50" fill="%23e5e7eb"/%3E%3Ctext x="50" y="65" font-size="50" text-anchor="middle" fill="%236b7280"%3E👤%3C/text%3E%3C/svg%3E';
                       }}
                     />
                   ) : (
@@ -153,11 +153,11 @@ const MatchingLikesPage: React.FC = () => {
                   <img 
                     src={like.avatar_url.startsWith('http') ? like.avatar_url : `${API_URL}${like.avatar_url}`}
                     alt={like.display_name}
-                    className="w-full h-48 object-cover"
+                    className="w-full h-48 object-cover bg-gray-200"
                     onError={(e) => {
                       const target = e.currentTarget as HTMLImageElement;
-                      target.src = '';
-                      target.style.display = 'none';
+                      target.onerror = null;
+                      target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%23e5e7eb"/%3E%3Ctext x="50" y="60" font-size="40" text-anchor="middle" fill="%239ca3af"%3E👤%3C/text%3E%3C/svg%3E';
                     }}
                   />
                 ) : (

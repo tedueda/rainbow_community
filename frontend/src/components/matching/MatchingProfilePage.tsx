@@ -9,6 +9,7 @@ type Profile = {
   nickname?: string;
   email?: string;
   display_name?: string;
+  real_name?: string;
   display_flag: boolean;
   prefecture: string;
   residence_detail?: string;
@@ -68,7 +69,7 @@ const MatchingProfilePage: React.FC = () => {
   const ZODIACS = ['牡羊座','牡牛座','双子座','蟹座','獅子座','乙女座','天秤座','蠍座','射手座','山羊座','水瓶座','魚座'];
   const MEET_PREFS = ['パートナー探し','友人探し','相談相手探し','メンバー募集','その他'];
   const IDENTITIES = ['ゲイ','レズ','トランスジェンダー','バイセクシャル','クィア','男性','女性','非表示'];
-  const ROMANCE_TARGETS = ['ゲイ','レズ','その他（全て）'];
+  const ROMANCE_TARGETS = ['男性','女性','その他'];
   const HOBBY_CATALOG = [
     '音楽','映画','ドラマ','アニメ','漫画','読書','カフェ','料理','グルメ','お酒',
     '旅行','国内旅行','海外旅行','写真','カメラ','カラオケ','ゲーム','ボードゲーム','スポーツ観戦','筋トレ',
@@ -212,9 +213,9 @@ const MatchingProfilePage: React.FC = () => {
   const saveProfile = async () => {
     if (!token || !profile) return;
     
-    // ニックネームの必須チェック
+    // 表示名の必須チェック
     if (!profile.nickname || profile.nickname.trim() === '') {
-      setError('ニックネームは必須です');
+      setError('表示名は必須です');
       return;
     }
     
@@ -225,6 +226,7 @@ const MatchingProfilePage: React.FC = () => {
         nickname: profile.nickname,
         email: profile.email,
         display_name: profile.display_name,
+        real_name: profile.real_name,
         display_flag: profile.display_flag,
         prefecture: profile.prefecture,
         residence_detail: profile.residence_detail || '',
@@ -844,7 +846,7 @@ const MatchingProfilePage: React.FC = () => {
                     </div>
                     <div>
                       <label htmlFor="nickname" className="block text-sm mb-1">
-                        ニックネーム（常に表示される）<span className="text-red-500 ml-1">*</span>
+                        表示名（常に表示される）<span className="text-red-500 ml-1">*</span>
                       </label>
                       <input
                         id="nickname"
@@ -852,17 +854,17 @@ const MatchingProfilePage: React.FC = () => {
                         value={profile.nickname || ''}
                         onChange={(e) => setProfile({ ...profile, nickname: e.target.value })}
                         className="w-full border rounded px-3 py-2 text-sm"
-                        placeholder="ニックネームを入力"
+                        placeholder="表示名を入力"
                         required
                       />
                     </div>
                     <div>
-                      <label htmlFor="display_name" className="block text-sm mb-1">本名</label>
+                      <label htmlFor="real_name" className="block text-sm mb-1">本名</label>
                       <input
-                        id="display_name"
+                        id="real_name"
                         type="text"
-                        value={profile.display_name || ''}
-                        onChange={(e) => setProfile({ ...profile, display_name: e.target.value })}
+                        value={profile.real_name || ''}
+                        onChange={(e) => setProfile({ ...profile, real_name: e.target.value })}
                         className="w-full border rounded px-3 py-2 text-sm"
                         placeholder="本名を入力"
                       />

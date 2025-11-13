@@ -9,6 +9,8 @@ type ChatItem = {
   with_display_name: string;
   with_avatar_url?: string | null;
   last_message?: string;
+  unread_count?: number;
+  last_message_at?: string;
 };
 
 type ChatRequest = {
@@ -99,7 +101,9 @@ const MatchingChatShell: React.FC = () => {
   }, [token]);
 
   useEffect(() => {
-    if (!id && !requestId && !loading) {
+    // PCのみ自動選択（モバイルは手動選択）
+    const isMobile = window.innerWidth < 768;
+    if (!id && !requestId && !loading && !isMobile) {
       if (chats.length > 0) {
         navigate(`/matching/chats/${chats[0].chat_id}`, { replace: true });
       } else if (incomingRequests.length > 0) {
@@ -113,10 +117,17 @@ const MatchingChatShell: React.FC = () => {
 
   const selectedChatId = id ? Number(id) : null;
 
+  // チャットを最新順にソート
+  const sortedChats = [...chats].sort((a, b) => {
+    const timeA = a.last_message_at ? new Date(a.last_message_at).getTime() : 0;
+    const timeB = b.last_message_at ? new Date(b.last_message_at).getTime() : 0;
+    return timeB - timeA;
+  });
+
   return (
-    <div className="flex h-[calc(100vh-200px)] gap-4">
+    <div className="flex flex-col md:flex-row h-[calc(100vh-200px)] gap-4">
       {/* Left sidebar - Chat list */}
-      <div className="w-80 flex-shrink-0 border-r border-gray-200 overflow-y-auto bg-white">
+      <div className={`w-full md:w-64 flex-shrink-0 border-r border-gray-200 overflow-y-auto bg-white ${(id || requestId) ? 'hidden md:block' : 'block'}`}>
         <div className="p-4">
           <h2 className="text-lg font-semibold text-black mb-3">チャット</h2>
           
@@ -198,15 +209,15 @@ const MatchingChatShell: React.FC = () => {
             {loading && <div className="text-sm text-gray-500">読み込み中...</div>}
             {error && <div className="text-sm text-red-600">{error}</div>}
             <div className="space-y-2">
-              {chats.map((chat) => (
+              {sortedChats.map((chat) => (
                 <button
                   key={chat.chat_id}
                   onClick={() => navigate(`/matching/chats/${chat.chat_id}`)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors ${
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors relative ${
                     selectedChatId === chat.chat_id ? 'bg-gray-100 border-l-4 border-black' : 'hover:bg-gray-50 border border-gray-100'
                   }`}
                 >
-                  <div className="flex-shrink-0">
+                  <div className="flex-shrink-0 relative">
                     {chat.with_avatar_url ? (
                       <img
                         src={chat.with_avatar_url.startsWith('http') ? chat.with_avatar_url : `${API_URL}${chat.with_avatar_url}`}
@@ -216,6 +227,11 @@ const MatchingChatShell: React.FC = () => {
                     ) : (
                       <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
                         <span className="text-2xl">😊</span>
+                      </div>
+                    )}
+                    {chat.unread_count && chat.unread_count > 0 && (
+                      <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                        {chat.unread_count > 9 ? '9+' : chat.unread_count}
                       </div>
                     )}
                   </div>
@@ -238,7 +254,7 @@ const MatchingChatShell: React.FC = () => {
       </div>
 
       {/* Right side - Chat detail */}
-      <div className="flex-1 overflow-hidden">
+      <div className={`flex-1 overflow-hidden ${!(id || requestId) ? 'hidden md:block' : 'block'}`}>
         <Outlet />
       </div>
     </div>

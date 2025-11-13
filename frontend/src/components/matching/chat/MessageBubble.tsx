@@ -71,7 +71,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         <div
           className={`rounded-2xl px-4 py-2.5 shadow-sm ${
             isMe
-              ? 'bg-[#06c755] text-white'
+              ? 'bg-black text-white'
               : 'bg-white border border-gray-200 text-gray-900'
           }`}
           style={isMe ? {

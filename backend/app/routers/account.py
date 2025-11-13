@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models import User
+from app.models import User, MatchingProfile
 from app.auth import get_current_user, get_password_hash, verify_password
 from pydantic import BaseModel, EmailStr
 from typing import Optional
@@ -44,14 +44,20 @@ class DeleteAccountRequest(BaseModel):
 
 
 @router.get("/me", response_model=AccountResponse)
-def get_account(current_user: User = Depends(get_current_user)):
+def get_account(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """現在のユーザーのアカウント情報を取得"""
+    # phone_numberはmatching_profileから取得
+    phone_number = None
+    matching_profile = db.query(MatchingProfile).filter(MatchingProfile.user_id == current_user.id).first()
+    if matching_profile:
+        phone_number = matching_profile.phone_number
+    
     return AccountResponse(
         id=current_user.id,
         email=current_user.email,
         display_name=current_user.display_name,
         membership_type=current_user.membership_type,
-        phone_number=current_user.phone_number,
+        phone_number=phone_number,
         real_name=current_user.real_name,
         is_verified=current_user.is_verified or False,
         two_factor_enabled=current_user.two_factor_enabled or False,
@@ -80,17 +86,19 @@ def update_account(
     if payload.display_name:
         current_user.display_name = payload.display_name
     
-    # 携帯番号の更新
+    # 携帯番号の更新（matching_profileに保存）
+    matching_profile = db.query(MatchingProfile).filter(MatchingProfile.user_id == current_user.id).first()
     if payload.phone_number is not None:
-        if payload.phone_number:  # 空文字列でない場合
-            # 既に使用されている携帯番号かチェック
-            existing = db.query(User).filter(
-                User.phone_number == payload.phone_number,
-                User.id != current_user.id
-            ).first()
-            if existing:
-                raise HTTPException(status_code=400, detail="この携帯番号は既に使用されています")
-        current_user.phone_number = payload.phone_number if payload.phone_number else None
+        if matching_profile:
+            if payload.phone_number:  # 空文字列でない場合
+                # 既に使用されている携帯番号かチェック
+                existing = db.query(MatchingProfile).filter(
+                    MatchingProfile.phone_number == payload.phone_number,
+                    MatchingProfile.user_id != current_user.id
+                ).first()
+                if existing:
+                    raise HTTPException(status_code=400, detail="この携帯番号は既に使用されています")
+            matching_profile.phone_number = payload.phone_number if payload.phone_number else None
     
     # 本名の更新
     if payload.real_name is not None:
@@ -98,6 +106,11 @@ def update_account(
     
     db.commit()
     db.refresh(current_user)
+    if matching_profile:
+        db.refresh(matching_profile)
+    
+    # phone_numberを取得
+    phone_number = matching_profile.phone_number if matching_profile else None
     
     return {
         "message": "アカウント情報を更新しました",
@@ -106,7 +119,7 @@ def update_account(
             email=current_user.email,
             display_name=current_user.display_name,
             membership_type=current_user.membership_type,
-            phone_number=current_user.phone_number,
+            phone_number=phone_number,
             real_name=current_user.real_name,
             is_verified=current_user.is_verified or False,
             two_factor_enabled=current_user.two_factor_enabled or False,

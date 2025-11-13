@@ -122,7 +122,7 @@ const MatchingUserProfilePage: React.FC = () => {
       {/* Profile Content */}
       <div className="max-w-2xl mx-auto">
         {/* Image Gallery */}
-        <div className="relative mx-auto max-w-xl md:max-w-2xl max-h-[420px] md:max-h-[480px] aspect-[4/3] rounded-lg overflow-hidden bg-gray-100">
+        <div className="relative mx-auto max-w-xl md:max-w-2xl max-h-[420px] md:max-h-[480px] aspect-[4/3] rounded-lg overflow-hidden bg-gray-100 mb-4 md:mb-0">
           {profile.images && profile.images.length > 0 ? (
             <>
               <img
@@ -175,6 +175,24 @@ const MatchingUserProfilePage: React.FC = () => {
               <span className="text-6xl">😊</span>
             </div>
           )}
+        </div>
+
+        {/* Mobile Action Buttons - Below Image */}
+        <div className="md:hidden px-4 mb-6">
+          <div className="flex gap-2">
+            <button
+              onClick={handleLike}
+              className="rounded-lg px-4 py-2.5 text-sm font-medium transition-all bg-black text-white hover:bg-gray-800 active:scale-95"
+            >
+              ♡ お気に入り
+            </button>
+            <button
+              onClick={handleSendMessage}
+              className="rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 transition-all bg-white hover:bg-gray-50 active:scale-95 border border-gray-300"
+            >
+              メールをする
+            </button>
+          </div>
         </div>
 
         {/* Profile Info */}
@@ -252,20 +270,20 @@ const MatchingUserProfilePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Sticky Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
-        <div className="max-w-2xl mx-auto flex gap-2">
+      {/* Desktop Sticky Bottom Action Bar */}
+      <div className="hidden md:block fixed bottom-4 left-4 right-4 z-30">
+        <div className="max-w-2xl mx-auto flex gap-3">
           <button
             onClick={handleLike}
-            className="flex-1 rounded-md px-4 py-3 text-sm font-medium transition-all bg-black text-white hover:bg-gray-800 active:scale-95"
+            className="flex-1 rounded-full px-6 py-4 text-base font-semibold transition-all bg-gradient-to-r from-pink-500 to-rose-500 text-white hover:from-pink-600 hover:to-rose-600 active:scale-95 shadow-xl"
           >
             ♡ お気に入り
           </button>
           <button
             onClick={handleSendMessage}
-            className="flex-1 rounded-md border border-gray-300 px-4 py-3 text-center text-sm font-medium text-gray-700 transition-all hover:bg-gray-100 active:scale-95"
+            className="flex-1 rounded-full px-6 py-4 text-base font-semibold text-gray-800 transition-all bg-white hover:bg-gray-50 active:scale-95 shadow-xl border border-gray-200"
           >
-            メールをする
+            ✉️ メールをする
           </button>
         </div>
       </div>

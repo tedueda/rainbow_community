@@ -385,10 +385,10 @@ const HomePage: React.FC = () => {
           <div className="absolute inset-0 bg-black bg-opacity-40"></div>
           <div className="relative z-10 flex items-center justify-center h-full">
             <div className="text-center text-white px-4 max-w-6xl">
-              <h2 className="text-5xl md:text-7xl font-serif font-bold leading-tight mb-6">
+              <h2 className="text-3xl md:text-7xl font-serif font-bold leading-tight mb-6">
                 自分を表現して、<br />新しい仲間と出会おう
               </h2>
-              <p className="text-xl md:text-2xl mb-8 opacity-90">
+              <p className="text-lg md:text-2xl mb-8 opacity-90">
                 悩み相談、アート、音楽、地元ツアー。ここから、あなたの物語が始まります。
               </p>
               <div className="flex flex-wrap gap-4 justify-center">
