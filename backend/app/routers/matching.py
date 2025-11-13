@@ -48,9 +48,10 @@ def get_my_profile(current_user: User = Depends(require_premium), db: Session = 
     
     return {
         "user_id": prof.user_id,
-        "nickname": getattr(prof, 'nickname', None) or "",
+        "nickname": current_user.display_name or "",  # nicknameはdisplay_nameを返す（互換性のため）
         "email": current_user.email or "",
         "display_name": current_user.display_name or "",
+        "real_name": getattr(current_user, 'real_name', None) or "",
         "phone_number": getattr(current_user, 'phone_number', None) or "",
         "display_flag": prof.display_flag,
         "prefecture": prof.prefecture or "",
@@ -105,12 +106,18 @@ def update_my_profile(payload: dict, current_user: User = Depends(require_premiu
         current_user.email = payload["email"]
     if "display_name" in payload:
         current_user.display_name = payload["display_name"]
+    if "nickname" in payload:
+        # nicknameはdisplay_nameとして扱う
+        current_user.display_name = payload["nickname"]
+    if "real_name" in payload:
+        current_user.real_name = payload["real_name"]
     if "password" in payload and payload["password"]:
         from app.auth import get_password_hash
         current_user.hashed_password = get_password_hash(payload["password"])
     
     # フィールド更新（カラムが存在しない場合はスキップ）
-    for field in ["nickname", "prefecture", "residence_detail", "hometown", "age_band", "occupation", "income_range", "blood_type", "zodiac", "meet_pref", "bio", "identity"]:
+    # nicknameは除外（display_nameを使用）
+    for field in ["prefecture", "residence_detail", "hometown", "age_band", "occupation", "income_range", "blood_type", "zodiac", "meet_pref", "bio", "identity"]:
         if field in payload and hasattr(prof, field):
             setattr(prof, field, payload.get(field))
     
@@ -279,10 +286,11 @@ def search_profiles(
     items = [
         {
             "user_id": prof.user_id,
-            "display_name": prof.nickname or user.display_name or f"User {prof.user_id}",
+            "display_name": user.display_name or f"User {prof.user_id}",
             "prefecture": prof.prefecture,
             "age_band": prof.age_band,
             "identity": prof.identity,
+            "romance_targets": prof.romance_targets or [],
             "avatar_url": main_images.get(prof.user_id) or getattr(prof, 'avatar_url', None) or "",
         }
         for prof, user in rows
@@ -335,24 +343,22 @@ def list_likes(
         try:
             first_image = (
                 db.query(MatchingProfileImage)
-                .filter(MatchingProfileImage.profile_id == like.to_user_id)
+                .filter(MatchingProfileImage.user_id == like.to_user_id)
                 .order_by(MatchingProfileImage.display_order)
                 .first()
             )
             if first_image:
                 profile_image = first_image.image_url
-        except Exception:
-            # テーブルが存在しない場合はスキップ
+        except Exception as e:
+            # テーブルが存在しない場合やエラーはスキップ
+            print(f"Error fetching profile image: {e}")
             pass
         
         # プロフィール画像がない場合はavatar_urlを使用
         avatar_url = profile_image or (getattr(prof, 'avatar_url', None) if prof else None)
         
-        # nicknameを優先、なければdisplay_name
-        display_name = (
-            prof.nickname if (prof and prof.nickname) 
-            else (other.display_name if other else f"User {like.to_user_id}")
-        )
+        # display_nameを使用
+        display_name = other.display_name if other else f"User {like.to_user_id}"
         
         items.append({
             "like_id": like.id,
@@ -380,12 +386,8 @@ def list_matches(
     for m in ms:
         other_id = m.user_b_id if m.user_a_id == current_user.id else m.user_a_id
         other = db.query(User).filter(User.id == other_id).first()
-        # nicknameを優先、なければdisplay_name
-        other_prof = db.query(MatchingProfile).filter(MatchingProfile.user_id == other_id).first()
-        display_name = (
-            other_prof.nickname if (other_prof and other_prof.nickname) 
-            else (other.display_name if other else f"User {other_id}")
-        )
+        # display_nameを使用
+        display_name = other.display_name if other else f"User {other_id}"
         items.append({"match_id": m.id, "user_id": other_id, "display_name": display_name})
     return {"items": items}
 
@@ -468,9 +470,14 @@ def list_chats(
         )
         avatar_url = profile_images[0].image_url if profile_images else None
         
-        display_name = (
-            other_profile.nickname if (other_profile and other_profile.nickname) 
-            else (other.display_name if other else f"User {other_id}")
+        # display_nameを使用
+        display_name = other.display_name if other else f"User {other_id}"
+        
+        # 未読メッセージ数を計算
+        unread_count = (
+            db.query(Message)
+            .filter(Message.chat_id == ch.id, Message.sender_id == other_id, Message.read_at == None)
+            .count()
         )
         
         chat_items.append({
@@ -479,6 +486,8 @@ def list_chats(
             "with_display_name": display_name,
             "with_avatar_url": avatar_url,
             "last_message": last_msg.body if last_msg else None,
+            "last_message_at": last_msg.created_at.isoformat() if last_msg and last_msg.created_at else None,
+            "unread_count": unread_count,
         })
     return {"items": chat_items}
 
