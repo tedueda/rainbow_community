@@ -329,6 +329,25 @@ def list_likes(
     for like in likes:
         other = db.query(User).filter(User.id == like.to_user_id).first()
         prof = db.query(MatchingProfile).filter(MatchingProfile.user_id == like.to_user_id).first()
+        
+        # プロフィール画像を取得（最初の画像のみ）
+        profile_image = None
+        try:
+            first_image = (
+                db.query(MatchingProfileImage)
+                .filter(MatchingProfileImage.profile_id == like.to_user_id)
+                .order_by(MatchingProfileImage.display_order)
+                .first()
+            )
+            if first_image:
+                profile_image = first_image.image_url
+        except Exception:
+            # テーブルが存在しない場合はスキップ
+            pass
+        
+        # プロフィール画像がない場合はavatar_urlを使用
+        avatar_url = profile_image or (getattr(prof, 'avatar_url', None) if prof else None)
+        
         items.append({
             "like_id": like.id,
             "user_id": like.to_user_id,
@@ -336,7 +355,7 @@ def list_likes(
             "identity": prof.identity if prof else None,
             "prefecture": prof.prefecture if prof else None,
             "age_band": prof.age_band if prof else None,
-            "avatar_url": getattr(prof, 'avatar_url', None) if prof else None,
+            "avatar_url": avatar_url,
         })
     return {"items": items}
 

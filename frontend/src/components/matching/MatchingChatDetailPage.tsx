@@ -137,10 +137,12 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
     if (!text && !imageUrl) return;
 
     try {
+      // テキストのみの場合はsendTextMessage（WebSocket経由で受信）
       if (text && !imageUrl) {
         await sendTextMessage(text);
         setBody('');
       } else {
+        // 画像がある場合は直接API呼び出し（WebSocketで重複受信しないように）
         const res = await fetch(`${API_URL}/api/matching/chats/${chatId}/messages`, {
           method: 'POST',
           headers: {
@@ -152,12 +154,15 @@ const MatchingChatDetailPage: React.FC<MatchingChatDetailPageProps> = ({ embedde
         
         if (!res.ok) throw new Error(await res.text());
         
+        // 送信成功後、フォームをクリア
         setBody('');
         setImageFile(null);
         setImagePreview(null);
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
+        
+        // メッセージはWebSocketで受信されるので、ここでは追加しない
       }
       
       setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
