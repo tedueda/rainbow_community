@@ -219,7 +219,7 @@ def search_profiles(
     current_user: User = Depends(require_premium),
     db: Session = Depends(get_db),
 ):
-    q = db.query(MatchingProfile, User.display_name).join(User, User.id == MatchingProfile.user_id)
+    q = db.query(MatchingProfile, User).join(User, User.id == MatchingProfile.user_id)
     q = q.filter(MatchingProfile.display_flag == True)
     q = q.filter(MatchingProfile.user_id != current_user.id)
     if prefecture:
@@ -279,13 +279,13 @@ def search_profiles(
     items = [
         {
             "user_id": prof.user_id,
-            "display_name": disp,
+            "display_name": prof.nickname or user.display_name or f"User {prof.user_id}",
             "prefecture": prof.prefecture,
             "age_band": prof.age_band,
             "identity": prof.identity,
             "avatar_url": main_images.get(prof.user_id) or getattr(prof, 'avatar_url', None) or "",
         }
-        for prof, disp in rows
+        for prof, user in rows
     ]
     return {"items": items, "page": page, "size": size, "count": total}
 
@@ -348,10 +348,16 @@ def list_likes(
         # プロフィール画像がない場合はavatar_urlを使用
         avatar_url = profile_image or (getattr(prof, 'avatar_url', None) if prof else None)
         
+        # nicknameを優先、なければdisplay_name
+        display_name = (
+            prof.nickname if (prof and prof.nickname) 
+            else (other.display_name if other else f"User {like.to_user_id}")
+        )
+        
         items.append({
             "like_id": like.id,
             "user_id": like.to_user_id,
-            "display_name": other.display_name if other else f"User {like.to_user_id}",
+            "display_name": display_name,
             "identity": prof.identity if prof else None,
             "prefecture": prof.prefecture if prof else None,
             "age_band": prof.age_band if prof else None,
@@ -374,7 +380,13 @@ def list_matches(
     for m in ms:
         other_id = m.user_b_id if m.user_a_id == current_user.id else m.user_a_id
         other = db.query(User).filter(User.id == other_id).first()
-        items.append({"match_id": m.id, "user_id": other_id, "display_name": other.display_name if other else f"User {other_id}"})
+        # nicknameを優先、なければdisplay_name
+        other_prof = db.query(MatchingProfile).filter(MatchingProfile.user_id == other_id).first()
+        display_name = (
+            other_prof.nickname if (other_prof and other_prof.nickname) 
+            else (other.display_name if other else f"User {other_id}")
+        )
+        items.append({"match_id": m.id, "user_id": other_id, "display_name": display_name})
     return {"items": items}
 
 
@@ -785,7 +797,8 @@ def list_incoming_chat_requests(
         items.append({
             "request_id": req.id,
             "from_user_id": req.from_user_id,
-            "from_display_name": from_user.display_name if from_user else f"User {req.from_user_id}",
+            "from_display_name": (profile.nickname if (profile and profile.nickname) else (from_user.display_name if from_user else f"User {req.from_user_id}")),
+
             "from_avatar_url": avatar_url,
             "identity": profile.identity if profile else None,
             "prefecture": profile.prefecture if profile else None,
@@ -830,7 +843,8 @@ def list_outgoing_chat_requests(
             "request_id": req.id,
             "from_user_id": req.from_user_id,
             "to_user_id": req.to_user_id,
-            "to_display_name": to_user.display_name if to_user else f"User {req.to_user_id}",
+            "to_display_name": (profile.nickname if (profile and profile.nickname) else (to_user.display_name if to_user else f"User {req.to_user_id}")),
+
             "to_avatar_url": avatar_url,
             "identity": profile.identity if profile else None,
             "prefecture": profile.prefecture if profile else None,
