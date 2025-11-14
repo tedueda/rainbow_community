@@ -13,15 +13,69 @@ import { getPostImageUrl } from '../utils/imageUtils';
 
 
 const categories = {
-  board: { title: "掲示板", emoji: "💬", desc: "悩み相談や雑談、生活の話題", slug: "board" },
-  art: { title: "アート", emoji: "🎨", desc: "イラスト・写真・映像作品の発表", slug: "art" },
-  music: { title: "音楽", emoji: "🎵", desc: "お気に入りや自作・AI曲の共有", slug: "music" },
-  shops: { title: "お店", emoji: "🏬", desc: "LGBTQフレンドリーなお店紹介", slug: "shops" },
-  tourism: { title: "ツーリズム", emoji: "📍", desc: "会員ガイドの交流型ツアー", slug: "tourism" },
-  comics: { title: "コミック・映画", emoji: "🎬", desc: "LGBTQ+テーマの作品レビューと感想", slug: "comics" },
-  news: { title: "ニュース", emoji: "📰", desc: "最新の制度・条例情報と解説記事", slug: "news" },
-  food: { title: "食レポ", emoji: "🍽️", desc: "単品メニュー・市販品のレビュー", slug: "food" },
-  beauty: { title: "美容", emoji: "💄", desc: "コスメ・スキンケアのレビュー", slug: "beauty" },
+  board: { 
+    title: "掲示板", 
+    emoji: "💬", 
+    desc: "悩み相談や雑談、生活の話題。本当の自分を発信し、共感できる仲間とつながる居場所", 
+    slug: "board",
+    seoKeywords: "LGBTQ 相談,カミングアウト 相談,悩み相談,共感,居場所,仲間とつながる"
+  },
+  art: { 
+    title: "アート", 
+    emoji: "🎨", 
+    desc: "イラスト・写真・映像作品の発表。自己表現を通じて本当の自分を表現", 
+    slug: "art",
+    seoKeywords: "LGBTQ アート,自己表現,作品発表,クリエイティブ"
+  },
+  music: { 
+    title: "音楽", 
+    emoji: "🎵", 
+    desc: "お気に入りや自作・AI曲の共有。音楽で自分らしさを表現", 
+    slug: "music",
+    seoKeywords: "LGBTQ 音楽,音楽共有,自分らしく"
+  },
+  shops: { 
+    title: "お店", 
+    emoji: "🏬", 
+    desc: "LGBTQフレンドリーなお店紹介。安心して過ごせる居場所を見つける", 
+    slug: "shops",
+    seoKeywords: "LGBTQ フレンドリー,お店,安心,居場所"
+  },
+  tourism: { 
+    title: "ツーリズム", 
+    emoji: "📍", 
+    desc: "会員ガイドの交流型ツアー。仲間と一緒に新しい体験", 
+    slug: "tourism",
+    seoKeywords: "LGBTQ ツアー,交流,仲間,体験"
+  },
+  comics: { 
+    title: "コミック・映画", 
+    emoji: "🎬", 
+    desc: "LGBTQ+テーマの作品レビューと感想。共感できる物語を共有", 
+    slug: "comics",
+    seoKeywords: "LGBTQ 映画,コミック,レビュー,共感"
+  },
+  news: { 
+    title: "ニュース", 
+    emoji: "📰", 
+    desc: "最新の制度・条例情報と解説記事。性の多様性を尊重する社会へ", 
+    slug: "news",
+    seoKeywords: "LGBTQ ニュース,制度,条例,性の多様性"
+  },
+  food: { 
+    title: "食レポ", 
+    emoji: "🍽️", 
+    desc: "単品メニュー・市販品のレビュー。自分の好きを発信", 
+    slug: "food",
+    seoKeywords: "食レポ,レビュー,発信"
+  },
+  beauty: { 
+    title: "美容", 
+    emoji: "💄", 
+    desc: "コスメ・スキンケアのレビュー。自分らしい美しさを追求", 
+    slug: "beauty",
+    seoKeywords: "美容,コスメ,自分らしく"
+  },
 };
 
 const sortOptions = [
