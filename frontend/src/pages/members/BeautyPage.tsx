@@ -183,7 +183,7 @@ const BeautyPage: React.FC = () => {
             💄 ビューティ
           </h1>
           <p className="text-carat-gray5 text-lg mb-6">
-            プレミアム会員限定・コスメ・メイク・ヨガのおすすめと講座
+            会員限定・コスメ・メイク・ヨガのおすすめと講座
           </p>
           
           <Link
@@ -239,7 +239,7 @@ const BeautyPage: React.FC = () => {
           <div className="text-center py-16">
             <div className="text-6xl mb-4">💄</div>
             <h3 className="text-xl font-semibold text-carat-gray6 mb-2">まだ投稿がありません</h3>
-            <p className="text-carat-gray5 mb-6">最初のビューティ投稿を作成してみませんか？（プレミアム会員限定）</p>
+            <p className="text-carat-gray5 mb-6">最初のビューティ投稿を作成してみませんか？（会員限定）</p>
             <Link
               to="/members/beauty/new"
               className="inline-block bg-carat-black text-carat-white px-6 py-3 rounded-full font-medium hover:bg-carat-gray6 transition-colors"

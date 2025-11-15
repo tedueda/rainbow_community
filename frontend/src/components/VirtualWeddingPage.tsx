@@ -221,7 +221,7 @@ const VirtualWeddingPage: React.FC = () => {
                 <p className="text-4xl font-bold text-carat-black">¥300,000</p>
                 <p className="text-carat-gray5 mt-2">税込価格</p>
                 <div className="mt-4 px-4 py-2 bg-carat-black text-carat-white rounded-full inline-block">
-                  <span className="text-sm font-semibold">Carat プレミアム会員価格</span>
+                  <span className="text-sm font-semibold">Carat 会員価格</span>
                 </div>
               </CardHeader>
               <CardContent>
