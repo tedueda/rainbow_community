@@ -145,6 +145,9 @@ class Post(PostBase):
     tourism_details: Optional[PostTourismDetails] = None
     created_at: datetime
     updated_at: datetime
+    like_count: Optional[int] = 0
+    comment_count: Optional[int] = 0
+    user_display_name: Optional[str] = None
     
     class Config:
         from_attributes = True

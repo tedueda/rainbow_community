@@ -9,7 +9,7 @@ from sqlalchemy import desc, func
 from typing import List, Optional
 from datetime import datetime, timedelta
 from app.database import get_db
-from app.models import User, Post, PointEvent, Reaction, Tag, PostTag, MediaAsset, PostMedia, PostTourism
+from app.models import User, Post, PointEvent, Reaction, Tag, PostTag, MediaAsset, PostMedia, PostTourism, Comment
 from app.schemas import Post as PostSchema, PostCreate, PostUpdate
 import re
 from app.auth import get_current_active_user, get_current_premium_user
@@ -90,6 +90,16 @@ async def read_posts(
     
     result = []
     for post in posts:
+        # カラット数（いいね数）を計算
+        like_count = db.query(Reaction).filter(
+            Reaction.target_type == "post",
+            Reaction.target_id == post.id,
+            Reaction.reaction_type == "like"
+        ).count()
+        
+        # コメント数を計算
+        comment_count = db.query(Comment).filter(Comment.post_id == post.id).count()
+        
         post_dict = {
             "id": post.id,
             "user_id": post.user_id,
@@ -110,7 +120,9 @@ async def read_posts(
             "excerpt": post.excerpt,
             "tourism_details": None,
             "created_at": post.created_at,
-            "updated_at": post.updated_at
+            "updated_at": post.updated_at,
+            "like_count": like_count,
+            "comment_count": comment_count
         }
         if post.media_id:
             media = db.query(MediaAsset).filter(MediaAsset.id == post.media_id).first()
