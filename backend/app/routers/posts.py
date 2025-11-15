@@ -91,14 +91,22 @@ async def read_posts(
     result = []
     for post in posts:
         # カラット数（いいね数）を計算
-        like_count = db.query(Reaction).filter(
-            Reaction.target_type == "post",
-            Reaction.target_id == post.id,
-            Reaction.reaction_type == "like"
-        ).count()
+        try:
+            like_count = db.query(Reaction).filter(
+                Reaction.target_type == "post",
+                Reaction.target_id == post.id,
+                Reaction.reaction_type == "like"
+            ).count()
+        except Exception as e:
+            print(f"Error counting likes for post {post.id}: {e}")
+            like_count = 0
         
         # コメント数を計算
-        comment_count = db.query(Comment).filter(Comment.post_id == post.id).count()
+        try:
+            comment_count = db.query(Comment).filter(Comment.post_id == post.id).count()
+        except Exception as e:
+            print(f"Error counting comments for post {post.id}: {e}")
+            comment_count = 0
         
         post_dict = {
             "id": post.id,
