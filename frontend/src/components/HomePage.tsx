@@ -267,81 +267,6 @@ const HomePage: React.FC = () => {
     }
   };
 
-  const [likingPosts, setLikingPosts] = useState<Set<number>>(new Set());
-
-  const handleReaction = async (postId: number) => {
-    if (!user || isAnonymous) {
-      alert('カラットするには会員登録が必要です');
-      return;
-    }
-    
-    if (likingPosts.has(postId)) {
-      return;
-    }
-    
-    setLikingPosts(prev => new Set(prev).add(postId));
-    
-    const originalPost = posts.find(p => p.id === postId);
-    const originalIsLiked = originalPost?.is_liked || false;
-    const originalLikeCount = originalPost?.like_count || 0;
-    
-    const nextIsLiked = !originalIsLiked;
-    const nextLikeCount = Math.max(0, originalLikeCount + (nextIsLiked ? 1 : -1));
-    
-    setPosts(prevPosts => 
-      prevPosts.map(post => 
-        post.id === postId 
-          ? { ...post, like_count: nextLikeCount, is_liked: nextIsLiked }
-          : post
-      )
-    );
-    
-    try {
-      const response = await fetch(`${API_URL}/api/posts/${postId}/like`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        setPosts(prevPosts => 
-          prevPosts.map(post => 
-            post.id === postId 
-              ? { ...post, like_count: originalLikeCount, is_liked: originalIsLiked }
-              : post
-          )
-        );
-      } else {
-        const data = await response.json();
-        setPosts(prevPosts => 
-          prevPosts.map(post => 
-            post.id === postId 
-              ? { ...post, like_count: data.like_count, is_liked: data.liked }
-              : post
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Error liking post:', error);
-      setPosts(prevPosts => 
-        prevPosts.map(post => 
-          post.id === postId 
-            ? { ...post, like_count: originalLikeCount, is_liked: originalIsLiked }
-            : post
-        )
-      );
-    } finally {
-      setLikingPosts(prev => {
-        const next = new Set(prev);
-        next.delete(postId);
-        return next;
-      });
-    }
-  };
-
-
   useEffect(() => {
     fetchPosts();
     fetchNews();
@@ -664,18 +589,6 @@ const HomePage: React.FC = () => {
                         <div className="flex items-center gap-4 pt-4 border-t">
                           {user && !isAnonymous ? (
                             <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleReaction(post.id);
-                                }}
-                                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
-                              >
-                                <DiamondIcon className="h-4 w-4 mr-1 text-blue-500" />
-                                カラット
-                              </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
