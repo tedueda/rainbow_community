@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
-import { Heart, MessageCircle, ArrowLeft, Calendar, User } from 'lucide-react';
+import { MessageCircle, ArrowLeft, Calendar, User } from 'lucide-react';
 import { Post } from '../types/Post';
 import LikeButton from './common/LikeButton';
 

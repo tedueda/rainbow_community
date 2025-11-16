@@ -504,7 +504,7 @@ const CategoryPage: React.FC = () => {
                       );
                     }}
                     token={token}
-                    apiUrl={apiUrl}
+                    apiUrl={API_URL}
                     size="sm"
                     source="card"
                   />
