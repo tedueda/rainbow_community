@@ -16,8 +16,15 @@ interface AccountData {
   created_at: string;
 }
 
+interface UserStats {
+  posts_count: number;
+  likes_received: number;
+  total_points: number;
+}
+
 export default function AccountPage() {
   const [account, setAccount] = useState<AccountData | null>(null);
+  const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -49,14 +56,13 @@ export default function AccountPage() {
     if (!token) return;
     
     try {
-      const res = await fetch(`${API_URL}/api/account/me`, {
+      const res = await fetch(`${API_URL}/api/auth/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
       if (!res.ok) {
-        // 一時的にエラーを無視してダミーデータを表示
         console.error('アカウント情報の取得に失敗しました');
-        setError('アカウント情報は現在メンテナンス中です。プロフィール編集ページをご利用ください。');
+        setError('アカウント情報の取得に失敗しました');
         setLoading(false);
         return;
       }
@@ -67,8 +73,17 @@ export default function AccountPage() {
       setDisplayName(data.display_name);
       setPhoneNumber(data.phone_number || '');
       setRealName(data.real_name || '');
+      
+      const statsRes = await fetch(`${API_URL}/api/users/me/stats`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (statsRes.ok) {
+        const statsData = await statsRes.json();
+        setStats(statsData);
+      }
     } catch (e: any) {
-      setError('アカウント情報は現在メンテナンス中です。プロフィール編集ページをご利用ください。');
+      setError('アカウント情報の取得に失敗しました');
       console.error('Account fetch error:', e);
     } finally {
       setLoading(false);
@@ -211,6 +226,30 @@ export default function AccountPage() {
           <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-start">
             <CheckCircle className="w-5 h-5 text-green-600 mr-3 flex-shrink-0 mt-0.5" />
             <p className="text-green-800">{success}</p>
+          </div>
+        )}
+        
+        {/* カラットポイント */}
+        {stats && (
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg shadow-md p-6 mb-6 border-2 border-blue-200">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">💎 カラットポイント</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white rounded-lg p-4 text-center">
+                <p className="text-3xl font-bold text-blue-600">{stats.total_points}</p>
+                <p className="text-sm text-gray-600 mt-1">合計カラット</p>
+              </div>
+              <div className="bg-white rounded-lg p-4 text-center">
+                <p className="text-2xl font-semibold text-gray-700">{stats.likes_received}</p>
+                <p className="text-sm text-gray-600 mt-1">いいね数（1pt/いいね）</p>
+              </div>
+              <div className="bg-white rounded-lg p-4 text-center">
+                <p className="text-2xl font-semibold text-gray-700">{stats.posts_count}</p>
+                <p className="text-sm text-gray-600 mt-1">投稿数（5pt/投稿）</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mt-4 text-center">
+              💎いいね {stats.likes_received}pt + 投稿 {stats.posts_count} × 5pt = 合計 {stats.total_points}カラット
+            </p>
           </div>
         )}
         

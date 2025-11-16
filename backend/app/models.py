@@ -11,6 +11,7 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
     display_name = Column(String(100), nullable=False)
+    phone_number = Column(String(20), nullable=True)
     membership_type = Column(String(20), default="premium")
     is_active = Column(Boolean, default=True)
     real_name = Column(String(100), nullable=True)

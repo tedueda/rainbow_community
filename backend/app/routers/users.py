@@ -1,32 +1,37 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from app.database import get_db
-from app.models import User
-from app.schemas import User as UserSchema, UserUpdate
+from app.models import User, Post
 from app.auth import get_current_active_user
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
-@router.get("/me", response_model=UserSchema)
-async def read_users_me(current_user: User = Depends(get_current_active_user)):
-    return current_user
-
-@router.put("/me", response_model=UserSchema)
-async def update_user_me(
-    user_update: UserUpdate,
+@router.get("/me/stats")
+async def get_user_stats(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    for field, value in user_update.dict(exclude_unset=True).items():
-        setattr(current_user, field, value)
+    """Get user statistics including carat points"""
     
-    db.commit()
-    db.refresh(current_user)
-    return current_user
-
-@router.get("/{user_id}", response_model=UserSchema)
-async def read_user(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == user_id).first()
-    if user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
+    # Count posts created by user
+    posts_count = db.query(Post).filter(Post.user_id == current_user.id).count()
+    
+    # Count likes received on user's posts
+    from app.models import Reaction
+    likes_received = db.query(func.count(Reaction.id)).join(
+        Post, Reaction.target_id == Post.id
+    ).filter(
+        Post.user_id == current_user.id,
+        Reaction.target_type == 'post',
+        Reaction.reaction_type == 'like'
+    ).scalar() or 0
+    
+    # Calculate total carat points: 1pt per like + 5pt per post
+    total_points = likes_received + (posts_count * 5)
+    
+    return {
+        "posts_count": posts_count,
+        "likes_received": likes_received,
+        "total_points": total_points
+    }
