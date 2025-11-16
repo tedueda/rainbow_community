@@ -316,3 +316,14 @@ def fix_meeting_style_column(db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         return {"status": "error", "message": str(e)}
+
+@router.post("/add-phone-number-column")
+def add_phone_number_column(db: Session = Depends(get_db)):
+    """phone_numberカラムを追加（緊急対応用）"""
+    try:
+        db.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_number VARCHAR(20)"))
+        db.commit()
+        return {"status": "success", "message": "phone_number column added successfully"}
+    except Exception as e:
+        db.rollback()
+        return {"status": "error", "message": str(e)}
