@@ -31,7 +31,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: frontend
-        run: npm ci --omit=optional || npm install --omit=optional
+        run: npm ci || (rm -rf node_modules && npm install)
 
       - name: Build
         working-directory: frontend
