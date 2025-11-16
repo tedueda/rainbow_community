@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { ArrowLeft, Plus, Heart, MessageCircle, Filter, SortAsc } from 'lucide-react';
 import PostDetailModal from './PostDetailModal';
 import NewPostForm from './NewPostForm';
+import LikeButton from './common/LikeButton';
 import { Post } from '../types/Post';
 import { getYouTubeThumbnail, extractYouTubeUrlFromText } from '../utils/youtube';
 import { getPostImageUrl } from '../utils/imageUtils';
@@ -515,10 +516,23 @@ const CategoryPage: React.FC = () => {
                 
                 {/* アクション */}
                 <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <div className="flex items-center gap-1">
-                    <Heart className={`h-4 w-4 ${post.is_liked ? 'fill-pink-500 text-pink-500' : ''}`} />
-                    {formatNumber(post.like_count || 0)}
-                  </div>
+                  <LikeButton
+                    postId={post.id}
+                    initialLiked={post.is_liked || false}
+                    initialLikeCount={post.like_count || 0}
+                    onLikeChange={(liked, likeCount) => {
+                      setPosts(prevPosts =>
+                        prevPosts.map(p =>
+                          p.id === post.id
+                            ? { ...p, is_liked: liked, like_count: likeCount }
+                            : p
+                        )
+                      );
+                    }}
+                    token={token}
+                    apiUrl={apiUrl}
+                    size="sm"
+                  />
                   <div className="flex items-center gap-1">
                     <MessageCircle className="h-4 w-4" />
                     {formatNumber(post.comment_count || 0)}
