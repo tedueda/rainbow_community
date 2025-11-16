@@ -78,29 +78,24 @@ const PostFeed: React.FC = () => {
 
   const handleReaction = async (postId: number, reactionType: string) => {
     if (!user || isAnonymous) {
-      alert('リアクションするにはプレミアム会員登録が必要です');
+      alert('カラットするにはプレミアム会員登録が必要です');
       return;
     }
     
     try {
-      const response = await fetch(`${API_URL}/api/reactions`, {
+      const response = await fetch(`${API_URL}/api/posts/${postId}/like`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          target_type: 'post',
-          target_id: postId,
-          reaction_type: reactionType,
-        }),
       });
 
       if (response.ok) {
         fetchPosts();
       }
     } catch (error) {
-      console.error('Error adding reaction:', error);
+      console.error('Error liking post:', error);
     }
   };
 

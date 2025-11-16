@@ -269,31 +269,30 @@ const HomePage: React.FC = () => {
 
   const handleReaction = async (postId: number, reactionType: string) => {
     if (!user || isAnonymous) {
-      alert('リアクションするには会員登録が必要です');
+      alert('カラットするには会員登録が必要です');
       return;
     }
     
     // 楽観的更新: UIを即座に更新
+    const originalPost = posts.find(p => p.id === postId);
+    const originalIsLiked = originalPost?.is_liked || false;
+    const originalLikeCount = originalPost?.like_count || 0;
+    
     setPosts(prevPosts => 
       prevPosts.map(post => 
         post.id === postId 
-          ? { ...post, like_count: (post.like_count || 0) + 1, is_liked: true }
+          ? { ...post, like_count: originalLikeCount + 1, is_liked: true }
           : post
       )
     );
     
     try {
-      const response = await fetch(`${API_URL}/api/reactions`, {
+      const response = await fetch(`${API_URL}/api/posts/${postId}/like`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          target_type: 'post',
-          target_id: postId,
-          reaction_type: reactionType,
-        }),
       });
 
       if (!response.ok) {
@@ -301,18 +300,27 @@ const HomePage: React.FC = () => {
         setPosts(prevPosts => 
           prevPosts.map(post => 
             post.id === postId 
-              ? { ...post, like_count: (post.like_count || 0) - 1, is_liked: false }
+              ? { ...post, like_count: originalLikeCount, is_liked: originalIsLiked }
+              : post
+          )
+        );
+      } else {
+        const data = await response.json();
+        setPosts(prevPosts => 
+          prevPosts.map(post => 
+            post.id === postId 
+              ? { ...post, like_count: data.like_count, is_liked: data.liked }
               : post
           )
         );
       }
     } catch (error) {
-      console.error('Error adding reaction:', error);
+      console.error('Error liking post:', error);
       // エラーの場合は元に戻す
       setPosts(prevPosts => 
         prevPosts.map(post => 
           post.id === postId 
-            ? { ...post, like_count: (post.like_count || 0) - 1, is_liked: false }
+            ? { ...post, like_count: originalLikeCount, is_liked: originalIsLiked }
             : post
         )
       );
