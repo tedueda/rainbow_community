@@ -143,6 +143,7 @@ const BlogDetailPage: React.FC = () => {
               token={token}
               apiUrl={API_URL}
               size="default"
+              source="blog"
             />
             <div className="flex items-center gap-2 text-gray-600">
               <MessageCircle className="h-5 w-5" />

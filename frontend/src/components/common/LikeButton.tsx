@@ -13,6 +13,7 @@ interface LikeButtonProps {
   apiUrl: string;
   className?: string;
   size?: 'sm' | 'default' | 'lg';
+  source?: string; // For debugging: "modal", "card", etc.
 }
 
 const LikeButton: React.FC<LikeButtonProps> = ({
@@ -23,7 +24,8 @@ const LikeButton: React.FC<LikeButtonProps> = ({
   token,
   apiUrl,
   className = '',
-  size = 'sm'
+  size = 'sm',
+  source = 'unknown'
 }) => {
   const [isLiked, setIsLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
@@ -33,6 +35,8 @@ const LikeButton: React.FC<LikeButtonProps> = ({
     e.stopPropagation();
     e.preventDefault();
 
+    console.log(`[LikeButton] Click detected - postId: ${postId}, source: ${source}, timestamp: ${Date.now()}`);
+
     if (!token) {
       alert('カラットするには会員登録が必要です');
       window.location.href = '/login';
@@ -40,6 +44,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
     }
 
     if (globalLock.has(postId)) {
+      console.log(`[LikeButton] Blocked by global lock - postId: ${postId}, source: ${source}`);
       return;
     }
 
@@ -56,6 +61,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
 
     try {
       const method = nextIsLiked ? 'PUT' : 'DELETE';
+      console.log(`[LikeButton] Making API call - postId: ${postId}, source: ${source}, method: ${method}`);
       const response = await fetch(`${apiUrl}/api/posts/${postId}/like`, {
         method,
         headers: {
