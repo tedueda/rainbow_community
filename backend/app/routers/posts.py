@@ -449,6 +449,83 @@ async def toggle_like_post(
         ).count()
         return {"liked": True, "like_count": like_count}
 
+@router.put("/{post_id}/like")
+async def add_like_post(
+    post_id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Idempotent endpoint to add a like. Returns the same result even if called multiple times."""
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if post is None:
+        raise HTTPException(status_code=404, detail="Post not found")
+    
+    if post.user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot like your own post")
+    
+    existing_reaction = db.query(Reaction).filter(
+        Reaction.user_id == current_user.id,
+        Reaction.target_type == "post",
+        Reaction.target_id == post_id,
+        Reaction.reaction_type == "like"
+    ).first()
+    
+    if not existing_reaction:
+        new_reaction = Reaction(
+            user_id=current_user.id,
+            target_type="post",
+            target_id=post_id,
+            reaction_type="like"
+        )
+        db.add(new_reaction)
+        
+        post_author = db.query(User).filter(User.id == post.user_id).first()
+        if post_author:
+            post_author.carats = (post_author.carats or 0) + 1
+        
+        db.commit()
+    
+    like_count = db.query(Reaction).filter(
+        Reaction.target_type == "post",
+        Reaction.target_id == post_id,
+        Reaction.reaction_type == "like"
+    ).count()
+    return {"liked": True, "like_count": like_count}
+
+@router.delete("/{post_id}/like")
+async def remove_like_post(
+    post_id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Idempotent endpoint to remove a like. Returns the same result even if called multiple times."""
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if post is None:
+        raise HTTPException(status_code=404, detail="Post not found")
+    
+    existing_reaction = db.query(Reaction).filter(
+        Reaction.user_id == current_user.id,
+        Reaction.target_type == "post",
+        Reaction.target_id == post_id,
+        Reaction.reaction_type == "like"
+    ).first()
+    
+    if existing_reaction:
+        db.delete(existing_reaction)
+        
+        post_author = db.query(User).filter(User.id == post.user_id).first()
+        if post_author and post_author.carats > 0:
+            post_author.carats = post_author.carats - 1
+        
+        db.commit()
+    
+    like_count = db.query(Reaction).filter(
+        Reaction.target_type == "post",
+        Reaction.target_id == post_id,
+        Reaction.reaction_type == "like"
+    ).count()
+    return {"liked": False, "like_count": like_count}
+
 @router.get("/{post_id}/comments")
 async def get_post_comments(
     post_id: int,
