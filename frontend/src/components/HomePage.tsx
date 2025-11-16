@@ -269,7 +269,7 @@ const HomePage: React.FC = () => {
 
   const [likingPosts, setLikingPosts] = useState<Set<number>>(new Set());
 
-  const handleReaction = async (postId: number, reactionType: string) => {
+  const handleReaction = async (postId: number) => {
     if (!user || isAnonymous) {
       alert('カラットするには会員登録が必要です');
       return;
@@ -667,7 +667,10 @@ const HomePage: React.FC = () => {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleReaction(post.id, 'like')}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleReaction(post.id);
+                                }}
                                 className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
                               >
                                 <DiamondIcon className="h-4 w-4 mr-1 text-blue-500" />
@@ -676,7 +679,10 @@ const HomePage: React.FC = () => {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleReaction(post.id, 'love')}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  alert('この機能は準備中です');
+                                }}
                                 className="text-gray-600 hover:gold-accent hover:bg-yellow-50"
                               >
                                 <Heart className="h-4 w-4 mr-1" />
@@ -1084,7 +1090,7 @@ const HomePage: React.FC = () => {
             setSelectedUser(null);
           }}
           onLike={(postId: number) => {
-            handleReaction(postId, 'like');
+            handleReaction(postId);
           }}
           onUpdated={(updatedPost: Post) => {
             setPosts(posts.map(p => p.id === updatedPost.id ? updatedPost : p));

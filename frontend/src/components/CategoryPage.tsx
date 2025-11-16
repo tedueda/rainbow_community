@@ -181,10 +181,6 @@ const CategoryPage: React.FC = () => {
 
         const enhancedPosts = postsData.map((post: Post) => ({
           ...post,
-          like_count: Math.floor(Math.random() * 50) + 1,
-          comment_count: Math.floor(Math.random() * 20),
-          points: Math.floor(Math.random() * 100) + 10,
-          is_liked: false,
           media_urls: post.body.includes('#art') || post.body.includes('#shops') 
             ? [`https://picsum.photos/400/300?random=${post.id}`] 
             : undefined,
