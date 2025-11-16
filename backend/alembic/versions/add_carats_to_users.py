@@ -1,7 +1,7 @@
 """add carats to users
 
 Revision ID: add_carats_001
-Revises: 
+Revises: add_image_url_001
 Create Date: 2025-11-15
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'add_carats_001'
-down_revision = None
+down_revision = 'add_image_url_001'
 depends_on = None
 
 

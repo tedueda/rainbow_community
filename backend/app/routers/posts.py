@@ -389,6 +389,9 @@ async def toggle_like_post(
     if post is None:
         raise HTTPException(status_code=404, detail="Post not found")
     
+    if post.user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot like your own post")
+    
     existing_reaction = db.query(Reaction).filter(
         Reaction.user_id == current_user.id,
         Reaction.target_type == "post",
@@ -396,8 +399,14 @@ async def toggle_like_post(
         Reaction.reaction_type == "like"
     ).first()
     
+    post_author = db.query(User).filter(User.id == post.user_id).first()
+    
     if existing_reaction:
         db.delete(existing_reaction)
+        
+        if post_author and post_author.carats > 0:
+            post_author.carats = post_author.carats - 1
+        
         db.commit()
         like_count = db.query(Reaction).filter(
             Reaction.target_type == "post",
@@ -413,6 +422,10 @@ async def toggle_like_post(
             reaction_type="like"
         )
         db.add(new_reaction)
+        
+        if post_author:
+            post_author.carats = (post_author.carats or 0) + 1
+        
         db.commit()
         like_count = db.query(Reaction).filter(
             Reaction.target_type == "post",
