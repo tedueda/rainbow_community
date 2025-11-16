@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { ArrowLeft, Plus, Heart, MessageCircle, Filter, SortAsc } from 'lucide-react';
+import { ArrowLeft, Plus, MessageCircle, Filter, SortAsc } from 'lucide-react';
 import PostDetailModal from './PostDetailModal';
 import NewPostForm from './NewPostForm';
 import LikeButton from './common/LikeButton';

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Heart, MessageCircle, Share2, MoreHorizontal, ThumbsUp, Smile, Award } from 'lucide-react';
+import { Heart, MessageCircle, Share2, MoreHorizontal, Smile, Award } from 'lucide-react';
 
 interface User {
   id: number;
