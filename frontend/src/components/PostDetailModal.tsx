@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Heart, MessageCircle, Send, Camera, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
+import { X, MessageCircle, Send, Camera, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { useAuth } from '../contexts/AuthContext';
