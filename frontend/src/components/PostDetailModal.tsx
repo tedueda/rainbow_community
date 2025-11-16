@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Heart, MessageCircle, Send, Camera, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
+import { X, Heart, MessageCircle, Send, Camera, ChevronLeft, ChevronRight, Maximize2, Minimize2, Gem as DiamondIcon } from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { useAuth } from '../contexts/AuthContext';
@@ -171,11 +171,18 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
       
       if (response.ok) {
         const newCommentData = await response.json();
-        setComments(prev => [...prev, {
+        const updatedComments = [...comments, {
           ...newCommentData,
           user: { id: currentUser?.id || 0, display_name: currentUser?.display_name || 'あなた' }
-        }]);
+        }];
+        setComments(updatedComments);
         setNewComment('');
+        
+        // 親コンポーネントに通知（コメント数を更新）
+        onUpdated?.({
+          ...post,
+          comment_count: updatedComments.length
+        });
       }
     } catch (error) {
       console.error('Error adding comment:', error);
@@ -185,8 +192,15 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
         created_at: new Date().toISOString(),
         user: { id: currentUser?.id || 0, display_name: currentUser?.display_name || 'あなた' }
       };
-      setComments(prev => [...prev, optimisticComment]);
+      const updatedComments = [...comments, optimisticComment];
+      setComments(updatedComments);
       setNewComment('');
+      
+      // 親コンポーネントに通知（コメント数を更新）
+      onUpdated?.({
+        ...post,
+        comment_count: updatedComments.length
+      });
     }
   };
 
@@ -513,16 +527,16 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-pink-100 to-green-100 rounded-full flex items-center justify-center">
-              <span className="text-pink-600 font-semibold">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center">
+              <span className="text-blue-600 font-semibold text-sm">
                 {user?.display_name?.charAt(0) || '?'}
               </span>
             </div>
             <div>
-              <h3 id="modal-title" className="font-semibold text-gray-900">
-                {user?.display_name || '不明なユーザー'}
+              <h3 id="modal-title" className="text-sm font-medium text-gray-900">
+                {user?.display_name || 'テッドさん'}
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-xs text-gray-500">
                 {getRelativeTime(post.created_at)}
               </p>
             </div>
@@ -814,23 +828,23 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={handleLike}
-                className={`flex items-center gap-2 ${
+                className={`flex items-center gap-2 text-base ${
                   isLiked 
-                    ? 'text-pink-600 hover:text-pink-700' 
-                    : 'text-gray-600 hover:text-pink-600'
+                    ? 'text-blue-600 hover:text-blue-700' 
+                    : 'text-gray-600 hover:text-blue-600'
                 }`}
-                aria-label={isLiked ? 'いいねを取り消す' : 'いいね'}
+                aria-label={isLiked ? 'カラットを取り消す' : 'カラット'}
                 aria-pressed={isLiked}
               >
-                <Heart className={`h-5 w-5 ${isLiked ? 'fill-current' : ''}`} />
-                <span className="font-medium">{formatNumber(likeCount)}</span>
+                <DiamondIcon className={`h-5 w-5 text-blue-500 ${isLiked ? 'fill-current' : ''}`} />
+                <span className="font-medium">{formatNumber(likeCount)}カラット</span>
                 {isLiked && (
                   <span className="text-xs animate-bounce">+1</span>
                 )}
               </Button>
               <div className="flex items-center gap-2 text-gray-600">
                 <MessageCircle className="h-5 w-5" />
-                <span className="font-medium">{formatNumber(comments.length)}</span>
+                <span className="font-medium">コメント数 {formatNumber(comments.length)}</span>
               </div>
               {post.points && (
                 <div className="text-sm font-medium text-orange-600">

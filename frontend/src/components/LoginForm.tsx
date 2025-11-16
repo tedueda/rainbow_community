@@ -50,9 +50,9 @@ const LoginForm: React.FC = () => {
           <div className="flex justify-center">
             <img src="/images/logo02.png" alt="Carat Logo" className="h-16 w-auto" />
           </div>
-          <CardTitle className="text-3xl font-bold text-black">プレミアム会員ログイン</CardTitle>
+          <CardTitle className="text-3xl font-bold text-black">会員ログイン</CardTitle>
           <CardDescription className="text-gray-500">
-            プレミアム会員アカウントでログインして全機能をご利用ください
+            会員アカウントでログインして全機能をご利用ください
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -113,9 +113,9 @@ const LoginForm: React.FC = () => {
           </form>
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              プレミアム会員でない方は{' '}
+              会員でない方は、{' '}
               <Link to="/register" className="text-purple-600 hover:text-purple-500 font-medium underline">
-                こちらから登録
+                こちらから新規会員登録
               </Link>
             </p>
           </div>

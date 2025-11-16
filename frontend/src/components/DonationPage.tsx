@@ -417,7 +417,7 @@ const DonationPage: React.FC = () => {
             あなたもプロジェクトを始めませんか？
           </h2>
           <p className="text-lg text-carat-gray5 mb-8 max-w-2xl mx-auto">
-            プレミアム会員なら、LGBTQ+コミュニティのためのプロジェクトを立ち上げることができます。
+            会員なら、LGBTQ+コミュニティのためのプロジェクトを立ち上げることができます。
           </p>
           <button 
             onClick={handleCreateProject}

@@ -475,7 +475,7 @@ const MarketplacePage: React.FC = () => {
                 <Shield className="w-8 h-8 text-carat-white" />
               </div>
               <h3 className="text-lg font-semibold mb-2">会員限定</h3>
-              <p className="text-carat-gray6">プレミアム会員同士の取引で安心感を提供します。</p>
+              <p className="text-carat-gray6">会員同士の取引で安心感を提供します。</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-carat-black rounded-full flex items-center justify-center mx-auto mb-4">
@@ -777,7 +777,7 @@ const MarketplacePage: React.FC = () => {
                         </div>
                         <div>
                           <p className="font-medium text-carat-black">{selectedListing.seller_name}</p>
-                          <p className="text-sm text-carat-gray6">プレミアム会員</p>
+                          <p className="text-sm text-carat-gray6">会員</p>
                         </div>
                       </div>
                     </div>

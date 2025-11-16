@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
-import { ArrowRight, Calendar, ThumbsUp, Heart, MessageCircle, Gem as DiamondIcon } from 'lucide-react';
+import { ArrowRight, Calendar, Heart, MessageCircle, Gem as DiamondIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
@@ -211,10 +211,9 @@ const HomePage: React.FC = () => {
         
         const enhancedPosts = postsData.map((post: any) => ({
           ...post,
-          like_count: Math.floor(Math.random() * 50) + 1,
-          comment_count: Math.floor(Math.random() * 20),
-          points: Math.floor(Math.random() * 100) + 10,
-          is_liked: false,
+          like_count: post.like_count || 0,
+          comment_count: post.comment_count || 0,
+          is_liked: post.is_liked || false,
         }));
         
         setPosts(enhancedPosts);
@@ -247,6 +246,13 @@ const HomePage: React.FC = () => {
         }
         
         setUsers(usersData);
+        
+        // 投稿にユーザー表示名を追加
+        const postsWithUserNames = enhancedPosts.map((post: any) => ({
+          ...post,
+          user_display_name: usersData[post.user_id]?.display_name || 'テッドさん'
+        }));
+        setPosts(postsWithUserNames);
       } else {
         console.error('Failed to fetch posts from API, using fallback data');
         setPosts(dummyPosts);
@@ -263,9 +269,18 @@ const HomePage: React.FC = () => {
 
   const handleReaction = async (postId: number, reactionType: string) => {
     if (!user || isAnonymous) {
-      alert('リアクションするにはプレミアム会員登録が必要です');
+      alert('リアクションするには会員登録が必要です');
       return;
     }
+    
+    // 楽観的更新: UIを即座に更新
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId 
+          ? { ...post, like_count: (post.like_count || 0) + 1, is_liked: true }
+          : post
+      )
+    );
     
     try {
       const response = await fetch(`${API_URL}/api/reactions`, {
@@ -281,11 +296,26 @@ const HomePage: React.FC = () => {
         }),
       });
 
-      if (response.ok) {
-        fetchPosts();
+      if (!response.ok) {
+        // エラーの場合は元に戻す
+        setPosts(prevPosts => 
+          prevPosts.map(post => 
+            post.id === postId 
+              ? { ...post, like_count: (post.like_count || 0) - 1, is_liked: false }
+              : post
+          )
+        );
       }
     } catch (error) {
       console.error('Error adding reaction:', error);
+      // エラーの場合は元に戻す
+      setPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === postId 
+            ? { ...post, like_count: (post.like_count || 0) - 1, is_liked: false }
+            : post
+        )
+      );
     }
   };
 
@@ -405,7 +435,7 @@ const HomePage: React.FC = () => {
                       onClick={() => window.location.href = '/login'}
                       className="gold-bg hover:opacity-90 text-slate-900 px-8 py-4 text-xl font-medium shadow-lg hover:shadow-xl transition-all"
                     >
-                      プレミアム会員登録（月1,000円）
+                      会員登録（月1,000円）
                     </Button>
                   </>
                 )}
@@ -467,7 +497,7 @@ const HomePage: React.FC = () => {
                           setSelectedPost(post);
                           setSelectedUser({
                             id: post.user_id,
-                            display_name: post.user_display_name || 'ユーザー',
+                            display_name: post.user_display_name || 'テッドさん',
                             email: ''
                           });
                         }}
@@ -531,15 +561,15 @@ const HomePage: React.FC = () => {
                             <div className="flex items-center gap-3 text-slate-500">
                               <span className="flex items-center gap-1">
                                 <DiamondIcon className="h-3 w-3 text-blue-500" />
-                                {Math.floor(Math.random() * 20) + 1}
+                                いいね {post.like_count || 0}カラット
                               </span>
                               <span className="flex items-center gap-1">
                                 <MessageCircle className="h-3 w-3" />
-                                {Math.floor(Math.random() * 10)}
+                                {post.comment_count || 0}
                               </span>
                             </div>
                             <span className="text-xs text-slate-400">
-                              {post.user_display_name || 'ユーザー'}
+                              {post.user_display_name || 'テッドさん'}
                             </span>
                           </div>
                         </CardContent>
@@ -616,10 +646,10 @@ const HomePage: React.FC = () => {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleReaction(post.id, 'like')}
-                                className="text-gray-600 hover:gold-accent hover:bg-yellow-50"
+                                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50"
                               >
-                                <ThumbsUp className="h-4 w-4 mr-1" />
-                                いいね
+                                <DiamondIcon className="h-4 w-4 mr-1 text-blue-500" />
+                                カラット
                               </Button>
                               <Button
                                 variant="ghost"
@@ -637,7 +667,7 @@ const HomePage: React.FC = () => {
                               size="sm"
                               className="gold-bg hover:opacity-90 text-slate-900 font-medium shadow-sm"
                             >
-                              プレミアム登録してリアクション
+                              会員登録してリアクション
                             </Button>
                           )}
                         </div>
@@ -657,7 +687,7 @@ const HomePage: React.FC = () => {
         <section className="py-12">
           <div className="flex items-baseline justify-between mb-3">
             <h3 className="text-4xl md:text-5xl font-serif font-semibold text-slate-900">会員特典メニュー</h3>
-            <span className="text-xl md:text-2xl text-slate-500">プレミアム会員限定</span>
+            <span className="text-xl md:text-2xl text-slate-500">会員限定</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
             {memberBenefits.map((benefit) => (
@@ -923,7 +953,7 @@ const HomePage: React.FC = () => {
                   onClick={() => window.location.href = '/login'}
                   className="bg-gradient-to-r from-yellow-300 to-yellow-400 hover:from-yellow-400 hover:to-yellow-500 text-gray-900 px-6 md:px-10 py-5 md:py-6 text-lg md:text-xl lg:text-2xl font-medium shadow-md hover:shadow-lg transition-all w-full md:w-auto leading-relaxed"
                 >
-                  プレミアム会員になる<br />月1,000円（税別）
+                  会員になる<br />月1,000円（税別）
                 </Button>
               </div>
             </CardContent>
@@ -997,7 +1027,7 @@ const HomePage: React.FC = () => {
           <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-2xl font-serif font-semibold text-slate-900 mb-4">ログインが必要です</h3>
             <p className="text-slate-600 mb-6">
-              この機能を利用するには、プレミアム会員としてログインする必要があります。
+              この機能を利用するには、会員としてログインする必要があります。
             </p>
             <div className="flex gap-3">
               <Button 
@@ -1030,6 +1060,9 @@ const HomePage: React.FC = () => {
           onClose={() => {
             setSelectedPost(null);
             setSelectedUser(null);
+          }}
+          onLike={(postId: number) => {
+            handleReaction(postId, 'like');
           }}
           onUpdated={(updatedPost: Post) => {
             setPosts(posts.map(p => p.id === updatedPost.id ? updatedPost : p));

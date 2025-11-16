@@ -81,7 +81,7 @@ const RegisterForm: React.FC = () => {
           <div className="flex justify-center mb-4">
             <Heart className="h-12 w-12 text-carat-gray4" />
           </div>
-          <CardTitle className="text-2xl sm:text-3xl md:text-4xl text-carat-black">プレミアム会員登録</CardTitle>
+          <CardTitle className="text-2xl sm:text-3xl md:text-4xl text-carat-black">会員登録</CardTitle>
           <CardDescription className="text-lg md:text-xl text-carat-gray5">
             アカウントを作成して全機能をご利用ください
           </CardDescription>

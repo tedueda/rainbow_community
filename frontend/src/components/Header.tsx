@@ -78,7 +78,7 @@ const Header: React.FC = () => {
               </Link>
               
               <div className="border-t border-gray-100 pt-2 pb-2">
-                <div className="text-xs text-gray-500 font-medium px-4 mb-2">会員特別メニュー</div>
+                <div className="text-xs text-gray-500 font-medium px-4 mb-2">会員特典メニュー</div>
                 {memberBenefits.map((benefit) => (
                   <Link
                     key={benefit.link}
@@ -148,7 +148,11 @@ const Header: React.FC = () => {
         <div className="hidden md:grid grid-cols-2 gap-4 items-center">
           {/* Left Column - Logo */}
           <div className="flex justify-start items-start">
-            <Link to="/feed">
+            <Link to="/feed" onClick={() => {
+              setShowMemberMenu(false);
+              setShowBoardMenu(false);
+              setShowAccountMenu(false);
+            }}>
               <img src="/images/logo02.png" alt="Carat Logo" className="h-28 w-auto" />
             </Link>
           </div>
@@ -157,7 +161,11 @@ const Header: React.FC = () => {
           <div className="flex flex-col justify-start items-end space-y-2">
             {/* Top Row - Main Navigation */}
             <nav className="flex items-center gap-8">
-              <Link to="/feed">
+              <Link to="/feed" onClick={() => {
+                setShowMemberMenu(false);
+                setShowBoardMenu(false);
+                setShowAccountMenu(false);
+              }}>
                 <Button variant="ghost" className="text-gray-700 hover:text-black hover:bg-gray-50 text-base font-normal px-2">
                   <Home className="h-5 w-5 mr-2" />
                   ホーム
@@ -175,7 +183,7 @@ const Header: React.FC = () => {
                     setShowAccountMenu(false);
                   }}
                 >
-                  会員特別メニュー
+                  会員特典メニュー
                   <ChevronDown className="h-5 w-5 ml-1" />
                 </Button>
                 
@@ -271,7 +279,11 @@ const Header: React.FC = () => {
                 )}
               </div>
 
-              <Link to="/blog">
+              <Link to="/blog" onClick={() => {
+                setShowMemberMenu(false);
+                setShowBoardMenu(false);
+                setShowAccountMenu(false);
+              }}>
                 <Button variant="ghost" className="text-gray-700 hover:text-black hover:bg-gray-50 text-base font-normal px-2">
                   ブログ
                 </Button>
