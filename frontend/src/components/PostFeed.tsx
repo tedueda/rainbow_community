@@ -17,6 +17,8 @@ interface Post {
   user_id: number;
   visibility: string;
   created_at: string;
+  like_count?: number;
+  is_liked?: boolean;
 }
 
 const PostFeed: React.FC = () => {
@@ -78,7 +80,7 @@ const PostFeed: React.FC = () => {
 
   const [likingPosts, setLikingPosts] = useState<Set<number>>(new Set());
 
-  const handleReaction = async (postId: number, reactionType: string) => {
+  const handleReaction = async (postId: number) => {
     if (!user || isAnonymous) {
       alert('カラットするにはプレミアム会員登録が必要です');
       return;
@@ -237,7 +239,10 @@ const PostFeed: React.FC = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleReaction(post.id, 'like')}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleReaction(post.id);
+                      }}
                       className="flex items-center space-x-1 text-gray-600 hover:text-pink-600 hover:bg-pink-50 text-xs sm:text-sm"
                     >
                       <ThumbsUp className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -246,7 +251,10 @@ const PostFeed: React.FC = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleReaction(post.id, 'love')}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        alert('この機能は準備中です');
+                      }}
                       className="flex items-center space-x-1 text-gray-600 hover:text-pink-600 hover:bg-pink-50 text-xs sm:text-sm"
                     >
                       <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -255,7 +263,10 @@ const PostFeed: React.FC = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleReaction(post.id, 'support')}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        alert('この機能は準備中です');
+                      }}
                       className="flex items-center space-x-1 text-gray-600 hover:text-green-600 hover:bg-green-50 text-xs sm:text-sm"
                     >
                       <Smile className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -264,7 +275,10 @@ const PostFeed: React.FC = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleReaction(post.id, 'respect')}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        alert('この機能は準備中です');
+                      }}
                       className="flex items-center space-x-1 text-gray-600 hover:text-orange-600 hover:bg-orange-50 text-xs sm:text-sm"
                     >
                       <Award className="h-3 w-3 sm:h-4 sm:w-4" />
