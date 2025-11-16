@@ -190,9 +190,49 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
     }
   };
 
-  const handleLike = () => {
-    setIsLiked(!isLiked);
-    setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+  const handleLike = async () => {
+    if (!token) {
+      alert('カラットするには会員登録が必要です');
+      return;
+    }
+
+    if (currentUser && post.user_id === currentUser.id) {
+      alert('ご自身の投稿にはいいねカウントのクリックができません');
+      return;
+    }
+
+    const originalIsLiked = isLiked;
+    const originalLikeCount = likeCount;
+    const newIsLiked = !isLiked;
+    const newLikeCount = isLiked ? likeCount - 1 : likeCount + 1;
+    
+    setIsLiked(newIsLiked);
+    setLikeCount(newLikeCount);
+    
+    try {
+      const response = await fetch(`${API_URL}/api/posts/${post.id}/like`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        setIsLiked(originalIsLiked);
+        setLikeCount(originalLikeCount);
+        console.error('Failed to like post:', response.status);
+      } else {
+        const data = await response.json();
+        setLikeCount(data.like_count);
+        setIsLiked(data.liked);
+      }
+    } catch (error) {
+      console.error('Error liking post:', error);
+      setIsLiked(originalIsLiked);
+      setLikeCount(originalLikeCount);
+    }
+    
     onLike?.(post.id);
   };
 
