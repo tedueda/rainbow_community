@@ -506,6 +506,7 @@ const CategoryPage: React.FC = () => {
                     token={token}
                     apiUrl={apiUrl}
                     size="sm"
+                    source="card"
                   />
                   <div className="flex items-center gap-1">
                     <MessageCircle className="h-4 w-4" />
