@@ -2,6 +2,8 @@ import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { DiamondIcon } from 'lucide-react';
 
+const globalLock = new Set<number>();
+
 interface LikeButtonProps {
   postId: number;
   initialLiked: boolean;
@@ -26,18 +28,22 @@ const LikeButton: React.FC<LikeButtonProps> = ({
   const [isLiked, setIsLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [isDisabled, setIsDisabled] = useState(false);
-  
-  const lockRef = useRef<Set<number>>(new Set());
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
 
-    if (lockRef.current.has(postId)) {
+    if (!token) {
+      alert('カラットするには会員登録が必要です');
+      window.location.href = '/login';
       return;
     }
 
-    lockRef.current.add(postId);
+    if (globalLock.has(postId)) {
+      return;
+    }
+
+    globalLock.add(postId);
     setIsDisabled(true);
 
     const originalIsLiked = isLiked;
@@ -82,7 +88,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({
       setIsLiked(originalIsLiked);
       setLikeCount(originalLikeCount);
     } finally {
-      lockRef.current.delete(postId);
+      globalLock.delete(postId);
       setIsDisabled(false);
     }
   };

@@ -1089,9 +1089,6 @@ const HomePage: React.FC = () => {
             setSelectedPost(null);
             setSelectedUser(null);
           }}
-          onLike={(postId: number) => {
-            handleReaction(postId);
-          }}
           onUpdated={(updatedPost: Post) => {
             setPosts(posts.map(p => p.id === updatedPost.id ? updatedPost : p));
             setSelectedPost(updatedPost);

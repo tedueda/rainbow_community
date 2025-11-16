@@ -5,6 +5,7 @@ import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Heart, MessageCircle, ArrowLeft, Calendar, User } from 'lucide-react';
 import { Post } from '../types/Post';
+import LikeButton from './common/LikeButton';
 
 const BlogDetailPage: React.FC = () => {
   const { slug } = useParams();
@@ -56,29 +57,6 @@ const BlogDetailPage: React.FC = () => {
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
-  };
-
-  const handleLike = async () => {
-    if (!blog || !token) return;
-    
-    try {
-      const response = await fetch(`${API_URL}/api/posts/${blog.id}/like`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      
-      if (response.ok) {
-        setBlog({
-          ...blog,
-          is_liked: !blog.is_liked,
-          like_count: blog.is_liked ? (blog.like_count || 0) - 1 : (blog.like_count || 0) + 1,
-        });
-      }
-    } catch (error) {
-      console.error('Error liking blog:', error);
-    }
   };
 
   if (loading) {
@@ -151,14 +129,21 @@ const BlogDetailPage: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-6 pt-6 border-t border-gray-200">
-            <Button
-              variant="ghost"
-              onClick={handleLike}
-              className={`flex items-center gap-2 ${blog.is_liked ? 'text-pink-500' : 'text-gray-600'}`}
-            >
-              <Heart className={`h-5 w-5 ${blog.is_liked ? 'fill-pink-500' : ''}`} />
-              <span>{blog.like_count || 0}</span>
-            </Button>
+            <LikeButton
+              postId={blog.id}
+              initialLiked={blog.is_liked || false}
+              initialLikeCount={blog.like_count || 0}
+              onLikeChange={(liked, count) => {
+                setBlog({
+                  ...blog,
+                  is_liked: liked,
+                  like_count: count
+                });
+              }}
+              token={token}
+              apiUrl={API_URL}
+              size="default"
+            />
             <div className="flex items-center gap-2 text-gray-600">
               <MessageCircle className="h-5 w-5" />
               <span>{blog.comment_count || 0}</span>

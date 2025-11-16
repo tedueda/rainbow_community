@@ -242,32 +242,6 @@ const CategoryPage: React.FC = () => {
     setIsModalOpen(false);
   };
 
-  const handleLikePost = async (postId: number) => {
-    if (!token) return;
-    
-    try {
-      const response = await fetch(`${API_URL}/api/posts/${postId}/like`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        setPosts(prevPosts => 
-          prevPosts.map(post => 
-            post.id === postId 
-              ? { ...post, is_liked: result.liked, like_count: result.like_count }
-              : post
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Error liking post:', error);
-    }
-  };
-
   useEffect(() => {
     fetchPosts();
   }, [categoryKey, token, sortBy, timeRange, selectedTag, selectedSubcategory]);
