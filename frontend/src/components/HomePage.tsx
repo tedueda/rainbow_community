@@ -267,21 +267,31 @@ const HomePage: React.FC = () => {
     }
   };
 
+  const [likingPosts, setLikingPosts] = useState<Set<number>>(new Set());
+
   const handleReaction = async (postId: number, reactionType: string) => {
     if (!user || isAnonymous) {
       alert('カラットするには会員登録が必要です');
       return;
     }
     
-    // 楽観的更新: UIを即座に更新
+    if (likingPosts.has(postId)) {
+      return;
+    }
+    
+    setLikingPosts(prev => new Set(prev).add(postId));
+    
     const originalPost = posts.find(p => p.id === postId);
     const originalIsLiked = originalPost?.is_liked || false;
     const originalLikeCount = originalPost?.like_count || 0;
     
+    const nextIsLiked = !originalIsLiked;
+    const nextLikeCount = Math.max(0, originalLikeCount + (nextIsLiked ? 1 : -1));
+    
     setPosts(prevPosts => 
       prevPosts.map(post => 
         post.id === postId 
-          ? { ...post, like_count: originalLikeCount + 1, is_liked: true }
+          ? { ...post, like_count: nextLikeCount, is_liked: nextIsLiked }
           : post
       )
     );
@@ -296,7 +306,6 @@ const HomePage: React.FC = () => {
       });
 
       if (!response.ok) {
-        // エラーの場合は元に戻す
         setPosts(prevPosts => 
           prevPosts.map(post => 
             post.id === postId 
@@ -316,7 +325,6 @@ const HomePage: React.FC = () => {
       }
     } catch (error) {
       console.error('Error liking post:', error);
-      // エラーの場合は元に戻す
       setPosts(prevPosts => 
         prevPosts.map(post => 
           post.id === postId 
@@ -324,6 +332,12 @@ const HomePage: React.FC = () => {
             : post
         )
       );
+    } finally {
+      setLikingPosts(prev => {
+        const next = new Set(prev);
+        next.delete(postId);
+        return next;
+      });
     }
   };
 
