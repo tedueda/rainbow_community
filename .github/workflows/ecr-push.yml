@@ -63,7 +63,7 @@ jobs:
       - name: Get App Runner URL
         id: app-runner-url
         run: |
-          APP_URL="https://7cjpf7nunm.ap-northeast-1.awsapprunner.com"
+          APP_URL="https://ddxdewgmen.ap-northeast-1.awsapprunner.com"
           echo "app_url=$APP_URL" >> $GITHUB_OUTPUT
           echo "App Runner URL: $APP_URL"
 
