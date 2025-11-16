@@ -122,11 +122,8 @@ const LikeButton: React.FC<LikeButtonProps> = ({
           : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
       } ${className}`}
     >
-      <DiamondIcon 
-        className={`h-4 w-4 ${isLiked ? 'fill-blue-600' : ''}`} 
-      />
-      <span>{likeCount}</span>
-      <span className="hidden sm:inline">カラット</span>
+      <span>💎いいね</span>
+      <span>{likeCount}カラット</span>
     </Button>
   );
 };
