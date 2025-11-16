@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { useAuth } from '../contexts/AuthContext';
 import { Post, User, Comment } from '../types/Post';
+import LikeButton from './common/LikeButton';
 import { compressImage } from '../utils/imageCompression';
 
 interface PostDetailModalProps {
@@ -204,51 +205,6 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
     }
   };
 
-  const handleLike = async () => {
-    if (!token) {
-      alert('カラットするには会員登録が必要です');
-      return;
-    }
-
-    if (currentUser && post.user_id === currentUser.id) {
-      alert('ご自身の投稿にはいいねカウントのクリックができません');
-      return;
-    }
-
-    const originalIsLiked = isLiked;
-    const originalLikeCount = likeCount;
-    const newIsLiked = !isLiked;
-    const newLikeCount = isLiked ? likeCount - 1 : likeCount + 1;
-    
-    setIsLiked(newIsLiked);
-    setLikeCount(newLikeCount);
-    
-    try {
-      const response = await fetch(`${API_URL}/api/posts/${post.id}/like`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        setIsLiked(originalIsLiked);
-        setLikeCount(originalLikeCount);
-        console.error('Failed to like post:', response.status);
-      } else {
-        const data = await response.json();
-        setLikeCount(data.like_count);
-        setIsLiked(data.liked);
-      }
-    } catch (error) {
-      console.error('Error liking post:', error);
-      setIsLiked(originalIsLiked);
-      setLikeCount(originalLikeCount);
-    }
-    
-    onLike?.(post.id);
-  };
 
   // Placeholder for future gallery navigation
   // const nextImage = () => {};
@@ -824,24 +780,24 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
             </div>
 
             <div className="flex items-center gap-6 py-4 border-t border-gray-100">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLike}
-                className={`flex items-center gap-2 text-base ${
-                  isLiked 
-                    ? 'text-blue-600 hover:text-blue-700' 
-                    : 'text-gray-600 hover:text-blue-600'
-                }`}
-                aria-label={isLiked ? 'カラットを取り消す' : 'カラット'}
-                aria-pressed={isLiked}
-              >
-                <DiamondIcon className={`h-5 w-5 text-blue-500 ${isLiked ? 'fill-current' : ''}`} />
-                <span className="font-medium">{formatNumber(likeCount)}カラット</span>
-                {isLiked && (
-                  <span className="text-xs animate-bounce">+1</span>
-                )}
-              </Button>
+              <LikeButton
+                postId={post.id}
+                initialLiked={isLiked}
+                initialLikeCount={likeCount}
+                onLikeChange={(liked, count) => {
+                  setIsLiked(liked);
+                  setLikeCount(count);
+                  onUpdated?.({
+                    ...post,
+                    is_liked: liked,
+                    like_count: count
+                  });
+                }}
+                token={token}
+                apiUrl={API_URL}
+                size="default"
+                className="text-base"
+              />
               <div className="flex items-center gap-2 text-gray-600">
                 <MessageCircle className="h-5 w-5" />
                 <span className="font-medium">コメント数 {formatNumber(comments.length)}</span>

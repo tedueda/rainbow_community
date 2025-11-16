@@ -556,7 +556,6 @@ const CategoryPage: React.FC = () => {
           user={{ id: selectedPost.user_id, display_name: selectedPost.user_display_name || 'ユーザー', email: '' } as any}
           isOpen={isModalOpen}
           onClose={closePostModal}
-          onLike={() => handleLikePost(selectedPost.id)}
           onUpdated={handlePostUpdated}
           onDeleted={handlePostDeleted}
         />
