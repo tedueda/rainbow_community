@@ -12,7 +12,6 @@ interface PostDetailModalProps {
   user: User;
   isOpen: boolean;
   onClose: () => void;
-  onLike?: (postId: number) => void;
   onUpdated?: (updated: Post) => void;
   onDeleted?: (postId: number) => void;
 }
@@ -23,7 +22,6 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
   user,
   isOpen,
   onClose,
-  onLike,
   onUpdated,
   onDeleted
 }) => {
