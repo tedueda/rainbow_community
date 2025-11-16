@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Heart, MessageCircle, Send, Camera, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
+import { X, MessageCircle, Send, Camera, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { useAuth } from '../contexts/AuthContext';
@@ -795,6 +795,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
                 apiUrl={API_URL}
                 size="default"
                 className="text-base"
+                source="modal"
               />
               <div className="flex items-center gap-2 text-gray-600">
                 <MessageCircle className="h-5 w-5" />
@@ -894,14 +895,6 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
                             className="text-xs text-gray-500 hover:text-pink-600 p-0 h-auto"
                           >
                             返信
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-xs text-gray-500 hover:text-pink-600 p-0 h-auto"
-                          >
-                            <Heart className="h-3 w-3 mr-1" />
-                            {Math.floor(Math.random() * 5)}
                           </Button>
                         </div>
                       </div>

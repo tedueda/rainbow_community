@@ -62,13 +62,24 @@ const LikeButton: React.FC<LikeButtonProps> = ({
     try {
       const method = nextIsLiked ? 'PUT' : 'DELETE';
       console.log(`[LikeButton] Making API call - postId: ${postId}, source: ${source}, method: ${method}`);
-      const response = await fetch(`${apiUrl}/api/posts/${postId}/like`, {
+      let response = await fetch(`${apiUrl}/api/posts/${postId}/like`, {
         method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
       });
+
+      if (response.status === 405 || response.status === 404) {
+        console.log(`[LikeButton] ${method} not supported (${response.status}), falling back to POST toggle`);
+        response = await fetch(`${apiUrl}/api/posts/${postId}/like`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+      }
 
       if (response.ok) {
         const data = await response.json();
