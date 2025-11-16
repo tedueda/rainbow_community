@@ -34,6 +34,7 @@ async def read_posts(
     sort: str = "newest",
     range: str = "all",
     tag: Optional[str] = None,
+    current_user: Optional[User] = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
     query = db.query(Post).options(joinedload(Post.user))
@@ -101,6 +102,19 @@ async def read_posts(
             print(f"Error counting likes for post {post.id}: {e}")
             like_count = 0
         
+        is_liked = False
+        if current_user:
+            try:
+                is_liked = db.query(Reaction).filter(
+                    Reaction.user_id == current_user.id,
+                    Reaction.target_type == "post",
+                    Reaction.target_id == post.id,
+                    Reaction.reaction_type == "like"
+                ).first() is not None
+            except Exception as e:
+                print(f"Error checking like status for post {post.id}: {e}")
+                is_liked = False
+        
         # コメント数を計算
         try:
             comment_count = db.query(Comment).filter(Comment.post_id == post.id).count()
@@ -130,6 +144,7 @@ async def read_posts(
             "created_at": post.created_at,
             "updated_at": post.updated_at,
             "like_count": like_count,
+            "is_liked": is_liked,
             "comment_count": comment_count
         }
         if post.media_id:

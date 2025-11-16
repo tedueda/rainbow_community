@@ -76,11 +76,34 @@ const PostFeed: React.FC = () => {
     }
   };
 
+  const [likingPosts, setLikingPosts] = useState<Set<number>>(new Set());
+
   const handleReaction = async (postId: number, reactionType: string) => {
     if (!user || isAnonymous) {
       alert('カラットするにはプレミアム会員登録が必要です');
       return;
     }
+    
+    if (likingPosts.has(postId)) {
+      return;
+    }
+    
+    setLikingPosts(prev => new Set(prev).add(postId));
+    
+    const originalPost = posts.find(p => p.id === postId);
+    const originalIsLiked = originalPost?.is_liked || false;
+    const originalLikeCount = originalPost?.like_count || 0;
+    
+    const nextIsLiked = !originalIsLiked;
+    const nextLikeCount = Math.max(0, originalLikeCount + (nextIsLiked ? 1 : -1));
+    
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId 
+          ? { ...post, like_count: nextLikeCount, is_liked: nextIsLiked }
+          : post
+      )
+    );
     
     try {
       const response = await fetch(`${API_URL}/api/posts/${postId}/like`, {
@@ -92,10 +115,38 @@ const PostFeed: React.FC = () => {
       });
 
       if (response.ok) {
-        fetchPosts();
+        const data = await response.json();
+        setPosts(prevPosts => 
+          prevPosts.map(post => 
+            post.id === postId 
+              ? { ...post, like_count: data.like_count, is_liked: data.liked }
+              : post
+          )
+        );
+      } else {
+        setPosts(prevPosts => 
+          prevPosts.map(post => 
+            post.id === postId 
+              ? { ...post, like_count: originalLikeCount, is_liked: originalIsLiked }
+              : post
+          )
+        );
       }
     } catch (error) {
       console.error('Error liking post:', error);
+      setPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === postId 
+            ? { ...post, like_count: originalLikeCount, is_liked: originalIsLiked }
+            : post
+        )
+      );
+    } finally {
+      setLikingPosts(prev => {
+        const next = new Set(prev);
+        next.delete(postId);
+        return next;
+      });
     }
   };
 

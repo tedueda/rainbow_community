@@ -261,7 +261,7 @@ const CategoryPage: React.FC = () => {
         setPosts(prevPosts => 
           prevPosts.map(post => 
             post.id === postId 
-              ? { ...post, is_liked: result.liked, like_count: (post.like_count || 0) + (result.liked ? 1 : -1) }
+              ? { ...post, is_liked: result.liked, like_count: result.like_count }
               : post
           )
         );
