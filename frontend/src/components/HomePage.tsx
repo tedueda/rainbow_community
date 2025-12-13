@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
-import { ArrowRight, Calendar, Heart, MessageCircle, Gem as DiamondIcon, Lock } from 'lucide-react';
+import { ArrowRight, Calendar, Heart, MessageCircle, Gem as DiamondIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
@@ -17,18 +17,8 @@ const memberBenefits = [
     title: "マッチング",
     description: "理想のパートナーと出会える安心のマッチングサービス",
     icon: "💕",
-    link: "/matching",
+    link: "/matching", // React版統合
     external: false,
-    premiumOnly: true,
-  },
-  {
-    id: "salon",
-    title: "会員サロン",
-    description: "プレミアム会員限定の専門チャットサロン",
-    icon: "💬",
-    link: "/salon",
-    external: false,
-    premiumOnly: true,
   },
   {
     id: "live-wedding",
@@ -37,7 +27,6 @@ const memberBenefits = [
     icon: "💒",
     link: "/live-wedding",
     external: false,
-    premiumOnly: false,
   },
   {
     id: "donation",
@@ -46,7 +35,6 @@ const memberBenefits = [
     icon: "🤝",
     link: "/funding",
     external: false,
-    premiumOnly: false,
   },
   {
     id: "marketplace",
@@ -55,7 +43,6 @@ const memberBenefits = [
     icon: "🛍️",
     link: "/marketplace",
     external: false,
-    premiumOnly: false,
   },
   {
     id: "food",
@@ -64,7 +51,6 @@ const memberBenefits = [
     icon: "🍽",
     link: "/members/food",
     external: false,
-    premiumOnly: false,
   },
   {
     id: "beauty",
@@ -73,15 +59,14 @@ const memberBenefits = [
     icon: "💄",
     link: "/members/beauty",
     external: false,
-    premiumOnly: false,
   },
 ];
 
 const categories = [
-  { key: "board", title: "悩み相談", desc: "悩み相談や雑談、生活の話題。", posts: 15230, emoji: "💬" },
   { key: "comics", title: "サブカルチャー", desc: "映画・アニメ・ゲーム・小説などの作品レビューと感想。", posts: 2840, emoji: "🎭" },
   { key: "art", title: "アート", desc: "イラスト・写真・映像作品の発表。", posts: 8932, emoji: "🎨" },
   { key: "music", title: "音楽", desc: "お気に入りや自作・AI曲の共有。", posts: 6240, emoji: "🎵" },
+  { key: "board", title: "掲示板", desc: "悩み相談や雑談、生活の話題。", posts: 15230, emoji: "💬" },
   { key: "shops", title: "お店", desc: "LGBTQフレンドリーなお店紹介。", posts: 1450, emoji: "🏬" },
   { key: "tourism", title: "ツーリズム", desc: "会員ガイドの交流型ツアー。", posts: 312, emoji: "📍" },
 ];
@@ -660,125 +645,78 @@ const HomePage: React.FC = () => {
             <span className="text-base md:text-2xl text-slate-500 self-start md:self-auto">会員限定</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
-            {memberBenefits.map((benefit) => {
-              const isPremiumLocked = benefit.premiumOnly && user?.membership_type !== 'premium' && user?.membership_type !== 'admin';
-              return (
-                <Card 
-                  key={benefit.id} 
-                  className={`group backdrop-blur-md bg-gray-50/90 border border-gray-200 hover:bg-white hover:border-gray-300 transition-all duration-300 cursor-pointer hover:scale-[1.02] shadow-lg hover:shadow-2xl ${isPremiumLocked ? 'opacity-75' : ''}`}
-                  onClick={() => {
-                    if (!user) {
-                      setShowLoginPrompt(true);
-                      return;
-                    }
-                    if (isPremiumLocked) {
-                      alert('この機能はプレミアム会員限定です');
-                      return;
-                    }
-                    if (benefit.external === false && benefit.link) {
+            {memberBenefits.map((benefit) => (
+              <Card 
+                key={benefit.id} 
+                className="group backdrop-blur-md bg-gray-50/90 border border-gray-200 hover:bg-white hover:border-gray-300 transition-all duration-300 cursor-pointer hover:scale-[1.02] shadow-lg hover:shadow-2xl"
+                onClick={() => {
+                  console.log('Card clicked:', benefit.title, 'external:', benefit.external, 'link:', benefit.link);
+                  console.log('Current location:', window.location.pathname);
+                  if (benefit.external === false && benefit.link) {
+                    console.log('Attempting to navigate to:', benefit.link);
+                    try {
                       navigate(benefit.link);
                       window.scrollTo({ top: 0, behavior: 'smooth' });
-                    } else {
-                      setShowConstructionModal(true);
+                      console.log('Navigation called successfully');
+                    } catch (error) {
+                      console.error('Navigation error:', error);
                     }
-                  }}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="text-4xl group-hover:scale-110 transition-transform relative">
-                          {benefit.icon}
-                          {isPremiumLocked && (
-                            <div className="absolute -top-1 -right-1 bg-gray-800 rounded-full p-1">
-                              <Lock className="h-3 w-3 text-white" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="text-left">
-                          <h4 className="font-serif font-semibold text-slate-900 mb-1 group-hover:gold-accent flex items-center gap-2">
-                            {benefit.title}
-                            {isPremiumLocked && (
-                              <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">Premium</span>
-                            )}
-                          </h4>
-                          <p className="text-sm text-slate-600 line-clamp-2">
-                            {benefit.description}
-                          </p>
-                        </div>
+                  } else {
+                    console.log('Showing construction modal');
+                    setShowConstructionModal(true);
+                  }
+                }}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="text-4xl group-hover:scale-110 transition-transform">
+                        {benefit.icon}
                       </div>
-                      <Button 
-                        className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 hover:text-black group-hover:shadow-md transition-all font-medium"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!user) {
-                            setShowLoginPrompt(true);
-                            return;
-                          }
-                          if (isPremiumLocked) {
-                            alert('この機能はプレミアム会員限定です');
-                            return;
-                          }
-                          if (benefit.external === false && benefit.link) {
+                      <div className="text-left">
+                        <h4 className="font-serif font-semibold text-slate-900 mb-1 group-hover:gold-accent">
+                          {benefit.title}
+                        </h4>
+                        <p className="text-sm text-slate-600 line-clamp-2">
+                          {benefit.description}
+                        </p>
+                      </div>
+                    </div>
+                    <Button 
+                      className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 hover:text-black group-hover:shadow-md transition-all font-medium"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // 未ログイン時はログインポップアップを表示
+                        if (!user) {
+                          setShowLoginPrompt(true);
+                          return;
+                        }
+                        console.log('Button clicked:', benefit.title, 'external:', benefit.external, 'link:', benefit.link);
+                        console.log('Current location:', window.location.pathname);
+                        if (benefit.external === false && benefit.link) {
+                          console.log('Attempting to navigate to:', benefit.link);
+                          try {
                             navigate(benefit.link);
                             window.scrollTo({ top: 0, behavior: 'smooth' });
-                          } else {
-                            setShowConstructionModal(true);
+                            console.log('Navigation called successfully');
+                          } catch (error) {
+                            console.error('Navigation error:', error);
                           }
-                        }}
-                      >
-                        {isPremiumLocked ? (
-                          <>
-                            <Lock className="h-3 w-3 mr-1" />
-                            ロック中
-                          </>
-                        ) : (
-                          <>
-                            利用する
-                            <ArrowRight className="h-3 w-3 ml-1" />
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                        } else {
+                          console.log('Showing construction modal');
+                          setShowConstructionModal(true);
+                        }
+                      }}
+                    >
+                      利用する
+                      <ArrowRight className="h-3 w-3 ml-1" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        </section>
-
-        {/* ライブウェディングバナー */}
-        <section className="py-12">
-          <Card 
-            className="text-white border border-white/20 shadow-2xl relative overflow-hidden backdrop-blur-sm cursor-pointer hover:shadow-3xl transition-all duration-300"
-            onClick={() => navigate('/live-wedding')}
-          >
-            <div className="absolute inset-0">
-              <img 
-                src="/images/lgbtq-7-1536x1024.jpg" 
-                alt="Live Wedding Background"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-pink-500/60 via-purple-500/60 to-indigo-500/60"></div>
-            </div>
-            <CardContent className="p-6 md:p-8 text-center relative z-10">
-              <div className="flex items-center justify-center gap-2 mb-3">
-                <span className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full">Special Service</span>
-              </div>
-              <h3 className="text-4xl md:text-5xl font-serif font-bold mb-4">Live Wedding</h3>
-              <p className="text-xl md:text-2xl mb-6 opacity-90">オンラインで叶える、あなただけの特別な結婚式</p>
-              <Button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate('/live-wedding');
-                }}
-                className="bg-white text-gray-900 hover:bg-gray-100 font-semibold px-6 py-2.5 shadow-lg"
-              >
-                詳細を見る
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </CardContent>
-          </Card>
         </section>
 
         {/* イベント特集バナー */}
