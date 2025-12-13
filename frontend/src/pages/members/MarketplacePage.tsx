@@ -23,19 +23,9 @@ const API_URL = import.meta.env.VITE_API_URL || 'https://ddxdewgmen.ap-northeast
 
 const MarketplacePage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user } = useAuth();
   const token = localStorage.getItem('token');
   const currentUserId = user?.id;
-  
-  // Debug: Log auth state for troubleshooting
-  useEffect(() => {
-    console.log('🔍 MarketplacePage Auth Debug:', {
-      authLoading,
-      user,
-      currentUserId,
-      token: token ? 'exists' : 'null'
-    });
-  }, [authLoading, user, currentUserId, token]);
 
   const [listings, setListings] = useState<Listing[]>([]);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
@@ -71,7 +61,7 @@ const MarketplacePage: React.FC = () => {
           category: item.subcategory || 'その他',
           location: '大阪府',
           seller_name: item.user_display_name || '匿名',
-          seller_id: Number(item.user_id),
+          seller_id: item.user_id,
           images: item.media_urls && item.media_urls.length > 0 ? item.media_urls : ['/placeholder.jpg'],
           created_at: item.created_at,
           status: 'active',
@@ -338,22 +328,7 @@ const MarketplacePage: React.FC = () => {
                 </div>
 
                 {/* Chat Button (bottom left, for non-sellers) */}
-                {/* Debug: Show button state */}
-                {(() => {
-                  const sellerId = Number(selectedListing.seller_id);
-                  const userId = currentUserId ? Number(currentUserId) : null;
-                  const shouldShow = !authLoading && userId !== null && sellerId !== userId;
-                  console.log('🔍 Chat Button Debug:', {
-                    authLoading,
-                    currentUserId,
-                    sellerId: selectedListing.seller_id,
-                    sellerIdNum: sellerId,
-                    userIdNum: userId,
-                    shouldShow
-                  });
-                  return null;
-                })()}
-                {!authLoading && currentUserId !== undefined && Number(selectedListing.seller_id) !== Number(currentUserId) && (
+                {currentUserId && Number(selectedListing.seller_id) !== Number(currentUserId) && (
                   <button
                     onClick={() => setShowContactModal(true)}
                     className="w-full bg-carat-black text-white py-3 px-4 rounded-lg font-semibold hover:bg-carat-gray6 transition-colors flex items-center justify-center gap-2 mt-4"
