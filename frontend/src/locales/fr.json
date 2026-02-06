@@ -288,7 +288,18 @@
     "typing": "En train d'écrire..."
   },
   "auth": {
-    "login": "Connexion",
+    "login": {
+      "title": "Connexion membre",
+      "description": "Connectez-vous avec votre compte membre pour accéder à toutes les fonctionnalités",
+      "email": "E-mail",
+      "password": "Mot de passe",
+      "rememberMe": "Rester connecté (7 jours)",
+      "submit": "Se connecter",
+      "submitting": "Connexion en cours...",
+      "error": "E-mail ou mot de passe invalide",
+      "premiumDescription": "Pas encore membre ? Devenez membre premium pour accéder à toutes les fonctionnalités",
+      "becomePremium": "Devenir membre premium"
+    },
     "loginRequired": "Connexion requise",
     "loginRequiredMessage": "Vous devez vous connecter en tant que membre pour utiliser cette fonctionnalité.",
     "email": "E-mail",
