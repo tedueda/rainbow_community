@@ -5,8 +5,9 @@ import { LANGUAGE_NAMES, LANGUAGE_FLAGS, SupportedLanguage } from '../../i18n';
 import { 
   User, Mail, Lock, AlertCircle, CheckCircle, Trash2, 
   Crown, Shield, Star, ThumbsUp, TrendingUp, Globe,
-  Camera, MapPin, Link as LinkIcon, Instagram, Twitter
+  Camera, MapPin, Link as LinkIcon, Instagram, Twitter, ExternalLink
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -41,6 +42,7 @@ interface UserStats {
 export default function AccountPage() {
   const { t } = useTranslation();
   const { currentLanguage, setLanguage, supportedLanguages } = useLanguage();
+  const navigate = useNavigate();
   
   const [account, setAccount] = useState<AccountData | null>(null);
   const [stats, setStats] = useState<UserStats | null>(null);
@@ -256,6 +258,25 @@ export default function AccountPage() {
     );
   }
 
+  // 未ログイン時は有料会員限定モーダルを表示
+  if (!token) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
+        <Lock className="h-16 w-16 text-yellow-500 mb-4" />
+        <h2 className="text-xl font-semibold mb-2">{t('matching.profile.premiumOnly')}</h2>
+        <p className="text-gray-600 mb-6 text-center">
+          {t('matching.profile.premiumOnlyDesc')}
+        </p>
+        <button
+          onClick={() => navigate('/login')}
+          className="px-6 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 font-medium"
+        >
+          {t('matching.profile.becomePremium')}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
@@ -430,10 +451,20 @@ export default function AccountPage() {
         
         {/* セクション3: プロフィール */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-2 flex items-center">
-            <User className="w-5 h-5 mr-2 text-gray-600" />
-            {t('account.profile.title')}
-          </h2>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-xl font-bold text-gray-900 flex items-center">
+              <User className="w-5 h-5 mr-2 text-gray-600" />
+              {t('account.profile.title')}
+            </h2>
+            <button
+              type="button"
+              onClick={() => navigate('/matching/profile')}
+              className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all flex items-center text-sm font-medium"
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              {t('account.profile.editMatchingProfile')}
+            </button>
+          </div>
           <p className="text-sm text-gray-500 mb-6">{t('account.profile.description')}</p>
           
           <form onSubmit={handleUpdateProfile} className="space-y-4">
