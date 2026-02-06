@@ -258,6 +258,25 @@ export default function AccountPage() {
     );
   }
 
+  // 未ログイン時は有料会員限定モーダルを表示
+  if (!token) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
+        <Lock className="h-16 w-16 text-yellow-500 mb-4" />
+        <h2 className="text-xl font-semibold mb-2">{t('matching.profile.premiumOnly')}</h2>
+        <p className="text-gray-600 mb-6 text-center">
+          {t('matching.profile.premiumOnlyDesc')}
+        </p>
+        <button
+          onClick={() => navigate('/login')}
+          className="px-6 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 font-medium"
+        >
+          {t('matching.profile.becomePremium')}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
