@@ -881,5 +881,73 @@
         }
       ]
     }
+  },
+  "account": {
+    "title": "Configurações da conta",
+    "status": {
+      "title": "Status de membro",
+      "premiumMember": "Membro Premium",
+      "freeMember": "Membro Gratuito",
+      "identityVerification": "Verificação de identidade",
+      "verified": "Verificado",
+      "unverified": "Não verificado",
+      "caratPoints": "Pontos Carat",
+      "totalLikes": "Total de curtidas",
+      "monthlyPoints": "Pontos mensais",
+      "pointsBreakdown": "{{likes}} curtidas × {{posts}} publicações = {{total}} pontos"
+    },
+    "info": {
+      "title": "Informações da conta",
+      "description": "Gerencie suas informações básicas da conta",
+      "email": "Endereço de e-mail",
+      "emailNote": "Não pode ser alterado",
+      "displayLanguage": "Idioma de exibição",
+      "country": "País de residência",
+      "countryNote": "Não pode ser alterado",
+      "membershipType": "Tipo de membro",
+      "identityStatus": "Status de verificação de identidade",
+      "paymentInfo": "Informações de pagamento",
+      "paymentPlaceholder": "Integração com Stripe em breve"
+    },
+    "profile": {
+      "title": "Perfil",
+      "description": "Edite suas informações de perfil público",
+      "avatar": "Foto de perfil",
+      "avatarChange": "Alterar foto",
+      "displayName": "Nome de exibição",
+      "bio": "Biografia",
+      "bioPlaceholder": "Conte-nos sobre você...",
+      "location": "Localização",
+      "locationPlaceholder": "ex., São Paulo",
+      "interests": "Interesses",
+      "interestsPlaceholder": "Adicionar tags...",
+      "socialLinks": "Links sociais",
+      "website": "Website",
+      "twitter": "Twitter",
+      "instagram": "Instagram"
+    },
+    "security": {
+      "title": "Segurança",
+      "changePassword": "Alterar senha",
+      "currentPassword": "Senha atual",
+      "newPassword": "Nova senha",
+      "confirmPassword": "Confirmar nova senha",
+      "passwordMinLength": "A senha deve ter pelo menos 8 caracteres",
+      "passwordMismatch": "As senhas não coincidem",
+      "passwordChanged": "Senha alterada com sucesso"
+    },
+    "danger": {
+      "title": "Zona de perigo",
+      "deleteAccount": "Excluir conta",
+      "deleteButton": "Excluir conta",
+      "deleteConfirmation": "Digite 'DELETE' para confirmar",
+      "deleteWarning": "Tem certeza de que deseja excluir sua conta? Esta ação não pode ser desfeita.",
+      "deleteSuccess": "Conta excluída com sucesso"
+    },
+    "messages": {
+      "fetchError": "Falha ao obter informações da conta",
+      "updateSuccess": "Perfil atualizado com sucesso",
+      "updateError": "Falha ao atualizar"
+    }
   }
 }

@@ -934,5 +934,73 @@
         }
       ]
     }
+  },
+  "account": {
+    "title": "Account Settings",
+    "status": {
+      "title": "Member Status",
+      "premiumMember": "Premium Member",
+      "freeMember": "Free Member",
+      "identityVerification": "Identity Verification",
+      "verified": "Verified",
+      "unverified": "Unverified",
+      "caratPoints": "Carat Points",
+      "totalLikes": "Total Likes",
+      "monthlyPoints": "Monthly Points",
+      "pointsBreakdown": "{{likes}} likes × {{posts}} posts = {{total}} points"
+    },
+    "info": {
+      "title": "Account Information",
+      "description": "Manage your basic account information",
+      "email": "Email Address",
+      "emailNote": "Cannot be changed",
+      "displayLanguage": "Display Language",
+      "country": "Country of Residence",
+      "countryNote": "Cannot be changed",
+      "membershipType": "Membership Type",
+      "identityStatus": "Identity Verification Status",
+      "paymentInfo": "Payment Information",
+      "paymentPlaceholder": "Stripe integration coming soon"
+    },
+    "profile": {
+      "title": "Profile",
+      "description": "Edit your public profile information",
+      "avatar": "Profile Picture",
+      "avatarChange": "Change Picture",
+      "displayName": "Display Name",
+      "bio": "Bio",
+      "bioPlaceholder": "Tell us about yourself...",
+      "location": "Location",
+      "locationPlaceholder": "e.g., Tokyo",
+      "interests": "Interests",
+      "interestsPlaceholder": "Add tags...",
+      "socialLinks": "Social Links",
+      "website": "Website",
+      "twitter": "Twitter",
+      "instagram": "Instagram"
+    },
+    "security": {
+      "title": "Security",
+      "changePassword": "Change Password",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm New Password",
+      "passwordMinLength": "Password must be at least 8 characters",
+      "passwordMismatch": "Passwords do not match",
+      "passwordChanged": "Password changed successfully"
+    },
+    "danger": {
+      "title": "Danger Zone",
+      "deleteAccount": "Delete Account",
+      "deleteButton": "Delete Account",
+      "deleteConfirmation": "Type 'DELETE' to confirm",
+      "deleteWarning": "Are you sure you want to delete your account? This action cannot be undone.",
+      "deleteSuccess": "Account deleted successfully"
+    },
+    "messages": {
+      "fetchError": "Failed to fetch account information",
+      "updateSuccess": "Profile updated successfully",
+      "updateError": "Failed to update"
+    }
   }
 }
