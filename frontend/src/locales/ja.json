@@ -945,7 +945,7 @@
       "verified": "確認済み",
       "unverified": "未確認",
       "caratPoints": "カラットポイント",
-      "totalLikes": "総いいね数",
+      "totalComments": "総コメント数",
       "monthlyPoints": "今月の獲得ポイント",
       "pointsBreakdown": "いいね{{likes}}件 × 投稿{{posts}}件 = {{total}}ポイント"
     },

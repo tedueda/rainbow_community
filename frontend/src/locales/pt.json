@@ -892,7 +892,7 @@
       "verified": "Verificado",
       "unverified": "Não verificado",
       "caratPoints": "Pontos Carat",
-      "totalLikes": "Total de curtidas",
+      "totalComments": "Total de comentários",
       "monthlyPoints": "Pontos mensais",
       "pointsBreakdown": "{{likes}} curtidas × {{posts}} publicações = {{total}} pontos"
     },
