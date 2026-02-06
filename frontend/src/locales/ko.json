@@ -957,7 +957,7 @@
       "verified": "인증됨",
       "unverified": "미인증",
       "caratPoints": "캐럿 포인트",
-      "totalLikes": "총 좋아요 수",
+      "totalComments": "총 댓글 수",
       "monthlyPoints": "이번 달 획득 포인트",
       "pointsBreakdown": "좋아요 {{likes}}개 × 게시물 {{posts}}개 = {{total}}포인트"
     },

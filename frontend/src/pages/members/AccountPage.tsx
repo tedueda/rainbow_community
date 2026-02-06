@@ -4,7 +4,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { LANGUAGE_NAMES, LANGUAGE_FLAGS, SupportedLanguage } from '../../i18n';
 import { 
   User, Mail, Lock, AlertCircle, CheckCircle, Trash2, 
-  Crown, Shield, Star, ThumbsUp, TrendingUp, Globe, ExternalLink
+  Crown, Shield, Gem, MessageCircle, TrendingUp, Globe, ExternalLink
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -34,6 +34,7 @@ interface AccountData {
 interface UserStats {
   posts_count: number;
   likes_received: number;
+  comments_count: number;
   total_points: number;
   monthly_points?: number;
 }
@@ -258,16 +259,16 @@ export default function AccountPage() {
             
             {/* カラットポイント */}
             <div className="bg-white rounded-lg p-4 text-center">
-              <Star className="w-6 h-6 mx-auto mb-2 text-blue-600" />
+              <Gem className="w-6 h-6 mx-auto mb-2 text-blue-600" />
               <p className="text-sm text-gray-600">{t('account.status.caratPoints')}</p>
               <p className="text-2xl font-bold text-blue-600">{stats?.total_points || 0}</p>
             </div>
             
-            {/* 総いいね数 */}
+            {/* 総コメント数 */}
             <div className="bg-white rounded-lg p-4 text-center">
-              <ThumbsUp className="w-6 h-6 mx-auto mb-2 text-pink-600" />
-              <p className="text-sm text-gray-600">{t('account.status.totalLikes')}</p>
-              <p className="text-2xl font-bold text-pink-600">{stats?.likes_received || 0}</p>
+              <MessageCircle className="w-6 h-6 mx-auto mb-2 text-pink-600" />
+              <p className="text-sm text-gray-600">{t('account.status.totalComments')}</p>
+              <p className="text-2xl font-bold text-pink-600">{stats?.comments_count || 0}</p>
             </div>
             
             {/* 今月の獲得ポイント */}

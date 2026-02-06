@@ -945,7 +945,7 @@
       "verified": "Verified",
       "unverified": "Unverified",
       "caratPoints": "Carat Points",
-      "totalLikes": "Total Likes",
+      "totalComments": "Total Comments",
       "monthlyPoints": "Monthly Points",
       "pointsBreakdown": "{{likes}} likes × {{posts}} posts = {{total}} points"
     },
