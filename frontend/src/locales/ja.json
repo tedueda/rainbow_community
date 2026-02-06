@@ -1,0 +1,122 @@
+{
+  "common": {
+    "loading": "読み込み中...",
+    "error": "エラーが発生しました",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "edit": "編集",
+    "delete": "削除",
+    "confirm": "確認",
+    "back": "戻る",
+    "next": "次へ",
+    "submit": "送信",
+    "update": "更新",
+    "close": "閉じる"
+  },
+  "auth": {
+    "login": {
+      "title": "会員ログイン（有料会員専用）",
+      "description": "有料会員登録済みの方はこちらからログインできます",
+      "email": "メールアドレス",
+      "password": "パスワード",
+      "rememberMe": "ログイン状態を保持する（7日間）",
+      "submit": "ログイン",
+      "submitting": "ログイン中...",
+      "error": "メールアドレスまたはパスワードが正しくありません",
+      "becomePremium": "有料会員になる（月額1,000円）",
+      "premiumDescription": "有料会員になると全機能をご利用いただけます"
+    },
+    "logout": "ログアウト"
+  },
+  "account": {
+    "title": "マイアカウント",
+    "status": {
+      "title": "会員ステータス",
+      "premiumMember": "有料会員",
+      "freeMember": "無料会員",
+      "identityVerification": "本人確認ステータス",
+      "verified": "確認済み",
+      "unverified": "未確認",
+      "caratPoints": "カラットポイント",
+      "totalLikes": "総いいね数",
+      "monthlyPoints": "今月の獲得ポイント",
+      "pointsBreakdown": "いいね {{likes}}pt + 投稿 {{posts}} × 5pt = 合計 {{total}}カラット"
+    },
+    "info": {
+      "title": "アカウント情報",
+      "description": "この情報は本人確認・決済に関わるため、一部変更できません",
+      "email": "メールアドレス",
+      "emailNote": "変更不可",
+      "displayLanguage": "表示言語",
+      "country": "居住国",
+      "countryNote": "将来KYC用",
+      "membershipType": "会員種別",
+      "identityStatus": "本人確認ステータス",
+      "paymentInfo": "決済情報",
+      "paymentPlaceholder": "Stripe連携予定"
+    },
+    "profile": {
+      "title": "プロフィール",
+      "description": "コミュニティ・マッチング・チャットで利用する情報",
+      "displayName": "表示名（ニックネーム）",
+      "avatar": "アイコン画像",
+      "avatarChange": "画像を変更",
+      "bio": "自己紹介",
+      "bioPlaceholder": "あなたについて教えてください...",
+      "interests": "興味タグ",
+      "interestsPlaceholder": "興味のあるトピックを追加",
+      "location": "地域",
+      "locationPlaceholder": "都市・エリア",
+      "socialLinks": "SNSリンク（任意）",
+      "website": "ウェブサイト",
+      "twitter": "Twitter / X",
+      "instagram": "Instagram"
+    },
+    "security": {
+      "title": "セキュリティ",
+      "changePassword": "パスワードを変更する",
+      "currentPassword": "現在のパスワード",
+      "newPassword": "新しいパスワード",
+      "confirmPassword": "新しいパスワード（確認）",
+      "passwordMinLength": "8文字以上",
+      "passwordMismatch": "新しいパスワードが一致しません",
+      "passwordChanged": "パスワードを変更しました"
+    },
+    "danger": {
+      "title": "危険な操作",
+      "deleteAccount": "アカウントを削除する",
+      "deleteWarning": "アカウントを削除すると、すべてのデータが失われます。この操作は取り消せません。",
+      "deleteConfirmation": "確認のため「DELETE」と入力してください",
+      "deleteButton": "削除する",
+      "deleteSuccess": "アカウントを削除しました"
+    },
+    "messages": {
+      "updateSuccess": "アカウント情報を更新しました",
+      "updateError": "アカウント情報の更新に失敗しました",
+      "fetchError": "アカウント情報の取得に失敗しました"
+    }
+  },
+  "subscription": {
+    "becomePremium": "有料会員になる",
+    "monthlyPrice": "月額1,000円",
+    "benefits": {
+      "title": "有料会員の特典",
+      "matching": "マッチング機能の利用",
+      "chat": "チャット機能の利用",
+      "salon": "サロン機能の利用",
+      "marketplace": "マーケットプレイス機能の利用",
+      "priority": "優先サポート"
+    }
+  },
+  "language": {
+    "select": "言語を選択",
+    "ja": "日本語",
+    "en": "English",
+    "ko": "한국어",
+    "es": "Español",
+    "pt": "Português",
+    "fr": "Français",
+    "it": "Italiano",
+    "de": "Deutsch"
+  }
+}

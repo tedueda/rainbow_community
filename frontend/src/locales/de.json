@@ -1,0 +1,122 @@
+{
+  "common": {
+    "loading": "Laden...",
+    "error": "Ein Fehler ist aufgetreten",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "confirm": "Bestätigen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "submit": "Absenden",
+    "update": "Aktualisieren",
+    "close": "Schließen"
+  },
+  "auth": {
+    "login": {
+      "title": "Mitglieder-Login (Nur Premium-Mitglieder)",
+      "description": "Wenn Sie ein registriertes Premium-Mitglied sind, melden Sie sich hier an",
+      "email": "E-Mail-Adresse",
+      "password": "Passwort",
+      "rememberMe": "Angemeldet bleiben (7 Tage)",
+      "submit": "Anmelden",
+      "submitting": "Anmeldung läuft...",
+      "error": "Ungültige E-Mail-Adresse oder Passwort",
+      "becomePremium": "Premium-Mitglied werden (1.000 Yen/Monat)",
+      "premiumDescription": "Werden Sie Premium-Mitglied, um auf alle Funktionen zuzugreifen"
+    },
+    "logout": "Abmelden"
+  },
+  "account": {
+    "title": "Mein Konto",
+    "status": {
+      "title": "Mitgliedschaftsstatus",
+      "premiumMember": "Premium-Mitglied",
+      "freeMember": "Kostenloses Mitglied",
+      "identityVerification": "Identitätsverifizierungsstatus",
+      "verified": "Verifiziert",
+      "unverified": "Nicht verifiziert",
+      "caratPoints": "Carat-Punkte",
+      "totalLikes": "Gesamte Likes",
+      "monthlyPoints": "Diesen Monat verdiente Punkte",
+      "pointsBreakdown": "Likes {{likes}}pt + Beiträge {{posts}} × 5pt = Gesamt {{total}} Carats"
+    },
+    "info": {
+      "title": "Kontoinformationen",
+      "description": "Einige Informationen können nicht geändert werden, da sie mit der Identitätsverifizierung und Zahlung zusammenhängen",
+      "email": "E-Mail-Adresse",
+      "emailNote": "Kann nicht geändert werden",
+      "displayLanguage": "Anzeigesprache",
+      "country": "Wohnsitzland",
+      "countryNote": "Für zukünftiges KYC",
+      "membershipType": "Mitgliedschaftstyp",
+      "identityStatus": "Identitätsverifizierungsstatus",
+      "paymentInfo": "Zahlungsinformationen",
+      "paymentPlaceholder": "Stripe-Integration kommt bald"
+    },
+    "profile": {
+      "title": "Profil",
+      "description": "Informationen für Community, Matching und Chat",
+      "displayName": "Anzeigename (Spitzname)",
+      "avatar": "Profilbild",
+      "avatarChange": "Bild ändern",
+      "bio": "Bio",
+      "bioPlaceholder": "Erzählen Sie uns von sich...",
+      "interests": "Interesse-Tags",
+      "interestsPlaceholder": "Fügen Sie Themen hinzu, die Sie interessieren",
+      "location": "Standort",
+      "locationPlaceholder": "Stadt / Gebiet",
+      "socialLinks": "Social Links (Optional)",
+      "website": "Website",
+      "twitter": "Twitter / X",
+      "instagram": "Instagram"
+    },
+    "security": {
+      "title": "Sicherheit",
+      "changePassword": "Passwort ändern",
+      "currentPassword": "Aktuelles Passwort",
+      "newPassword": "Neues Passwort",
+      "confirmPassword": "Neues Passwort bestätigen",
+      "passwordMinLength": "Mindestens 8 Zeichen",
+      "passwordMismatch": "Die neuen Passwörter stimmen nicht überein",
+      "passwordChanged": "Passwort erfolgreich geändert"
+    },
+    "danger": {
+      "title": "Gefahrenzone",
+      "deleteAccount": "Konto löschen",
+      "deleteWarning": "Das Löschen Ihres Kontos entfernt dauerhaft alle Ihre Daten. Diese Aktion kann nicht rückgängig gemacht werden.",
+      "deleteConfirmation": "Geben Sie \"DELETE\" zur Bestätigung ein",
+      "deleteButton": "Löschen",
+      "deleteSuccess": "Konto erfolgreich gelöscht"
+    },
+    "messages": {
+      "updateSuccess": "Kontoinformationen erfolgreich aktualisiert",
+      "updateError": "Fehler beim Aktualisieren der Kontoinformationen",
+      "fetchError": "Fehler beim Abrufen der Kontoinformationen"
+    }
+  },
+  "subscription": {
+    "becomePremium": "Premium-Mitglied werden",
+    "monthlyPrice": "1.000 Yen/Monat",
+    "benefits": {
+      "title": "Premium-Mitglied Vorteile",
+      "matching": "Zugang zu Matching-Funktionen",
+      "chat": "Zugang zu Chat-Funktionen",
+      "salon": "Zugang zu Salon-Funktionen",
+      "marketplace": "Zugang zu Marketplace-Funktionen",
+      "priority": "Prioritäts-Support"
+    }
+  },
+  "language": {
+    "select": "Sprache auswählen",
+    "ja": "日本語",
+    "en": "English",
+    "ko": "한국어",
+    "es": "Español",
+    "pt": "Português",
+    "fr": "Français",
+    "it": "Italiano",
+    "de": "Deutsch"
+  }
+}

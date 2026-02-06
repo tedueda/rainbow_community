@@ -1,0 +1,122 @@
+{
+  "common": {
+    "loading": "Carregando...",
+    "error": "Ocorreu um erro",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "confirm": "Confirmar",
+    "back": "Voltar",
+    "next": "Próximo",
+    "submit": "Enviar",
+    "update": "Atualizar",
+    "close": "Fechar"
+  },
+  "auth": {
+    "login": {
+      "title": "Login de membro (Apenas membros premium)",
+      "description": "Se você é um membro premium registrado, faça login aqui",
+      "email": "Endereço de e-mail",
+      "password": "Senha",
+      "rememberMe": "Manter conectado (7 dias)",
+      "submit": "Entrar",
+      "submitting": "Entrando...",
+      "error": "Endereço de e-mail ou senha inválidos",
+      "becomePremium": "Torne-se um membro premium (1.000 ienes/mês)",
+      "premiumDescription": "Torne-se um membro premium para acessar todos os recursos"
+    },
+    "logout": "Sair"
+  },
+  "account": {
+    "title": "Minha conta",
+    "status": {
+      "title": "Status da associação",
+      "premiumMember": "Membro premium",
+      "freeMember": "Membro gratuito",
+      "identityVerification": "Status de verificação de identidade",
+      "verified": "Verificado",
+      "unverified": "Não verificado",
+      "caratPoints": "Pontos Carat",
+      "totalLikes": "Total de curtidas",
+      "monthlyPoints": "Pontos ganhos este mês",
+      "pointsBreakdown": "Curtidas {{likes}}pt + Posts {{posts}} × 5pt = Total {{total}} Carats"
+    },
+    "info": {
+      "title": "Informações da conta",
+      "description": "Algumas informações não podem ser alteradas pois estão relacionadas à verificação de identidade e pagamento",
+      "email": "Endereço de e-mail",
+      "emailNote": "Não pode ser alterado",
+      "displayLanguage": "Idioma de exibição",
+      "country": "País de residência",
+      "countryNote": "Para futuro KYC",
+      "membershipType": "Tipo de associação",
+      "identityStatus": "Status de verificação de identidade",
+      "paymentInfo": "Informações de pagamento",
+      "paymentPlaceholder": "Integração com Stripe em breve"
+    },
+    "profile": {
+      "title": "Perfil",
+      "description": "Informações usadas para comunidade, matching e chat",
+      "displayName": "Nome de exibição (Apelido)",
+      "avatar": "Foto de perfil",
+      "avatarChange": "Alterar foto",
+      "bio": "Bio",
+      "bioPlaceholder": "Conte-nos sobre você...",
+      "interests": "Tags de interesse",
+      "interestsPlaceholder": "Adicione tópicos que te interessam",
+      "location": "Localização",
+      "locationPlaceholder": "Cidade / Área",
+      "socialLinks": "Links sociais (Opcional)",
+      "website": "Website",
+      "twitter": "Twitter / X",
+      "instagram": "Instagram"
+    },
+    "security": {
+      "title": "Segurança",
+      "changePassword": "Alterar senha",
+      "currentPassword": "Senha atual",
+      "newPassword": "Nova senha",
+      "confirmPassword": "Confirmar nova senha",
+      "passwordMinLength": "Pelo menos 8 caracteres",
+      "passwordMismatch": "As novas senhas não coincidem",
+      "passwordChanged": "Senha alterada com sucesso"
+    },
+    "danger": {
+      "title": "Zona de perigo",
+      "deleteAccount": "Excluir conta",
+      "deleteWarning": "Excluir sua conta removerá permanentemente todos os seus dados. Esta ação não pode ser desfeita.",
+      "deleteConfirmation": "Digite \"DELETE\" para confirmar",
+      "deleteButton": "Excluir",
+      "deleteSuccess": "Conta excluída com sucesso"
+    },
+    "messages": {
+      "updateSuccess": "Informações da conta atualizadas com sucesso",
+      "updateError": "Falha ao atualizar informações da conta",
+      "fetchError": "Falha ao obter informações da conta"
+    }
+  },
+  "subscription": {
+    "becomePremium": "Torne-se um membro premium",
+    "monthlyPrice": "1.000 ienes/mês",
+    "benefits": {
+      "title": "Benefícios de membro premium",
+      "matching": "Acesso a recursos de matching",
+      "chat": "Acesso a recursos de chat",
+      "salon": "Acesso a recursos de salão",
+      "marketplace": "Acesso a recursos de marketplace",
+      "priority": "Suporte prioritário"
+    }
+  },
+  "language": {
+    "select": "Selecionar idioma",
+    "ja": "日本語",
+    "en": "English",
+    "ko": "한국어",
+    "es": "Español",
+    "pt": "Português",
+    "fr": "Français",
+    "it": "Italiano",
+    "de": "Deutsch"
+  }
+}

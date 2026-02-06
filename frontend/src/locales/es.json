@@ -1,0 +1,122 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Se produjo un error",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "confirm": "Confirmar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "submit": "Enviar",
+    "update": "Actualizar",
+    "close": "Cerrar"
+  },
+  "auth": {
+    "login": {
+      "title": "Inicio de sesión (Solo miembros premium)",
+      "description": "Si es un miembro premium registrado, inicie sesión aquí",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "rememberMe": "Mantener sesión iniciada (7 días)",
+      "submit": "Iniciar sesión",
+      "submitting": "Iniciando sesión...",
+      "error": "Correo electrónico o contraseña incorrectos",
+      "becomePremium": "Hazte miembro premium (1,000 yenes/mes)",
+      "premiumDescription": "Conviértete en miembro premium para acceder a todas las funciones"
+    },
+    "logout": "Cerrar sesión"
+  },
+  "account": {
+    "title": "Mi cuenta",
+    "status": {
+      "title": "Estado de membresía",
+      "premiumMember": "Miembro premium",
+      "freeMember": "Miembro gratuito",
+      "identityVerification": "Estado de verificación de identidad",
+      "verified": "Verificado",
+      "unverified": "No verificado",
+      "caratPoints": "Puntos Carat",
+      "totalLikes": "Total de Me gusta",
+      "monthlyPoints": "Puntos ganados este mes",
+      "pointsBreakdown": "Me gusta {{likes}}pt + Publicaciones {{posts}} × 5pt = Total {{total}} Carats"
+    },
+    "info": {
+      "title": "Información de la cuenta",
+      "description": "Parte de la información no se puede cambiar ya que está relacionada con la verificación de identidad y el pago",
+      "email": "Correo electrónico",
+      "emailNote": "No se puede cambiar",
+      "displayLanguage": "Idioma de visualización",
+      "country": "País de residencia",
+      "countryNote": "Para futuro KYC",
+      "membershipType": "Tipo de membresía",
+      "identityStatus": "Estado de verificación de identidad",
+      "paymentInfo": "Información de pago",
+      "paymentPlaceholder": "Integración con Stripe próximamente"
+    },
+    "profile": {
+      "title": "Perfil",
+      "description": "Información utilizada para comunidad, emparejamiento y chat",
+      "displayName": "Nombre para mostrar (Apodo)",
+      "avatar": "Foto de perfil",
+      "avatarChange": "Cambiar foto",
+      "bio": "Biografía",
+      "bioPlaceholder": "Cuéntanos sobre ti...",
+      "interests": "Etiquetas de interés",
+      "interestsPlaceholder": "Añade temas que te interesen",
+      "location": "Ubicación",
+      "locationPlaceholder": "Ciudad / Área",
+      "socialLinks": "Enlaces sociales (Opcional)",
+      "website": "Sitio web",
+      "twitter": "Twitter / X",
+      "instagram": "Instagram"
+    },
+    "security": {
+      "title": "Seguridad",
+      "changePassword": "Cambiar contraseña",
+      "currentPassword": "Contraseña actual",
+      "newPassword": "Nueva contraseña",
+      "confirmPassword": "Confirmar nueva contraseña",
+      "passwordMinLength": "Al menos 8 caracteres",
+      "passwordMismatch": "Las nuevas contraseñas no coinciden",
+      "passwordChanged": "Contraseña cambiada exitosamente"
+    },
+    "danger": {
+      "title": "Zona de peligro",
+      "deleteAccount": "Eliminar cuenta",
+      "deleteWarning": "Eliminar tu cuenta eliminará permanentemente todos tus datos. Esta acción no se puede deshacer.",
+      "deleteConfirmation": "Escribe \"DELETE\" para confirmar",
+      "deleteButton": "Eliminar",
+      "deleteSuccess": "Cuenta eliminada exitosamente"
+    },
+    "messages": {
+      "updateSuccess": "Información de la cuenta actualizada exitosamente",
+      "updateError": "Error al actualizar la información de la cuenta",
+      "fetchError": "Error al obtener la información de la cuenta"
+    }
+  },
+  "subscription": {
+    "becomePremium": "Hazte miembro premium",
+    "monthlyPrice": "1,000 yenes/mes",
+    "benefits": {
+      "title": "Beneficios de miembro premium",
+      "matching": "Acceso a funciones de emparejamiento",
+      "chat": "Acceso a funciones de chat",
+      "salon": "Acceso a funciones de salón",
+      "marketplace": "Acceso a funciones de mercado",
+      "priority": "Soporte prioritario"
+    }
+  },
+  "language": {
+    "select": "Seleccionar idioma",
+    "ja": "日本語",
+    "en": "English",
+    "ko": "한국어",
+    "es": "Español",
+    "pt": "Português",
+    "fr": "Français",
+    "it": "Italiano",
+    "de": "Deutsch"
+  }
+}

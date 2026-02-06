@@ -1,9 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import Header from './components/Header';
 import LoginForm from './components/LoginForm';
-import RegisterForm from './components/RegisterForm';
 import HomePage from './components/HomePage';
 import PostFeed from './components/PostFeed';
 import ProfilePage from './components/ProfilePage';
@@ -78,10 +78,14 @@ function AppContent() {
               <LoginForm />
             </PublicRoute>
           } />
-          <Route path="/register" element={
-            <PublicRoute>
-              <RegisterForm />
-            </PublicRoute>
+          {/* /subscribe route - placeholder for future Stripe integration */}
+          <Route path="/subscribe" element={
+            <div className="flex items-center justify-center min-h-screen">
+              <div className="text-center p-8">
+                <h1 className="text-2xl font-bold mb-4">有料会員登録</h1>
+                <p className="text-gray-600">決済機能は準備中です</p>
+              </div>
+            </div>
           } />
           <Route path="/feed" element={
             <FeedRoute>
@@ -251,9 +255,11 @@ function App() {
 
   return (
     <AuthProvider>
-      <Router basename={import.meta.env.BASE_URL}>
-        <AppContent />
-      </Router>
+      <LanguageProvider>
+        <Router basename={import.meta.env.BASE_URL}>
+          <AppContent />
+        </Router>
+      </LanguageProvider>
     </AuthProvider>
   );
 }

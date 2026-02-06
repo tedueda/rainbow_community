@@ -1,0 +1,122 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "update": "Update",
+    "close": "Close"
+  },
+  "auth": {
+    "login": {
+      "title": "Member Login (Premium Members Only)",
+      "description": "If you are a registered premium member, please log in here",
+      "email": "Email Address",
+      "password": "Password",
+      "rememberMe": "Keep me logged in (7 days)",
+      "submit": "Login",
+      "submitting": "Logging in...",
+      "error": "Invalid email address or password",
+      "becomePremium": "Become a Premium Member (1,000 yen/month)",
+      "premiumDescription": "Become a premium member to access all features"
+    },
+    "logout": "Logout"
+  },
+  "account": {
+    "title": "My Account",
+    "status": {
+      "title": "Membership Status",
+      "premiumMember": "Premium Member",
+      "freeMember": "Free Member",
+      "identityVerification": "Identity Verification Status",
+      "verified": "Verified",
+      "unverified": "Unverified",
+      "caratPoints": "Carat Points",
+      "totalLikes": "Total Likes",
+      "monthlyPoints": "Points Earned This Month",
+      "pointsBreakdown": "Likes {{likes}}pt + Posts {{posts}} × 5pt = Total {{total}} Carats"
+    },
+    "info": {
+      "title": "Account Information",
+      "description": "Some information cannot be changed as it is related to identity verification and payment",
+      "email": "Email Address",
+      "emailNote": "Cannot be changed",
+      "displayLanguage": "Display Language",
+      "country": "Country of Residence",
+      "countryNote": "For future KYC",
+      "membershipType": "Membership Type",
+      "identityStatus": "Identity Verification Status",
+      "paymentInfo": "Payment Information",
+      "paymentPlaceholder": "Stripe integration coming soon"
+    },
+    "profile": {
+      "title": "Profile",
+      "description": "Information used for community, matching, and chat",
+      "displayName": "Display Name (Nickname)",
+      "avatar": "Profile Picture",
+      "avatarChange": "Change Picture",
+      "bio": "Bio",
+      "bioPlaceholder": "Tell us about yourself...",
+      "interests": "Interest Tags",
+      "interestsPlaceholder": "Add topics you're interested in",
+      "location": "Location",
+      "locationPlaceholder": "City / Area",
+      "socialLinks": "Social Links (Optional)",
+      "website": "Website",
+      "twitter": "Twitter / X",
+      "instagram": "Instagram"
+    },
+    "security": {
+      "title": "Security",
+      "changePassword": "Change Password",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm New Password",
+      "passwordMinLength": "At least 8 characters",
+      "passwordMismatch": "New passwords do not match",
+      "passwordChanged": "Password changed successfully"
+    },
+    "danger": {
+      "title": "Danger Zone",
+      "deleteAccount": "Delete Account",
+      "deleteWarning": "Deleting your account will permanently remove all your data. This action cannot be undone.",
+      "deleteConfirmation": "Type \"DELETE\" to confirm",
+      "deleteButton": "Delete",
+      "deleteSuccess": "Account deleted successfully"
+    },
+    "messages": {
+      "updateSuccess": "Account information updated successfully",
+      "updateError": "Failed to update account information",
+      "fetchError": "Failed to fetch account information"
+    }
+  },
+  "subscription": {
+    "becomePremium": "Become a Premium Member",
+    "monthlyPrice": "1,000 yen/month",
+    "benefits": {
+      "title": "Premium Member Benefits",
+      "matching": "Access to matching features",
+      "chat": "Access to chat features",
+      "salon": "Access to salon features",
+      "marketplace": "Access to marketplace features",
+      "priority": "Priority support"
+    }
+  },
+  "language": {
+    "select": "Select Language",
+    "ja": "日本語",
+    "en": "English",
+    "ko": "한국어",
+    "es": "Español",
+    "pt": "Português",
+    "fr": "Français",
+    "it": "Italiano",
+    "de": "Deutsch"
+  }
+}

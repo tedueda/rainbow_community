@@ -1,0 +1,122 @@
+{
+  "common": {
+    "loading": "Caricamento...",
+    "error": "Si è verificato un errore",
+    "save": "Salva",
+    "cancel": "Annulla",
+    "edit": "Modifica",
+    "delete": "Elimina",
+    "confirm": "Conferma",
+    "back": "Indietro",
+    "next": "Avanti",
+    "submit": "Invia",
+    "update": "Aggiorna",
+    "close": "Chiudi"
+  },
+  "auth": {
+    "login": {
+      "title": "Accesso membri (Solo membri premium)",
+      "description": "Se sei un membro premium registrato, accedi qui",
+      "email": "Indirizzo e-mail",
+      "password": "Password",
+      "rememberMe": "Mantieni l'accesso (7 giorni)",
+      "submit": "Accedi",
+      "submitting": "Accesso in corso...",
+      "error": "Indirizzo e-mail o password non validi",
+      "becomePremium": "Diventa membro premium (1.000 yen/mese)",
+      "premiumDescription": "Diventa membro premium per accedere a tutte le funzionalità"
+    },
+    "logout": "Esci"
+  },
+  "account": {
+    "title": "Il mio account",
+    "status": {
+      "title": "Stato dell'iscrizione",
+      "premiumMember": "Membro premium",
+      "freeMember": "Membro gratuito",
+      "identityVerification": "Stato verifica identità",
+      "verified": "Verificato",
+      "unverified": "Non verificato",
+      "caratPoints": "Punti Carat",
+      "totalLikes": "Mi piace totali",
+      "monthlyPoints": "Punti guadagnati questo mese",
+      "pointsBreakdown": "Mi piace {{likes}}pt + Post {{posts}} × 5pt = Totale {{total}} Carats"
+    },
+    "info": {
+      "title": "Informazioni account",
+      "description": "Alcune informazioni non possono essere modificate in quanto relative alla verifica dell'identità e al pagamento",
+      "email": "Indirizzo e-mail",
+      "emailNote": "Non modificabile",
+      "displayLanguage": "Lingua di visualizzazione",
+      "country": "Paese di residenza",
+      "countryNote": "Per futuro KYC",
+      "membershipType": "Tipo di iscrizione",
+      "identityStatus": "Stato verifica identità",
+      "paymentInfo": "Informazioni di pagamento",
+      "paymentPlaceholder": "Integrazione Stripe in arrivo"
+    },
+    "profile": {
+      "title": "Profilo",
+      "description": "Informazioni utilizzate per community, matching e chat",
+      "displayName": "Nome visualizzato (Nickname)",
+      "avatar": "Foto profilo",
+      "avatarChange": "Cambia foto",
+      "bio": "Bio",
+      "bioPlaceholder": "Parlaci di te...",
+      "interests": "Tag di interesse",
+      "interestsPlaceholder": "Aggiungi argomenti che ti interessano",
+      "location": "Posizione",
+      "locationPlaceholder": "Città / Area",
+      "socialLinks": "Link social (Opzionale)",
+      "website": "Sito web",
+      "twitter": "Twitter / X",
+      "instagram": "Instagram"
+    },
+    "security": {
+      "title": "Sicurezza",
+      "changePassword": "Cambia password",
+      "currentPassword": "Password attuale",
+      "newPassword": "Nuova password",
+      "confirmPassword": "Conferma nuova password",
+      "passwordMinLength": "Almeno 8 caratteri",
+      "passwordMismatch": "Le nuove password non corrispondono",
+      "passwordChanged": "Password cambiata con successo"
+    },
+    "danger": {
+      "title": "Zona pericolosa",
+      "deleteAccount": "Elimina account",
+      "deleteWarning": "L'eliminazione del tuo account rimuoverà permanentemente tutti i tuoi dati. Questa azione non può essere annullata.",
+      "deleteConfirmation": "Digita \"DELETE\" per confermare",
+      "deleteButton": "Elimina",
+      "deleteSuccess": "Account eliminato con successo"
+    },
+    "messages": {
+      "updateSuccess": "Informazioni account aggiornate con successo",
+      "updateError": "Impossibile aggiornare le informazioni dell'account",
+      "fetchError": "Impossibile recuperare le informazioni dell'account"
+    }
+  },
+  "subscription": {
+    "becomePremium": "Diventa membro premium",
+    "monthlyPrice": "1.000 yen/mese",
+    "benefits": {
+      "title": "Vantaggi membro premium",
+      "matching": "Accesso alle funzionalità di matching",
+      "chat": "Accesso alle funzionalità di chat",
+      "salon": "Accesso alle funzionalità di salon",
+      "marketplace": "Accesso alle funzionalità di marketplace",
+      "priority": "Supporto prioritario"
+    }
+  },
+  "language": {
+    "select": "Seleziona lingua",
+    "ja": "日本語",
+    "en": "English",
+    "ko": "한국어",
+    "es": "Español",
+    "pt": "Português",
+    "fr": "Français",
+    "it": "Italiano",
+    "de": "Deutsch"
+  }
+}

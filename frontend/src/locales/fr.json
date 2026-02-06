@@ -1,0 +1,122 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "next": "Suivant",
+    "submit": "Soumettre",
+    "update": "Mettre à jour",
+    "close": "Fermer"
+  },
+  "auth": {
+    "login": {
+      "title": "Connexion membre (Membres premium uniquement)",
+      "description": "Si vous êtes un membre premium enregistré, connectez-vous ici",
+      "email": "Adresse e-mail",
+      "password": "Mot de passe",
+      "rememberMe": "Rester connecté (7 jours)",
+      "submit": "Se connecter",
+      "submitting": "Connexion en cours...",
+      "error": "Adresse e-mail ou mot de passe invalide",
+      "becomePremium": "Devenir membre premium (1 000 yens/mois)",
+      "premiumDescription": "Devenez membre premium pour accéder à toutes les fonctionnalités"
+    },
+    "logout": "Déconnexion"
+  },
+  "account": {
+    "title": "Mon compte",
+    "status": {
+      "title": "Statut d'adhésion",
+      "premiumMember": "Membre premium",
+      "freeMember": "Membre gratuit",
+      "identityVerification": "Statut de vérification d'identité",
+      "verified": "Vérifié",
+      "unverified": "Non vérifié",
+      "caratPoints": "Points Carat",
+      "totalLikes": "Total des J'aime",
+      "monthlyPoints": "Points gagnés ce mois",
+      "pointsBreakdown": "J'aime {{likes}}pt + Publications {{posts}} × 5pt = Total {{total}} Carats"
+    },
+    "info": {
+      "title": "Informations du compte",
+      "description": "Certaines informations ne peuvent pas être modifiées car elles sont liées à la vérification d'identité et au paiement",
+      "email": "Adresse e-mail",
+      "emailNote": "Ne peut pas être modifié",
+      "displayLanguage": "Langue d'affichage",
+      "country": "Pays de résidence",
+      "countryNote": "Pour futur KYC",
+      "membershipType": "Type d'adhésion",
+      "identityStatus": "Statut de vérification d'identité",
+      "paymentInfo": "Informations de paiement",
+      "paymentPlaceholder": "Intégration Stripe à venir"
+    },
+    "profile": {
+      "title": "Profil",
+      "description": "Informations utilisées pour la communauté, le matching et le chat",
+      "displayName": "Nom d'affichage (Pseudo)",
+      "avatar": "Photo de profil",
+      "avatarChange": "Changer la photo",
+      "bio": "Bio",
+      "bioPlaceholder": "Parlez-nous de vous...",
+      "interests": "Tags d'intérêt",
+      "interestsPlaceholder": "Ajoutez des sujets qui vous intéressent",
+      "location": "Localisation",
+      "locationPlaceholder": "Ville / Zone",
+      "socialLinks": "Liens sociaux (Optionnel)",
+      "website": "Site web",
+      "twitter": "Twitter / X",
+      "instagram": "Instagram"
+    },
+    "security": {
+      "title": "Sécurité",
+      "changePassword": "Changer le mot de passe",
+      "currentPassword": "Mot de passe actuel",
+      "newPassword": "Nouveau mot de passe",
+      "confirmPassword": "Confirmer le nouveau mot de passe",
+      "passwordMinLength": "Au moins 8 caractères",
+      "passwordMismatch": "Les nouveaux mots de passe ne correspondent pas",
+      "passwordChanged": "Mot de passe changé avec succès"
+    },
+    "danger": {
+      "title": "Zone de danger",
+      "deleteAccount": "Supprimer le compte",
+      "deleteWarning": "La suppression de votre compte supprimera définitivement toutes vos données. Cette action ne peut pas être annulée.",
+      "deleteConfirmation": "Tapez \"DELETE\" pour confirmer",
+      "deleteButton": "Supprimer",
+      "deleteSuccess": "Compte supprimé avec succès"
+    },
+    "messages": {
+      "updateSuccess": "Informations du compte mises à jour avec succès",
+      "updateError": "Échec de la mise à jour des informations du compte",
+      "fetchError": "Échec de la récupération des informations du compte"
+    }
+  },
+  "subscription": {
+    "becomePremium": "Devenir membre premium",
+    "monthlyPrice": "1 000 yens/mois",
+    "benefits": {
+      "title": "Avantages membre premium",
+      "matching": "Accès aux fonctionnalités de matching",
+      "chat": "Accès aux fonctionnalités de chat",
+      "salon": "Accès aux fonctionnalités de salon",
+      "marketplace": "Accès aux fonctionnalités de marketplace",
+      "priority": "Support prioritaire"
+    }
+  },
+  "language": {
+    "select": "Sélectionner la langue",
+    "ja": "日本語",
+    "en": "English",
+    "ko": "한국어",
+    "es": "Español",
+    "pt": "Português",
+    "fr": "Français",
+    "it": "Italiano",
+    "de": "Deutsch"
+  }
+}
