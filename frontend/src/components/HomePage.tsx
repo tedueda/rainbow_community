@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, MessageCircle, Gem as DiamondIcon, Lock } from 'lucide-react';
 import { Button } from './ui/button';
@@ -17,24 +19,24 @@ import jewelryBanner from '../assets/images/jewelry-banner.jpg';
 const specialMenuItems = [
   {
     id: "matching",
-    title: "会員マッチング",
-    description: "理想のパートナーと出会える安心のマッチングサービス",
+    titleKey: "homepage.specialMenu.matching.title",
+    descriptionKey: "homepage.specialMenu.matching.description",
     icon: "💕",
     link: "/matching",
     premiumOnly: false,
   },
   {
     id: "salon",
-    title: "会員サロン",
-    description: "会員限定の専門チャットサロン",
+    titleKey: "homepage.specialMenu.salon.title",
+    descriptionKey: "homepage.specialMenu.salon.description",
     icon: "💬",
     link: "/salon",
     premiumOnly: false,
   },
   {
     id: "business",
-    title: "ビジネス",
-    description: "フリマ・作品販売・講座・Live配信",
+    titleKey: "homepage.specialMenu.business.title",
+    descriptionKey: "homepage.specialMenu.business.description",
     icon: "💼",
     link: "/business",
     premiumOnly: false,
@@ -50,40 +52,7 @@ const boardCategories = [
   { key: "board", title: "掲示板", desc: "悩み相談や雑談、日常の話題を自由に投稿しましょう！", emoji: "💬", link: "/category/board" },
 ];
 
-const heroMessages = [
-  {
-    main: "自分を表現して、\n新しい仲間と出会おう",
-    sub: "悩み相談、アート、音楽、地元ツアー。\nここから、あなたの物語が始まります。"
-  },
-  {
-    main: "安心して自分を表現できる\n安全性の高いコミュニティ",
-    sub: "悩み相談、アート、音楽、地元ツアー。\nここから、あなたの物語が始まります。"
-  },
-  {
-    main: "心許せる仲間との\n繋がりがつくれる空間",
-    sub: "悩み相談、アート、音楽、地元ツアー。\nここから、あなたの物語が始まります。"
-  },
-  {
-    main: "ジェンダーフリーの生き方を\n応援する唯一のサイト",
-    sub: "悩み相談、アート、音楽、地元ツアー。\nここから、あなたの物語が始まります。"
-  },
-  {
-    main: "ひとりじゃない。\n\"自分らしさ\"を出せる居場所",
-    sub: "悩み相談、アート、音楽、地元ツアー。\nここから、あなたの物語が始まります。"
-  },
-  {
-    main: "あなたの才能を認めてくれる\n仲間が集うコミュニティ",
-    sub: "悩み相談、アート、音楽、地元ツアー。\nここから、あなたの物語が始まります。"
-  },
-  {
-    main: "価値観が響き合う仲間と作る\n上質なコミュニティ空間",
-    sub: "悩み相談、アート、音楽、地元ツアー。\nここから、あなたの物語が始まります。"
-  },
-  {
-    main: "真っ白なキャンバスをあなたの\n「カラット」で輝かせましょう",
-    sub: "悩み相談、アート、音楽、地元ツアー。\nここから、あなたの物語が始まります。"
-  }
-];
+// heroMessages are now loaded from i18n locale files
 
 const getCategoryPlaceholder= (category: string | undefined): string => {
   const categoryMap: { [key: string]: string } = {
@@ -158,6 +127,8 @@ const dummyUsers: { [key: number]: User } = {
 };
 
 const HomePage: React.FC = () => {
+  const { t } = useTranslation();
+  const { currentLanguage } = useLanguage();
   const [posts, setPosts] = useState<Post[]>([]);
   const [categoryPosts, setCategoryPosts] = useState<{ [key: string]: Post[] }>({});
   const [newsArticles, setNewsArticles] = useState<any[]>([]);
@@ -179,38 +150,43 @@ const HomePage: React.FC = () => {
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 
-  const fetchNews = async () => {
+  const fetchNews = async (lang?: string) => {
     try {
-      const params = new URLSearchParams({
-        limit: '100',
-      });
-      console.log(`Fetching news from: ${API_URL}/api/posts/?${params}`);
-      const response = await fetch(`${API_URL}/api/posts/?${params}`);
+      const targetLang = lang || currentLanguage;
+      const headers: any = {};
+      if (token && !isAnonymous) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      // 翻訳エンドポイントを使用してニュースを取得
+      console.log(`Fetching news from: ${API_URL}/api/translations/posts?category=news&limit=4&lang=${targetLang}`);
+      const response = await fetch(`${API_URL}/api/translations/posts?category=news&limit=4&lang=${targetLang}`, { headers });
       console.log('News Response status:', response.status);
       if (response.ok) {
-        const data = await response.json();
-        const newsData = data.filter((post: any) => post.category === 'news');
-        console.log('📰 [HomePage] News articles filtered:', newsData.length, newsData);
-        setNewsArticles(newsData.slice(0, 4));  // 最新4件
+        const newsData = await response.json();
+        console.log('📰 [HomePage] News articles fetched:', newsData.length, newsData);
+        setNewsArticles(newsData);
       }
     } catch (error) {
       console.error('Failed to fetch news:', error);
     }
   };
 
-  const fetchCategoryPosts = async () => {
+  const fetchCategoryPosts = async (lang?: string) => {
     try {
       const headers: any = {};
       if (token && !isAnonymous) {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
-      // 並列処理で全カテゴリのデータを同時取得
+      const targetLang = lang || currentLanguage;
+      
+      // 並列処理で全カテゴリのデータを同時取得（翻訳エンドポイント使用）
       const categoryPromises = boardCategories.map(async (cat) => {
         if (cat.categories) {
           // 複数カテゴリを統合（食レポ・お店）
           const subCatPromises = cat.categories.map(subCat =>
-            fetch(`${API_URL}/api/posts/?category=${subCat}&limit=8`, { headers })
+            fetch(`${API_URL}/api/translations/posts?category=${subCat}&limit=8&lang=${targetLang}`, { headers })
               .then(res => res.ok ? res.json() : [])
               .catch(() => [])
           );
@@ -220,8 +196,8 @@ const HomePage: React.FC = () => {
           combinedPosts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
           return { key: cat.key, posts: combinedPosts.slice(0, 4) };
         } else {
-          // 単一カテゴリ
-          const posts = await fetch(`${API_URL}/api/posts/?category=${cat.key}&limit=4`, { headers })
+          // 単一カテゴリ（翻訳エンドポイント使用）
+          const posts = await fetch(`${API_URL}/api/translations/posts?category=${cat.key}&limit=4&lang=${targetLang}`, { headers })
             .then(res => res.ok ? res.json() : [])
             .catch(() => []);
           return { key: cat.key, posts };
@@ -317,8 +293,14 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     fetchPosts();
     fetchNews();
-    fetchCategoryPosts();
+    fetchCategoryPosts(currentLanguage);
   }, [user, isAnonymous]);
+
+  // Re-fetch category posts and news when language changes
+  useEffect(() => {
+    fetchCategoryPosts(currentLanguage);
+    fetchNews(currentLanguage);
+  }, [currentLanguage]);
 
   useEffect(() => {
     const slideInterval = setInterval(() => {
@@ -331,7 +313,7 @@ const HomePage: React.FC = () => {
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto p-4 sm:p-6">
-        <div className="text-center text-gray-600">コンテンツを読み込み中...</div>
+        <div className="text-center text-gray-600">{t('homepage.loadingContent')}</div>
       </div>
     );
   }
@@ -435,18 +417,18 @@ const HomePage: React.FC = () => {
           <div className="relative z-10 flex items-center justify-center h-full">
             <div className="text-center text-white px-4 max-w-6xl">
               <h2 className="text-3xl md:text-7xl font-serif font-bold leading-tight mb-6 transition-opacity duration-1000">
-                {heroMessages[currentSlide].main.split('\n').map((line, i) => (
+                {t(`hero.messages.${currentSlide}.main`).split('\n').map((line: string, i: number) => (
                   <React.Fragment key={i}>
                     {line}
-                    {i < heroMessages[currentSlide].main.split('\n').length - 1 && <br />}
+                    {i < t(`hero.messages.${currentSlide}.main`).split('\n').length - 1 && <br />}
                   </React.Fragment>
                 ))}
               </h2>
               <p className="text-lg md:text-2xl mb-8 opacity-90 transition-opacity duration-1000">
-                {heroMessages[currentSlide].sub.split('\n').map((line, i) => (
+                {t(`hero.messages.${currentSlide}.sub`).split('\n').map((line: string, i: number) => (
                   <React.Fragment key={i}>
                     {line}
-                    {i < heroMessages[currentSlide].sub.split('\n').length - 1 && <br />}
+                    {i < t(`hero.messages.${currentSlide}.sub`).split('\n').length - 1 && <br />}
                   </React.Fragment>
                 ))}
               </p>
@@ -497,16 +479,16 @@ const HomePage: React.FC = () => {
               <div className="flex-1">
                 <h3 className="text-3xl md:text-4xl font-serif font-semibold text-slate-900 flex items-center gap-2">
                   <span>{cat.emoji}</span>
-                  {cat.title}
+                  {t(`homepage.categories.${cat.key}.title`)}
                 </h3>
-                <p className="text-sm md:text-base text-slate-600 mt-1">{cat.desc}</p>
+                <p className="text-sm md:text-base text-slate-600 mt-1">{t(`homepage.categories.${cat.key}.desc`)}</p>
               </div>
               <Button 
                 variant="ghost" 
                 className="text-gray-700 hover:text-black hover:bg-gray-100 font-medium text-base md:text-xl self-start md:self-auto"
                 onClick={() => navigate(cat.link)}
               >
-                もっと見る→
+                {t('homepage.viewAll')}→
               </Button>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -582,12 +564,12 @@ const HomePage: React.FC = () => {
                         {new Date(post.created_at).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })}
                       </span>
                     </div>
-                    {post.title && (
+                    {(post.display_title || post.title) && (
                       <h4 className="font-serif font-semibold leading-snug text-slate-900 mb-2 group-hover:gold-accent line-clamp-2">
-                        {post.title}
+                        {post.display_title || post.title}
                       </h4>
                     )}
-                    <p className="text-sm text-slate-600 line-clamp-2">{post.body}</p>
+                    <p className="text-sm text-slate-600 line-clamp-2">{post.display_text || post.body}</p>
                     <div className="flex items-center justify-between text-sm mt-3">
                       <div className="flex items-center gap-3 text-slate-500">
                         <span className="flex items-center gap-1">
@@ -616,16 +598,17 @@ const HomePage: React.FC = () => {
         {/* 特別メニュー - カテゴリ一覧の直下 */}
         <section className="py-12">
           <div className="flex flex-col md:flex-row md:items-baseline md:justify-between mb-6 gap-1 md:gap-0">
-            <h3 className="text-4xl md:text-5xl font-serif font-semibold text-slate-900">特別メニュー</h3>
+            <h3 className="text-4xl md:text-5xl font-serif font-semibold text-slate-900">{t('homepage.specialMenu.title')}</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {specialMenuItems.map((item) => {
-              const isPremium = user?.membership_type === 'premium' || user?.membership_type === 'admin';
-              const isLocked = item.premiumOnly && !isPremium;
+              // 有料会員かどうか
+              const isPaidUser = user?.membership_type === 'premium' || user?.membership_type === 'admin';
+              const isLocked = item.premiumOnly && !isPaidUser;
               
               const handleMenuClick = () => {
                 if (isLocked) {
-                  setUpgradeFeatureName(item.title);
+                  setUpgradeFeatureName(t(item.titleKey));
                   setShowUpgradeModal(true);
                 } else {
                   navigate(item.link);
@@ -654,11 +637,11 @@ const HomePage: React.FC = () => {
                         )}
                       </div>
                       <h4 className={`font-serif font-semibold text-xl mb-2 flex items-center gap-2 ${isLocked ? 'text-slate-500' : 'text-slate-900 group-hover:gold-accent'}`}>
-                        {item.title}
+                        {t(item.titleKey)}
                         {isLocked && <Lock className="h-4 w-4 text-gray-400" />}
                       </h4>
                       <p className={`text-sm mb-4 ${isLocked ? 'text-slate-400' : 'text-slate-600'}`}>
-                        {item.description}
+                        {t(item.descriptionKey)}
                       </p>
                       <Button 
                         className={`font-medium w-full ${
@@ -675,11 +658,11 @@ const HomePage: React.FC = () => {
                         {isLocked ? (
                           <>
                             <Lock className="h-3 w-3 mr-1" />
-                            有料会員限定
+                            {t('homepage.specialMenu.premiumOnly')}
                           </>
                         ) : (
                           <>
-                            詳細を見る
+                            {t('homepage.specialMenu.viewDetails')}
                             <ArrowRight className="h-3 w-3 ml-1" />
                           </>
                         )}
@@ -752,13 +735,13 @@ const HomePage: React.FC = () => {
         {/* ニュースセクション */}
         <section className="py-12">
           <div className="flex flex-col md:flex-row md:items-baseline md:justify-between mb-6 gap-1 md:gap-0">
-            <h3 className="text-3xl md:text-4xl font-bold text-slate-900">LGBTQニュース</h3>
+            <h3 className="text-3xl md:text-4xl font-bold text-slate-900">{t('news.title')}</h3>
             <Button 
               variant="ghost" 
               className="text-gray-600 hover:text-black hover:bg-gray-100 font-medium text-base self-start md:self-auto"
               onClick={() => navigate('/news')}
             >
-              すべてのニュースをみる→
+              {t('news.viewAll')}
             </Button>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -797,15 +780,15 @@ const HomePage: React.FC = () => {
                     </span>
                   </div>
                   <h4 className="font-bold text-slate-900 mb-3 line-clamp-2 text-lg leading-snug group-hover:text-gray-700 transition-colors">
-                    {article.title}
+                    {article.display_title || article.title}
                   </h4>
                   <p className="text-sm text-slate-600 mb-4 line-clamp-3 leading-relaxed">
-                    {article.body}
+                    {article.display_text || article.body}
                   </p>
                   <div className="flex items-center justify-between text-xs text-slate-500 pt-3 border-t border-gray-100">
                     <span>{new Date(article.created_at).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '/')}</span>
                     <span className="text-gray-700 hover:text-black font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
-                      続きを読む
+                      {t('post.readMore')}
                       <ArrowRight className="h-3 w-3" />
                     </span>
                   </div>
@@ -820,10 +803,10 @@ const HomePage: React.FC = () => {
           <div className="max-w-3xl mx-auto px-4">
             <div className="bg-white/95 border border-gray-200 shadow-xl rounded-2xl px-6 py-6 md:px-10 md:py-8 flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="text-left">
-                <p className="text-sm md:text-base text-slate-500 mb-1">会員制LGBTQ+コミュニティ "Carat"</p>
-                <p className="text-lg md:text-xl font-serif text-slate-900">投稿とマッチングで、あなたの物語をはじめましょう。</p>
+                <p className="text-sm md:text-base text-slate-500 mb-1">{t('cta.communityTitle')}</p>
+                <p className="text-lg md:text-xl font-serif text-slate-900">{t('cta.communitySubtitle')}</p>
                 <p className="mt-2 text-sm md:text-base text-slate-500">
-                  * 無料会員はサイト全体の内容を見ていただけます。投稿や有料会員限定サイトを閲覧するには会員登録が必要です。
+                  {t('cta.freeUserNote')}
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto justify-end">
@@ -831,7 +814,7 @@ const HomePage: React.FC = () => {
                   onClick={() => window.location.href = '/login'}
                   className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 hover:text-black px-6 py-3 text-base md:text-lg font-medium shadow-md hover:shadow-lg transition-all"
                 >
-                  会員登録（月1,000円）
+                  {t('membership.registerMonthly')}
                 </Button>
               </div>
             </div>
@@ -857,7 +840,7 @@ const HomePage: React.FC = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedNewsArticle(null)}>
           <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">{selectedNewsArticle.title}</h2>
+              <h2 className="text-2xl font-bold text-gray-900">{selectedNewsArticle.display_title || selectedNewsArticle.title}</h2>
               <button
                 onClick={() => setSelectedNewsArticle(null)}
                 className="text-gray-500 hover:text-gray-700"
@@ -893,7 +876,7 @@ const HomePage: React.FC = () => {
               </div>
               
               <div className="prose max-w-none">
-                <p className="text-gray-700 whitespace-pre-wrap">{selectedNewsArticle.body}</p>
+                <p className="text-gray-700 whitespace-pre-wrap">{selectedNewsArticle.display_text || selectedNewsArticle.body}</p>
               </div>
               
               <div className="pt-4 border-t border-gray-200">
@@ -910,9 +893,9 @@ const HomePage: React.FC = () => {
       {showLoginPrompt && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowLoginPrompt(false)}>
           <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-2xl font-serif font-semibold text-slate-900 mb-4">ログインが必要です</h3>
+            <h3 className="text-2xl font-serif font-semibold text-slate-900 mb-4">{t('auth.loginRequired')}</h3>
             <p className="text-slate-600 mb-6">
-              この機能を利用するには、会員としてログインする必要があります。
+              {t('auth.loginRequiredMessage')}
             </p>
             <div className="flex gap-3">
               <Button 
@@ -922,14 +905,14 @@ const HomePage: React.FC = () => {
                 }}
                 className="flex-1 bg-black text-white hover:bg-gray-800"
               >
-                ログイン
+                {t('auth.login')}
               </Button>
               <Button 
                 onClick={() => setShowLoginPrompt(false)}
                 variant="outline"
                 className="flex-1"
               >
-                キャンセル
+                {t('common.cancel')}
               </Button>
             </div>
           </div>

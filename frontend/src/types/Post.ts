@@ -31,6 +31,8 @@ export interface Post {
   prefecture?: string;
   event_date?: string;
   fee?: string;
+  display_title?: string;
+  display_text?: string;
 }
 
 export interface Comment {
