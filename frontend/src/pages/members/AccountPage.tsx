@@ -4,8 +4,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { LANGUAGE_NAMES, LANGUAGE_FLAGS, SupportedLanguage } from '../../i18n';
 import { 
   User, Mail, Lock, AlertCircle, CheckCircle, Trash2, 
-  Crown, Shield, Star, ThumbsUp, TrendingUp, Globe,
-  Camera, MapPin, Link as LinkIcon, Instagram, Twitter, ExternalLink
+  Crown, Shield, Star, ThumbsUp, TrendingUp, Globe, ExternalLink
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -50,16 +49,6 @@ export default function AccountPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   
-  // プロフィール編集フォーム
-  const [displayName, setDisplayName] = useState('');
-  const [bio, setBio] = useState('');
-  const [location, setLocation] = useState('');
-  const [website, setWebsite] = useState('');
-  const [twitter, setTwitter] = useState('');
-  const [instagram, setInstagram] = useState('');
-  const [interests, setInterests] = useState<string[]>([]);
-  const [newInterest, setNewInterest] = useState('');
-  
   // パスワード変更
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -94,15 +83,8 @@ export default function AccountPage() {
       
       const data = await res.json();
       setAccount(data);
-      setDisplayName(data.display_name || '');
-      setBio(data.bio || '');
-      setLocation(data.location || '');
-      setWebsite(data.website || '');
-      setTwitter(data.twitter || '');
-      setInstagram(data.instagram || '');
-      setInterests(data.interests || []);
       
-      const statsRes = await fetch(`${API_URL}/api/users/me/stats`, {
+      const statsRes= await fetch(`${API_URL}/api/users/me/stats`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -118,44 +100,7 @@ export default function AccountPage() {
     }
   };
 
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-    
-    try {
-      const res = await fetch(`${API_URL}/api/account/me`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          display_name: displayName,
-          bio,
-          location,
-          website,
-          twitter,
-          instagram,
-          interests
-        })
-      });
-      
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.detail || t('account.messages.updateError'));
-      }
-      
-      setSuccess(t('account.messages.updateSuccess'));
-      fetchAccount();
-    } catch (e: unknown) {
-      if (e instanceof Error) {
-        setError(e.message);
-      }
-    }
-  };
-
-  const handleChangePassword = async (e: React.FormEvent) => {
+  const handleChangePassword= async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -236,29 +181,7 @@ export default function AccountPage() {
     }
   };
 
-  const addInterest = () => {
-    if (newInterest.trim() && !interests.includes(newInterest.trim())) {
-      setInterests([...interests, newInterest.trim()]);
-      setNewInterest('');
-    }
-  };
-
-  const removeInterest = (interest: string) => {
-    setInterests(interests.filter(i => i !== interest));
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">{t('common.loading')}</p>
-        </div>
-      </div>
-    );
-  }
-
-  // 未ログイン時は有料会員限定モーダルを表示
+  // 未ログイン時は有料会員限定モーダルを表示（loadingチェックより先に判定）
   if (!token) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
@@ -273,6 +196,17 @@ export default function AccountPage() {
         >
           {t('matching.profile.becomePremium')}
         </button>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">{t('common.loading')}</p>
+        </div>
       </div>
     );
   }
@@ -451,178 +385,20 @@ export default function AccountPage() {
         
         {/* セクション3: プロフィール */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xl font-bold text-gray-900 flex items-center">
-              <User className="w-5 h-5 mr-2 text-gray-600" />
-              {t('account.profile.title')}
-            </h2>
-            <button
-              type="button"
-              onClick={() => navigate('/matching/profile')}
-              className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all flex items-center text-sm font-medium"
-            >
-              <ExternalLink className="w-4 h-4 mr-2" />
-              {t('account.profile.editMatchingProfile')}
-            </button>
-          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2 flex items-center">
+            <User className="w-5 h-5 mr-2 text-gray-600" />
+            {t('account.profile.title')}
+          </h2>
           <p className="text-sm text-gray-500 mb-6">{t('account.profile.description')}</p>
           
-          <form onSubmit={handleUpdateProfile} className="space-y-4">
-            {/* アイコン画像 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('account.profile.avatar')}
-              </label>
-              <div className="flex items-center gap-4">
-                <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                  {account?.avatar_url ? (
-                    <img src={account.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-                  ) : (
-                    <User className="w-10 h-10 text-gray-400" />
-                  )}
-                </div>
-                <button
-                  type="button"
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center"
-                >
-                  <Camera className="w-4 h-4 mr-2" />
-                  {t('account.profile.avatarChange')}
-                </button>
-              </div>
-            </div>
-            
-            {/* 表示名 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('account.profile.displayName')}
-              </label>
-              <input
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                required
-              />
-            </div>
-            
-            {/* 自己紹介 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('account.profile.bio')}
-              </label>
-              <textarea
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                placeholder={t('account.profile.bioPlaceholder')}
-                rows={4}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-              />
-            </div>
-            
-            {/* 興味タグ */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('account.profile.interests')}
-              </label>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {interests.map((interest, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-700"
-                  >
-                    {interest}
-                    <button
-                      type="button"
-                      onClick={() => removeInterest(interest)}
-                      className="ml-2 text-purple-500 hover:text-purple-700"
-                    >
-                      &times;
-                    </button>
-                  </span>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newInterest}
-                  onChange={(e) => setNewInterest(e.target.value)}
-                  placeholder={t('account.profile.interestsPlaceholder')}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addInterest())}
-                />
-                <button
-                  type="button"
-                  onClick={addInterest}
-                  className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-            
-            {/* 地域 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <MapPin className="w-4 h-4 inline mr-2" />
-                {t('account.profile.location')}
-              </label>
-              <input
-                type="text"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder={t('account.profile.locationPlaceholder')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-            
-            {/* SNSリンク */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('account.profile.socialLinks')}
-              </label>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <LinkIcon className="w-5 h-5 text-gray-400" />
-                  <input
-                    type="url"
-                    value={website}
-                    onChange={(e) => setWebsite(e.target.value)}
-                    placeholder={t('account.profile.website')}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Twitter className="w-5 h-5 text-gray-400" />
-                  <input
-                    type="text"
-                    value={twitter}
-                    onChange={(e) => setTwitter(e.target.value)}
-                    placeholder={t('account.profile.twitter')}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Instagram className="w-5 h-5 text-gray-400" />
-                  <input
-                    type="text"
-                    value={instagram}
-                    onChange={(e) => setInstagram(e.target.value)}
-                    placeholder={t('account.profile.instagram')}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <div className="pt-4">
-              <button
-                type="submit"
-                className="w-full md:w-auto px-8 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
-              >
-                {t('common.save')}
-              </button>
-            </div>
-          </form>
+          <button
+            type="button"
+            onClick={() => navigate('/matching/profile')}
+            className="w-full px-6 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all flex items-center justify-center text-lg font-medium"
+          >
+            <ExternalLink className="w-5 h-5 mr-3" />
+            {t('account.profile.editMatchingProfile')}
+          </button>
         </div>
         
         {/* セキュリティセクション */}
