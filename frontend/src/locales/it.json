@@ -288,7 +288,18 @@
     "typing": "Sta scrivendo..."
   },
   "auth": {
-    "login": "Accedi",
+    "login": {
+      "title": "Accesso membro",
+      "description": "Accedi con il tuo account membro per accedere a tutte le funzionalità",
+      "email": "E-mail",
+      "password": "Password",
+      "rememberMe": "Resta connesso (7 giorni)",
+      "submit": "Accedi",
+      "submitting": "Accesso in corso...",
+      "error": "E-mail o password non validi",
+      "premiumDescription": "Non sei ancora membro? Diventa membro premium per accedere a tutte le funzionalità",
+      "becomePremium": "Diventa membro premium"
+    },
     "loginRequired": "Accesso richiesto",
     "loginRequiredMessage": "Devi accedere come membro per utilizzare questa funzione.",
     "email": "E-mail",

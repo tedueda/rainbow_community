@@ -288,7 +288,18 @@
     "typing": "Escribiendo..."
   },
   "auth": {
-    "login": "Iniciar sesión",
+    "login": {
+      "title": "Inicio de sesión de miembro",
+      "description": "Inicia sesión con tu cuenta de miembro para acceder a todas las funciones",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "rememberMe": "Mantener sesión iniciada (7 días)",
+      "submit": "Iniciar sesión",
+      "submitting": "Iniciando sesión...",
+      "error": "Correo o contraseña inválidos",
+      "premiumDescription": "¿Aún no eres miembro? Conviértete en miembro premium para acceder a todas las funciones",
+      "becomePremium": "Ser miembro premium"
+    },
     "loginRequired": "Se requiere iniciar sesión",
     "loginRequiredMessage": "Necesitas iniciar sesión como miembro para usar esta función.",
     "email": "Correo electrónico",

@@ -288,7 +288,18 @@
     "typing": "Schreibt..."
   },
   "auth": {
-    "login": "Anmelden",
+    "login": {
+      "title": "Mitglieder-Anmeldung",
+      "description": "Melden Sie sich mit Ihrem Mitgliedskonto an, um alle Funktionen zu nutzen",
+      "email": "E-Mail",
+      "password": "Passwort",
+      "rememberMe": "Angemeldet bleiben (7 Tage)",
+      "submit": "Anmelden",
+      "submitting": "Anmeldung läuft...",
+      "error": "Ungültige E-Mail oder Passwort",
+      "premiumDescription": "Noch kein Mitglied? Werden Sie Premium-Mitglied, um alle Funktionen zu nutzen",
+      "becomePremium": "Premium-Mitglied werden"
+    },
     "loginRequired": "Anmeldung erforderlich",
     "loginRequiredMessage": "Sie müssen sich als Mitglied anmelden, um diese Funktion zu nutzen.",
     "email": "E-Mail",

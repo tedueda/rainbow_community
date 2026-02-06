@@ -288,7 +288,18 @@
     "typing": "Digitando..."
   },
   "auth": {
-    "login": "Entrar",
+    "login": {
+      "title": "Login de membro",
+      "description": "Entre com sua conta de membro para acessar todos os recursos",
+      "email": "E-mail",
+      "password": "Senha",
+      "rememberMe": "Manter conectado (7 dias)",
+      "submit": "Entrar",
+      "submitting": "Entrando...",
+      "error": "E-mail ou senha inválidos",
+      "premiumDescription": "Ainda não é membro? Torne-se um membro premium para acessar todos os recursos",
+      "becomePremium": "Tornar-se membro premium"
+    },
     "loginRequired": "Login necessário",
     "loginRequiredMessage": "Você precisa fazer login como membro para usar este recurso.",
     "email": "E-mail",

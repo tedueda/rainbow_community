@@ -276,7 +276,18 @@
     "typing": "Typing..."
   },
   "auth": {
-    "login": "Login",
+    "login": {
+      "title": "Member Login",
+      "description": "Login with your member account to access all features",
+      "email": "Email",
+      "password": "Password",
+      "rememberMe": "Stay logged in (7 days)",
+      "submit": "Login",
+      "submitting": "Logging in...",
+      "error": "Invalid email or password",
+      "premiumDescription": "Not a member yet? Become a premium member to access all features",
+      "becomePremium": "Become Premium Member"
+    },
     "loginRequired": "Login required",
     "loginRequiredMessage": "You need to login as a member to use this feature.",
     "email": "Email",
