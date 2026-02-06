@@ -881,5 +881,73 @@
         }
       ]
     }
+  },
+  "account": {
+    "title": "Impostazioni account",
+    "status": {
+      "title": "Stato membro",
+      "premiumMember": "Membro Premium",
+      "freeMember": "Membro Gratuito",
+      "identityVerification": "Verifica identità",
+      "verified": "Verificato",
+      "unverified": "Non verificato",
+      "caratPoints": "Punti Carat",
+      "totalLikes": "Mi piace totali",
+      "monthlyPoints": "Punti mensili",
+      "pointsBreakdown": "{{likes}} mi piace × {{posts}} post = {{total}} punti"
+    },
+    "info": {
+      "title": "Informazioni account",
+      "description": "Gestisci le informazioni di base del tuo account",
+      "email": "Indirizzo email",
+      "emailNote": "Non può essere modificato",
+      "displayLanguage": "Lingua di visualizzazione",
+      "country": "Paese di residenza",
+      "countryNote": "Non può essere modificato",
+      "membershipType": "Tipo di abbonamento",
+      "identityStatus": "Stato verifica identità",
+      "paymentInfo": "Informazioni di pagamento",
+      "paymentPlaceholder": "Integrazione Stripe in arrivo"
+    },
+    "profile": {
+      "title": "Profilo",
+      "description": "Modifica le informazioni del tuo profilo pubblico",
+      "avatar": "Foto profilo",
+      "avatarChange": "Cambia foto",
+      "displayName": "Nome visualizzato",
+      "bio": "Biografia",
+      "bioPlaceholder": "Raccontaci di te...",
+      "location": "Posizione",
+      "locationPlaceholder": "es., Roma",
+      "interests": "Interessi",
+      "interestsPlaceholder": "Aggiungi tag...",
+      "socialLinks": "Link social",
+      "website": "Sito web",
+      "twitter": "Twitter",
+      "instagram": "Instagram"
+    },
+    "security": {
+      "title": "Sicurezza",
+      "changePassword": "Cambia password",
+      "currentPassword": "Password attuale",
+      "newPassword": "Nuova password",
+      "confirmPassword": "Conferma nuova password",
+      "passwordMinLength": "La password deve contenere almeno 8 caratteri",
+      "passwordMismatch": "Le password non corrispondono",
+      "passwordChanged": "Password cambiata con successo"
+    },
+    "danger": {
+      "title": "Zona pericolosa",
+      "deleteAccount": "Elimina account",
+      "deleteButton": "Elimina account",
+      "deleteConfirmation": "Digita 'DELETE' per confermare",
+      "deleteWarning": "Sei sicuro di voler eliminare il tuo account? Questa azione non può essere annullata.",
+      "deleteSuccess": "Account eliminato con successo"
+    },
+    "messages": {
+      "fetchError": "Impossibile recuperare le informazioni dell'account",
+      "updateSuccess": "Profilo aggiornato con successo",
+      "updateError": "Aggiornamento non riuscito"
+    }
   }
 }

@@ -881,5 +881,73 @@
         }
       ]
     }
+  },
+  "account": {
+    "title": "Paramètres du compte",
+    "status": {
+      "title": "Statut de membre",
+      "premiumMember": "Membre Premium",
+      "freeMember": "Membre Gratuit",
+      "identityVerification": "Vérification d'identité",
+      "verified": "Vérifié",
+      "unverified": "Non vérifié",
+      "caratPoints": "Points Carat",
+      "totalLikes": "Total des J'aime",
+      "monthlyPoints": "Points mensuels",
+      "pointsBreakdown": "{{likes}} j'aime × {{posts}} publications = {{total}} points"
+    },
+    "info": {
+      "title": "Informations du compte",
+      "description": "Gérez vos informations de compte de base",
+      "email": "Adresse e-mail",
+      "emailNote": "Ne peut pas être modifié",
+      "displayLanguage": "Langue d'affichage",
+      "country": "Pays de résidence",
+      "countryNote": "Ne peut pas être modifié",
+      "membershipType": "Type d'adhésion",
+      "identityStatus": "Statut de vérification d'identité",
+      "paymentInfo": "Informations de paiement",
+      "paymentPlaceholder": "Intégration Stripe à venir"
+    },
+    "profile": {
+      "title": "Profil",
+      "description": "Modifiez vos informations de profil public",
+      "avatar": "Photo de profil",
+      "avatarChange": "Changer la photo",
+      "displayName": "Nom d'affichage",
+      "bio": "Biographie",
+      "bioPlaceholder": "Parlez-nous de vous...",
+      "location": "Emplacement",
+      "locationPlaceholder": "ex., Paris",
+      "interests": "Intérêts",
+      "interestsPlaceholder": "Ajouter des tags...",
+      "socialLinks": "Liens sociaux",
+      "website": "Site web",
+      "twitter": "Twitter",
+      "instagram": "Instagram"
+    },
+    "security": {
+      "title": "Sécurité",
+      "changePassword": "Changer le mot de passe",
+      "currentPassword": "Mot de passe actuel",
+      "newPassword": "Nouveau mot de passe",
+      "confirmPassword": "Confirmer le nouveau mot de passe",
+      "passwordMinLength": "Le mot de passe doit contenir au moins 8 caractères",
+      "passwordMismatch": "Les mots de passe ne correspondent pas",
+      "passwordChanged": "Mot de passe changé avec succès"
+    },
+    "danger": {
+      "title": "Zone de danger",
+      "deleteAccount": "Supprimer le compte",
+      "deleteButton": "Supprimer le compte",
+      "deleteConfirmation": "Tapez 'DELETE' pour confirmer",
+      "deleteWarning": "Êtes-vous sûr de vouloir supprimer votre compte? Cette action ne peut pas être annulée.",
+      "deleteSuccess": "Compte supprimé avec succès"
+    },
+    "messages": {
+      "fetchError": "Échec de la récupération des informations du compte",
+      "updateSuccess": "Profil mis à jour avec succès",
+      "updateError": "Échec de la mise à jour"
+    }
   }
 }

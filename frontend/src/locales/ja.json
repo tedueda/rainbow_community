@@ -934,5 +934,73 @@
         }
       ]
     }
+  },
+  "account": {
+    "title": "アカウント設定",
+    "status": {
+      "title": "会員ステータス",
+      "premiumMember": "有料会員",
+      "freeMember": "無料会員",
+      "identityVerification": "本人確認",
+      "verified": "確認済み",
+      "unverified": "未確認",
+      "caratPoints": "カラットポイント",
+      "totalLikes": "総いいね数",
+      "monthlyPoints": "今月の獲得ポイント",
+      "pointsBreakdown": "いいね{{likes}}件 × 投稿{{posts}}件 = {{total}}ポイント"
+    },
+    "info": {
+      "title": "アカウント情報",
+      "description": "アカウントの基本情報を管理します",
+      "email": "メールアドレス",
+      "emailNote": "変更不可",
+      "displayLanguage": "表示言語",
+      "country": "居住国",
+      "countryNote": "変更不可",
+      "membershipType": "会員種別",
+      "identityStatus": "本人確認ステータス",
+      "paymentInfo": "決済情報",
+      "paymentPlaceholder": "Stripe連携予定"
+    },
+    "profile": {
+      "title": "プロフィール",
+      "description": "公開プロフィール情報を編集します",
+      "avatar": "アイコン画像",
+      "avatarChange": "画像を変更",
+      "displayName": "表示名",
+      "bio": "自己紹介",
+      "bioPlaceholder": "自己紹介を入力してください...",
+      "location": "居住地",
+      "locationPlaceholder": "例: 東京都",
+      "interests": "興味・関心",
+      "interestsPlaceholder": "タグを追加...",
+      "socialLinks": "SNSリンク",
+      "website": "ウェブサイト",
+      "twitter": "Twitter",
+      "instagram": "Instagram"
+    },
+    "security": {
+      "title": "セキュリティ",
+      "changePassword": "パスワードを変更",
+      "currentPassword": "現在のパスワード",
+      "newPassword": "新しいパスワード",
+      "confirmPassword": "新しいパスワード（確認）",
+      "passwordMinLength": "パスワードは8文字以上で入力してください",
+      "passwordMismatch": "パスワードが一致しません",
+      "passwordChanged": "パスワードを変更しました"
+    },
+    "danger": {
+      "title": "危険な操作",
+      "deleteAccount": "アカウントを削除",
+      "deleteButton": "アカウントを削除する",
+      "deleteConfirmation": "削除を確認するには「DELETE」と入力してください",
+      "deleteWarning": "本当にアカウントを削除しますか？この操作は取り消せません。",
+      "deleteSuccess": "アカウントが削除されました"
+    },
+    "messages": {
+      "fetchError": "アカウント情報の取得に失敗しました",
+      "updateSuccess": "プロフィールを更新しました",
+      "updateError": "更新に失敗しました"
+    }
   }
 }

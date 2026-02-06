@@ -881,5 +881,73 @@
         }
       ]
     }
+  },
+  "account": {
+    "title": "Kontoeinstellungen",
+    "status": {
+      "title": "Mitgliedsstatus",
+      "premiumMember": "Premium-Mitglied",
+      "freeMember": "Kostenloses Mitglied",
+      "identityVerification": "Identitätsverifizierung",
+      "verified": "Verifiziert",
+      "unverified": "Nicht verifiziert",
+      "caratPoints": "Carat-Punkte",
+      "totalLikes": "Gesamte Likes",
+      "monthlyPoints": "Monatliche Punkte",
+      "pointsBreakdown": "{{likes}} Likes × {{posts}} Beiträge = {{total}} Punkte"
+    },
+    "info": {
+      "title": "Kontoinformationen",
+      "description": "Verwalten Sie Ihre grundlegenden Kontoinformationen",
+      "email": "E-Mail-Adresse",
+      "emailNote": "Kann nicht geändert werden",
+      "displayLanguage": "Anzeigesprache",
+      "country": "Wohnsitzland",
+      "countryNote": "Kann nicht geändert werden",
+      "membershipType": "Mitgliedschaftstyp",
+      "identityStatus": "Status der Identitätsverifizierung",
+      "paymentInfo": "Zahlungsinformationen",
+      "paymentPlaceholder": "Stripe-Integration kommt bald"
+    },
+    "profile": {
+      "title": "Profil",
+      "description": "Bearbeiten Sie Ihre öffentlichen Profilinformationen",
+      "avatar": "Profilbild",
+      "avatarChange": "Bild ändern",
+      "displayName": "Anzeigename",
+      "bio": "Biografie",
+      "bioPlaceholder": "Erzählen Sie uns von sich...",
+      "location": "Standort",
+      "locationPlaceholder": "z.B., Berlin",
+      "interests": "Interessen",
+      "interestsPlaceholder": "Tags hinzufügen...",
+      "socialLinks": "Soziale Links",
+      "website": "Webseite",
+      "twitter": "Twitter",
+      "instagram": "Instagram"
+    },
+    "security": {
+      "title": "Sicherheit",
+      "changePassword": "Passwort ändern",
+      "currentPassword": "Aktuelles Passwort",
+      "newPassword": "Neues Passwort",
+      "confirmPassword": "Neues Passwort bestätigen",
+      "passwordMinLength": "Das Passwort muss mindestens 8 Zeichen lang sein",
+      "passwordMismatch": "Passwörter stimmen nicht überein",
+      "passwordChanged": "Passwort erfolgreich geändert"
+    },
+    "danger": {
+      "title": "Gefahrenzone",
+      "deleteAccount": "Konto löschen",
+      "deleteButton": "Konto löschen",
+      "deleteConfirmation": "Geben Sie 'DELETE' zur Bestätigung ein",
+      "deleteWarning": "Sind Sie sicher, dass Sie Ihr Konto löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+      "deleteSuccess": "Konto erfolgreich gelöscht"
+    },
+    "messages": {
+      "fetchError": "Kontoinformationen konnten nicht abgerufen werden",
+      "updateSuccess": "Profil erfolgreich aktualisiert",
+      "updateError": "Aktualisierung fehlgeschlagen"
+    }
   }
 }
