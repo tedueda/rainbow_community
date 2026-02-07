@@ -40,6 +40,8 @@ import JewelryCart from './components/jewelry/JewelryCart';
 import JewelryCheckout from './components/jewelry/JewelryCheckout';
 import JewelryOrderComplete from './components/jewelry/JewelryOrderComplete';
 import JewelryAdmin from './components/jewelry/JewelryAdmin';
+import SubscribePage from './pages/SubscribePage';
+import SubscribeSuccessPage from './pages/SubscribeSuccessPage';
 
 
 const FeedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -78,15 +80,9 @@ function AppContent() {
               <LoginForm />
             </PublicRoute>
           } />
-          {/* /subscribe route - placeholder for future Stripe integration */}
-          <Route path="/subscribe" element={
-            <div className="flex items-center justify-center min-h-screen">
-              <div className="text-center p-8">
-                <h1 className="text-2xl font-bold mb-4">有料会員登録</h1>
-                <p className="text-gray-600">決済機能は準備中です</p>
-              </div>
-            </div>
-          } />
+                    {/* Subscription routes */}
+                    <Route path="/subscribe" element={<SubscribePage />} />
+                    <Route path="/subscribe/success" element={<SubscribeSuccessPage />} />
           <Route path="/feed" element={
             <FeedRoute>
               <HomePage />
