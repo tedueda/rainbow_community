@@ -29,6 +29,11 @@ interface AccountData {
   instagram?: string;
   interests?: string[];
   country?: string;
+  // Stripe subscription fields
+  subscription_status?: string;
+  kyc_status?: string;
+  is_legacy_paid?: boolean;
+  stripe_customer_id?: string;
 }
 
 interface UserStats {
@@ -372,13 +377,177 @@ export default function AccountPage() {
               />
             </div>
             
-            {/* 決済情報（プレースホルダ） */}
+            {/* サブスクリプションステータス */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('account.info.paymentInfo')}
+                {t('subscription.status.active') ? t('account.info.paymentInfo') : t('account.info.paymentInfo')}
               </label>
-              <div className="w-full px-4 py-3 border border-dashed border-gray-300 rounded-lg bg-gray-50 text-gray-400 text-center">
-                {t('account.info.paymentPlaceholder')}
+              <div className="space-y-3">
+                {account?.is_legacy_paid ? (
+                  <div className="w-full px-4 py-3 bg-purple-50 border border-purple-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <span className="text-purple-700 font-medium">{t('subscription.legacy_member')}</span>
+                      <span className="px-3 py-1 bg-purple-600 text-white text-sm rounded-full">{t('subscription.status.active')}</span>
+                    </div>
+                  </div>
+                ) : account?.subscription_status ? (
+                  <div className={`w-full px-4 py-3 rounded-lg border ${
+                    account.subscription_status === 'active' 
+                      ? 'bg-green-50 border-green-200' 
+                      : account.subscription_status === 'past_due'
+                      ? 'bg-yellow-50 border-yellow-200'
+                      : 'bg-gray-50 border-gray-200'
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-700">{t('account.info.paymentInfo')}</span>
+                      <span className={`px-3 py-1 text-sm rounded-full ${
+                        account.subscription_status === 'active'
+                          ? 'bg-green-600 text-white'
+                          : account.subscription_status === 'past_due'
+                          ? 'bg-yellow-600 text-white'
+                          : 'bg-gray-600 text-white'
+                      }`}>
+                        {t(`subscription.status.${account.subscription_status}`)}
+                      </span>
+                    </div>
+                    {account.subscription_status === 'active' && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            const res = await fetch(`${API_URL}/api/stripe/create-portal-session`, {
+                              method: 'POST',
+                              headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                              },
+                              body: JSON.stringify({ return_url: window.location.href })
+                            });
+                            if (res.ok) {
+                              const data = await res.json();
+                              window.location.href = data.portal_url;
+                            }
+                          } catch (e) {
+                            console.error('Portal session error:', e);
+                          }
+                        }}
+                        className="mt-3 px-4 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors"
+                      >
+                        {t('subscription.manage_button')}
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="w-full px-4 py-3 border border-dashed border-gray-300 rounded-lg bg-gray-50">
+                    <p className="text-gray-500 text-center mb-3">{t('permission.subscription_required_message')}</p>
+                    <button
+                      onClick={() => navigate('/subscribe')}
+                      className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      {t('permission.subscribe_button')}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* KYCステータス */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('kyc.title')}
+              </label>
+              <div className={`w-full px-4 py-3 rounded-lg border ${
+                account?.is_legacy_paid || account?.kyc_status === 'VERIFIED'
+                  ? 'bg-green-50 border-green-200'
+                  : account?.kyc_status === 'PENDING'
+                  ? 'bg-yellow-50 border-yellow-200'
+                  : account?.kyc_status === 'REJECTED'
+                  ? 'bg-red-50 border-red-200'
+                  : 'bg-gray-50 border-gray-200'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-700">{t('kyc.title')}</span>
+                  <span className={`px-3 py-1 text-sm rounded-full ${
+                    account?.is_legacy_paid || account?.kyc_status === 'VERIFIED'
+                      ? 'bg-green-600 text-white'
+                      : account?.kyc_status === 'PENDING'
+                      ? 'bg-yellow-600 text-white'
+                      : account?.kyc_status === 'REJECTED'
+                      ? 'bg-red-600 text-white'
+                      : 'bg-gray-600 text-white'
+                  }`}>
+                    {account?.is_legacy_paid 
+                      ? t('kyc.status.VERIFIED')
+                      : t(`kyc.status.${account?.kyc_status || 'UNVERIFIED'}`)}
+                  </span>
+                </div>
+                
+                {/* KYC説明とアクションボタン */}
+                {account?.is_legacy_paid ? (
+                  <p className="mt-2 text-sm text-green-700">{t('kyc.verified_message')}</p>
+                ) : account?.kyc_status === 'VERIFIED' ? (
+                  <p className="mt-2 text-sm text-green-700">{t('kyc.verified_message')}</p>
+                ) : account?.kyc_status === 'PENDING' ? (
+                  <p className="mt-2 text-sm text-yellow-700">{t('kyc.pending_message')}</p>
+                ) : account?.kyc_status === 'REJECTED' ? (
+                  <>
+                    <p className="mt-2 text-sm text-red-700">{t('kyc.rejected_message')}</p>
+                    {(account?.subscription_status === 'active' || account?.is_legacy_paid) && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            const res = await fetch(`${API_URL}/api/stripe/create-identity-session`, {
+                              method: 'POST',
+                              headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                              }
+                            });
+                            if (res.ok) {
+                              const data = await res.json();
+                              // Stripe Identity UIを開く（実際の実装ではStripe.jsを使用）
+                              console.log('Identity session created:', data);
+                              alert('KYC verification session created. Please complete verification.');
+                            }
+                          } catch (e) {
+                            console.error('Identity session error:', e);
+                          }
+                        }}
+                        className="mt-3 px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors"
+                      >
+                        {t('kyc.start_button')}
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <p className="mt-2 text-sm text-gray-600">{t('kyc.description')}</p>
+                    {(account?.subscription_status === 'active' || account?.is_legacy_paid) && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            const res = await fetch(`${API_URL}/api/stripe/create-identity-session`, {
+                              method: 'POST',
+                              headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                              }
+                            });
+                            if (res.ok) {
+                              const data = await res.json();
+                              console.log('Identity session created:', data);
+                              alert('KYC verification session created. Please complete verification.');
+                            }
+                          } catch (e) {
+                            console.error('Identity session error:', e);
+                          }
+                        }}
+                        className="mt-3 px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors"
+                      >
+                        {t('kyc.start_button')}
+                      </button>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           </div>
